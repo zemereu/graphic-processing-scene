@@ -1,0 +1,89 @@
+newmtl Concrete
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd concrete.jpg
+map_Ks spec_low.jpg
+
+newmtl Glass
+Ns 96
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd glass.jpg
+map_Ks spec_high.jpg
+
+newmtl FacadeRibbon
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd facade_ribbon.jpg
+map_Ks facade_ribbon_spec.jpg
+
+newmtl FacadeGrid
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd facade_grid.jpg
+map_Ks facade_grid_spec.jpg
+
+newmtl FacadeFins
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd facade_fins.jpg
+map_Ks facade_fins_spec.jpg
+
+newmtl FacadeRandom
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd facade_random.jpg
+map_Ks facade_random_spec.jpg
+
+newmtl Grass
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd grass.jpg
+map_Ks spec_low.jpg
+
+newmtl Water
+Ns 96
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd water.jpg
+map_Ks spec_high.jpg
+
+newmtl Pavement
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd pavement.jpg
+map_Ks spec_low.jpg
+
+newmtl Road
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd road.jpg
+map_Ks spec_low.jpg
