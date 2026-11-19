@@ -19,6 +19,7 @@
 #include "Model3D.hpp"
 
 #include <iostream>
+#include <cmath>
 
 // window
 gps::Window myWindow;
@@ -45,17 +46,22 @@ gps::Camera myCamera(
     glm::vec3(40.0f, 35.0f, 0.0f),
     glm::vec3(0.0f, 1.0f, 0.0f));
 
-GLfloat cameraSpeed = 0.5f;
+float cameraSpeed = 30.0f;
+float cameraSprintFactor = 4.0f;
+
+// time
+double lastFrameTime = 0.0;
+float deltaTime = 0.0f;
 
 GLboolean pressedKeys[1024];
 
 // mouse
 bool firstMouse = true;
 double lastX, lastY;
-float yaw = -90.0f, pitch = 0.0f;   // -90 = camera priveste spre -Z, ca la start
+float yaw = -90.0f, pitch = 0.0f;
 float mouseSensitivity = 0.1f;
 
-// models (scena brutalista)
+// models 
 gps::Model3D terrain;
 gps::Model3D satuMare;
 gps::Model3D genex;
@@ -63,11 +69,18 @@ gps::Model3D genexRestaurant;
 gps::Model3D panorama;
 gps::Model3D telefoane;
 
+// animations
+float restaurantAngle = 0.0f;
+const float RESTAURANT_SPEED = 6.0f; 
+
+// view modes
+bool flatShading = false;
+GLint flatShadingLoc;
+
 // shaders
 gps::Shader myBasicShader;
 
-GLenum glCheckError_(const char* file, int line)
-{
+GLenum glCheckError_(const char* file, int line){
     GLenum errorCode;
     while ((errorCode = glGetError()) != GL_NO_ERROR) {
         std::string error;
@@ -96,7 +109,7 @@ GLenum glCheckError_(const char* file, int line)
 
 void windowResizeCallback(GLFWwindow* window, int width, int height) {
     fprintf(stdout, "Window resized! New width: %d , and height: %d\n", width, height);
-    if (width == 0 || height == 0) return; // fereastra minimizata
+    if (width == 0 || height == 0) return; // window minimized
 
     int fbWidth, fbHeight;
     glfwGetFramebufferSize(window, &fbWidth, &fbHeight);
@@ -109,16 +122,25 @@ void windowResizeCallback(GLFWwindow* window, int width, int height) {
 }
 
 void keyboardCallback(GLFWwindow* window, int key, int scancode, int action, int mode) {
-    if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
-        glfwSetWindowShouldClose(window, GL_TRUE);
-    }
+    if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) { glfwSetWindowShouldClose(window, GL_TRUE); }
 
     if (key == GLFW_KEY_M && action == GLFW_PRESS) {
         if (glfwGetInputMode(window, GLFW_CURSOR) == GLFW_CURSOR_DISABLED)
             glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
         else
             glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-        firstMouse = true; // primul eveniment dupa comutare doar reseteaza lastX/lastY
+        firstMouse = true;
+    }
+
+    if (action == GLFW_PRESS) {
+        if (key == GLFW_KEY_1) glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+        if (key == GLFW_KEY_2) glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+        if (key == GLFW_KEY_3) glPolygonMode(GL_FRONT_AND_BACK, GL_POINT);
+        if (key == GLFW_KEY_4) {
+            flatShading = !flatShading;
+            myBasicShader.useShaderProgram();
+            glUniform1i(flatShadingLoc, flatShading);
+        }
     }
 
     if (key >= 0 && key < 1024) {
@@ -142,13 +164,13 @@ void mouseCallback(GLFWwindow* window, double xpos, double ypos) {
     }
 
     float xoffset = (float)(xpos - lastX) * mouseSensitivity;
-    float yoffset = (float)(lastY - ypos) * mouseSensitivity; // y creste in jos pe ecran
+    float yoffset = (float)(lastY - ypos) * mouseSensitivity;
     lastX = xpos;
     lastY = ypos;
 
     yaw += xoffset;
     pitch += yoffset;
-    pitch = glm::clamp(pitch, -89.0f, 89.0f); // altfel lookAt se intoarce la 90 de grade
+    pitch = glm::clamp(pitch, -89.0f, 89.0f);
 
     myCamera.rotate(pitch, yaw);
     view = myCamera.getViewMatrix();
@@ -157,8 +179,13 @@ void mouseCallback(GLFWwindow* window, double xpos, double ypos) {
 }
 
 void processMovement() {
+    float distance = cameraSpeed * deltaTime;
+    if (pressedKeys[GLFW_KEY_LEFT_SHIFT]) {
+        distance *= cameraSprintFactor;
+    }
+
     if (pressedKeys[GLFW_KEY_W]) {
-        myCamera.move(gps::MOVE_FORWARD, cameraSpeed);
+        myCamera.move(gps::MOVE_FORWARD, distance);
         //update view matrix
         view = myCamera.getViewMatrix();
         myBasicShader.useShaderProgram();
@@ -166,7 +193,7 @@ void processMovement() {
     }
 
     if (pressedKeys[GLFW_KEY_S]) {
-        myCamera.move(gps::MOVE_BACKWARD, cameraSpeed);
+        myCamera.move(gps::MOVE_BACKWARD, distance);
         //update view matrix
         view = myCamera.getViewMatrix();
         myBasicShader.useShaderProgram();
@@ -174,7 +201,7 @@ void processMovement() {
     }
 
     if (pressedKeys[GLFW_KEY_A]) {
-        myCamera.move(gps::MOVE_LEFT, cameraSpeed);
+        myCamera.move(gps::MOVE_LEFT, distance);
         //update view matrix
         view = myCamera.getViewMatrix();
         myBasicShader.useShaderProgram();
@@ -182,12 +209,16 @@ void processMovement() {
     }
 
     if (pressedKeys[GLFW_KEY_D]) {
-        myCamera.move(gps::MOVE_RIGHT, cameraSpeed);
+        myCamera.move(gps::MOVE_RIGHT, distance);
         //update view matrix
         view = myCamera.getViewMatrix();
         myBasicShader.useShaderProgram();
         glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
     }
+}
+
+void updateAnimations() {
+    restaurantAngle = fmod(restaurantAngle + RESTAURANT_SPEED * deltaTime, 360.0f);
 }
 
 void initOpenGLWindow() {
@@ -210,6 +241,7 @@ void initOpenGLState() {
     glEnable(GL_CULL_FACE); // cull face
     glCullFace(GL_BACK); // cull back face
     glFrontFace(GL_CCW); // GL_CCW for counter clock-wise
+    glPointSize(2.0f); // vertex size in point (polygonal) mode
 }
 
 void initModels() {
@@ -259,9 +291,12 @@ void initUniforms() {
     lightColorLoc = glGetUniformLocation(myBasicShader.shaderProgram, "lightColor");
     // send light color to shader
     glUniform3fv(lightColorLoc, 1, glm::value_ptr(lightColor));
+
+    flatShadingLoc = glGetUniformLocation(myBasicShader.shaderProgram, "flatShading");
+    glUniform1i(flatShadingLoc, flatShading);
 }
 
-// deseneaza un model cu matricea lui; normalMatrix se calculeaza separat pentru fiecare obiect
+// draws a model with its own model matrix; normalMatrix is computed per object
 void renderObject(gps::Model3D& object, const glm::mat4& objectModel, gps::Shader shader) {
     shader.useShaderProgram();
     glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(objectModel));
@@ -273,12 +308,15 @@ void renderObject(gps::Model3D& object, const glm::mat4& objectModel, gps::Shade
 void renderScene() {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    // scena brutalista (pozitii in metri)
+    // brutalist scene (positions in meters)
     glm::mat4 identity(1.0f);
     renderObject(terrain, identity, myBasicShader);
     renderObject(satuMare, glm::translate(identity, glm::vec3(0.0f, 0.0f, 60.0f)), myBasicShader);
     renderObject(genex, glm::translate(identity, glm::vec3(260.0f, 0.0f, 196.0f)), myBasicShader);
-    renderObject(genexRestaurant, glm::translate(identity, glm::vec3(260.0f, 108.0f, 229.0f)), myBasicShader);
+    // restaurant: rotate around its own axis first, then move it on top of the tower (T * R)
+    glm::mat4 restaurantModel = glm::translate(identity, glm::vec3(260.0f, 108.0f, 229.0f));
+    restaurantModel = glm::rotate(restaurantModel, glm::radians(restaurantAngle), glm::vec3(0.0f, 1.0f, 0.0f));
+    renderObject(genexRestaurant, restaurantModel, myBasicShader);
     renderObject(panorama, glm::translate(identity, glm::vec3(-60.0f, 40.0f, -260.0f)), myBasicShader);
     renderObject(telefoane, glm::translate(identity, glm::vec3(-170.0f, 0.0f, 140.0f)), myBasicShader);
 }
@@ -306,8 +344,14 @@ int main(int argc, const char* argv[]) {
 
     glCheckError();
     // application loop
+    lastFrameTime = glfwGetTime();
     while (!glfwWindowShouldClose(myWindow.getWindow())) {
+        double now = glfwGetTime();
+        deltaTime = (float)(now - lastFrameTime);
+        lastFrameTime = now;
+
         processMovement();
+        updateAnimations();
         renderScene();
 
         glfwPollEvents();

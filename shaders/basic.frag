@@ -16,6 +16,8 @@ uniform vec3 lightColor;
 // textures
 uniform sampler2D diffuseTexture;
 uniform sampler2D specularTexture;
+// view mode
+uniform bool flatShading;
 
 //components
 vec3 ambient;
@@ -28,7 +30,11 @@ void computeDirLight()
 {
     //compute eye space coordinates
     vec4 fPosEye = view * model * vec4(fPosition, 1.0f);
-    vec3 normalEye = normalize(normalMatrix * fNormal);
+    // flat: face normal from position derivatives (constant across the triangle)
+    // smooth: normal interpolated between vertices
+    vec3 normalEye = flatShading
+        ? normalize(cross(dFdx(fPosEye.xyz), dFdy(fPosEye.xyz)))
+        : normalize(normalMatrix * fNormal);
 
     //normalize light direction
     vec3 lightDirN = vec3(normalize(view * vec4(lightDir, 0.0f)));
