@@ -1,0 +1,4 @@
+*.obj binary
+*.mtl binary
+stb_image.h -diff linguist-vendored
+tiny_obj_loader.h -diff linguist-vendored
