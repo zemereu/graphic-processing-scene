@@ -24,6 +24,7 @@
 
 #include <iostream>
 #include <cmath>
+#include <vector>
 
 // window
 gps::Window myWindow;
@@ -43,6 +44,10 @@ GLint projectionLoc;
 GLint normalMatrixLoc;
 GLint lightDirLoc;
 GLint lightColorLoc;
+GLint numPointLightsLoc;
+GLint pointLightPosLoc;
+GLint pointLightColorLoc;
+GLint emissiveColorLoc;
 
 // camera
 gps::Camera myCamera(
@@ -92,6 +97,25 @@ enum ViewMode { VIEW_SOLID = 0, VIEW_WIREFRAME = 1, VIEW_POINTS = 2 };
 int viewMode = VIEW_SOLID;
 bool flatShading = false;
 GLint flatShadingLoc;
+
+// lighting: day = sun only, night = dim moon + street lamps (point lights)
+bool nightMode = false;
+const glm::vec3 SUN_COLOR(1.0f, 1.0f, 1.0f);
+const glm::vec3 MOON_COLOR(0.10f, 0.12f, 0.20f);
+const glm::vec3 LAMP_COLOR(2.0f, 1.5f, 1.0f);   // warm; above 1 so it still lights the plaza after attenuation
+const glm::vec3 LAMP_GLOW(1.0f, 0.85f, 0.6f);   // color of the bulbs when they are on
+const float LAMP_LIGHT_HEIGHT = 7.3f;           // light source = center of the bulb
+const std::vector<glm::vec3> LAMP_POSITIONS = { // base of each lamp post (max 16, see basic.frag)
+    // plaza in front of the Administrative Palace
+    {-60.0f, 0.0f, 130.0f}, {-20.0f, 0.0f, 130.0f}, {20.0f, 0.0f, 130.0f}, {60.0f, 0.0f, 130.0f},
+    {-60.0f, 0.0f, 170.0f}, {-20.0f, 0.0f, 170.0f}, {20.0f, 0.0f, 170.0f}, {60.0f, 0.0f, 170.0f},
+    // plaza of Palatul Telefoanelor
+    {-195.0f, 0.0f, 175.0f}, {-145.0f, 0.0f, 175.0f},
+    // road under Genex
+    {225.0f, 0.0f, 186.0f}, {295.0f, 0.0f, 186.0f},
+};
+gps::Model3D lampPost;
+gps::Model3D lampBulb;
 
 // UI
 bool showUI = true;
@@ -152,6 +176,15 @@ void applyShadingMode() {
     glUniform1i(flatShadingLoc, flatShading);
 }
 
+void applyLighting() {
+    myBasicShader.useShaderProgram();
+    lightColor = nightMode ? MOON_COLOR : SUN_COLOR;
+    glUniform3fv(lightColorLoc, 1, glm::value_ptr(lightColor));
+    glUniform1i(numPointLightsLoc, nightMode ? (GLint)LAMP_POSITIONS.size() : 0);
+    if (nightMode) glClearColor(0.02f, 0.03f, 0.06f, 1.0f);
+    else glClearColor(0.7f, 0.7f, 0.7f, 1.0f);
+}
+
 void resetTelefoane() {
     telefoanePos = TELEFOANE_START_POS;
     telefoaneAngle = 0.0f;
@@ -175,6 +208,7 @@ void keyboardCallback(GLFWwindow* window, int key, int scancode, int action, int
         if (key == GLFW_KEY_3) { viewMode = VIEW_POINTS; applyViewMode(); }
         if (key == GLFW_KEY_4) { flatShading = !flatShading; applyShadingMode(); }
         if (key == GLFW_KEY_H) showUI = !showUI;
+        if (key == GLFW_KEY_N) { nightMode = !nightMode; applyLighting(); }
     }
 
     if (key >= 0 && key < 1024) {
@@ -302,6 +336,8 @@ void initModels() {
     genexRestaurant.LoadModel("models/brutalism/genex_restaurant.obj");
     panorama.LoadModel("models/brutalism/panorama.obj");
     telefoane.LoadModel("models/brutalism/telefoane.obj");
+    lampPost.LoadModel("models/brutalism/lamp_post.obj");
+    lampBulb.LoadModel("models/brutalism/lamp_bulb.obj");
 }
 
 void initShaders() {
@@ -343,13 +379,29 @@ void initUniforms() {
     // send light color to shader
     glUniform3fv(lightColorLoc, 1, glm::value_ptr(lightColor));
 
+    // street lamps: positions are fixed, so they are sent once (world space)
+    std::vector<glm::vec3> lightPositions;
+    for (const glm::vec3& base : LAMP_POSITIONS) {
+        lightPositions.push_back(base + glm::vec3(0.0f, LAMP_LIGHT_HEIGHT, 0.0f));
+    }
+    pointLightPosLoc = glGetUniformLocation(myBasicShader.shaderProgram, "pointLightPos");
+    glUniform3fv(pointLightPosLoc, (GLsizei)lightPositions.size(), glm::value_ptr(lightPositions[0]));
+    pointLightColorLoc = glGetUniformLocation(myBasicShader.shaderProgram, "pointLightColor");
+    glUniform3fv(pointLightColorLoc, 1, glm::value_ptr(LAMP_COLOR));
+    numPointLightsLoc = glGetUniformLocation(myBasicShader.shaderProgram, "numPointLights");
+    emissiveColorLoc = glGetUniformLocation(myBasicShader.shaderProgram, "emissiveColor");
+
     flatShadingLoc = glGetUniformLocation(myBasicShader.shaderProgram, "flatShading");
     glUniform1i(flatShadingLoc, flatShading);
+
+    applyLighting();
 }
 
 // draws a model with its own model matrix; normalMatrix is computed per object
-void renderObject(gps::Model3D& object, const glm::mat4& objectModel, gps::Shader shader) {
+void renderObject(gps::Model3D& object, const glm::mat4& objectModel, gps::Shader shader,
+                  const glm::vec3& emissive = glm::vec3(0.0f)) {
     shader.useShaderProgram();
+    glUniform3fv(emissiveColorLoc, 1, glm::value_ptr(emissive));
     glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(objectModel));
     glm::mat3 nm = glm::mat3(glm::inverseTranspose(view * objectModel));
     glUniformMatrix3fv(normalMatrixLoc, 1, GL_FALSE, glm::value_ptr(nm));
@@ -374,6 +426,14 @@ void renderScene() {
     telefoaneModel = glm::rotate(telefoaneModel, glm::radians(telefoaneAngle), glm::vec3(0.0f, 1.0f, 0.0f));
     telefoaneModel = glm::scale(telefoaneModel, glm::vec3(telefoaneScale));
     renderObject(telefoane, telefoaneModel, myBasicShader);
+
+    // street lamps; the bulbs glow at night
+    glm::vec3 bulbGlow = nightMode ? LAMP_GLOW : glm::vec3(0.0f);
+    for (const glm::vec3& base : LAMP_POSITIONS) {
+        glm::mat4 lampModel = glm::translate(identity, base);
+        renderObject(lampPost, lampModel, myBasicShader);
+        renderObject(lampBulb, lampModel, myBasicShader, bulbGlow);
+    }
 }
 
 void initUI() {
@@ -419,6 +479,9 @@ void renderUI() {
         if (changed) applyViewMode();
         if (ImGui::Checkbox("Flat shading", &flatShading)) applyShadingMode();
 
+        ImGui::SeparatorText("Lighting");
+        if (ImGui::Checkbox("Night (street lamps on)", &nightMode)) applyLighting();
+
         ImGui::SeparatorText("Palatul Telefoanelor");
         ImGui::Text("Position: %.0f, %.0f", telefoanePos.x, telefoanePos.z);
         ImGui::Text("Rotation: %.0f deg   Scale: %.2f", fmod(telefoaneAngle + 360.0f, 360.0f), telefoaneScale);
@@ -436,6 +499,7 @@ void renderUI() {
             keyRow("Q / E", "Rotate building");
             keyRow("Z / X", "Scale building down / up");
             keyRow("R", "Reset building");
+            keyRow("N", "Day / night");
             keyRow("H", "Hide / show this panel");
             keyRow("Esc", "Exit");
             ImGui::EndTable();
