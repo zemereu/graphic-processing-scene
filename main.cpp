@@ -48,6 +48,12 @@ GLint numPointLightsLoc;
 GLint pointLightPosLoc;
 GLint pointLightColorLoc;
 GLint emissiveColorLoc;
+GLint numSpotLightsLoc;
+GLint spotLightPosLoc;
+GLint spotLightDirLoc;
+GLint spotLightColorLoc;
+GLint spotCutOffLoc;
+GLint spotOuterCutOffLoc;
 
 // camera
 gps::Camera myCamera(
@@ -114,6 +120,20 @@ const std::vector<glm::vec3> LAMP_POSITIONS = { // base of each lamp post (max 1
     // road under Genex
     {225.0f, 0.0f, 186.0f}, {295.0f, 0.0f, 186.0f},
 };
+// floodlights (spot lights) on the Administrative Palace, on at night
+struct SpotLight {
+    glm::vec3 position;
+    glm::vec3 target;   // point the floodlight is aimed at
+};
+const std::vector<SpotLight> SPOT_LIGHTS = { // max 4, see basic.frag
+    {{-5.0f, 14.5f, 84.0f}, {0.0f, 70.0f, 68.0f}},  // on the roof of the low wing, aimed at the main tower
+    {{5.0f, 14.5f, 84.0f},  {0.0f, 70.0f, 68.0f}},
+    {{25.0f, 0.2f, 90.0f},  {19.0f, 40.0f, 72.0f}}, // on the plaza, aimed at the second block
+};
+const glm::vec3 SPOT_COLOR(5.0f, 5.0f, 5.5f);  // cool white, strong enough to reach the top of the tower
+const float SPOT_INNER_ANGLE = 10.0f;          // degrees: full intensity inside
+const float SPOT_OUTER_ANGLE = 15.0f;          // degrees: fades out between inner and outer
+gps::Model3D floodlight;
 gps::Model3D lampPost;
 gps::Model3D lampBulb;
 
@@ -177,6 +197,7 @@ GLenum glCheckError_(const char* file, int line) {
 void windowResizeCallback(GLFWwindow* window, int width, int height) {
     fprintf(stdout, "Window resized! New width: %d , and height: %d\n", width, height);
     if (width == 0 || height == 0) return; // window minimized
+    firstMouse = true; // the cursor is re-centered on resize; don't treat that as mouse movement
 
     int fbWidth, fbHeight;
     glfwGetFramebufferSize(window, &fbWidth, &fbHeight);
@@ -205,6 +226,7 @@ void applyLighting() {
     lightColor = nightMode ? MOON_COLOR : SUN_COLOR;
     glUniform3fv(lightColorLoc, 1, glm::value_ptr(lightColor));
     glUniform1i(numPointLightsLoc, nightMode ? (GLint)LAMP_POSITIONS.size() : 0);
+    glUniform1i(numSpotLightsLoc, nightMode ? (GLint)SPOT_LIGHTS.size() : 0);
     if (nightMode) glClearColor(0.02f, 0.03f, 0.06f, 1.0f);
     else glClearColor(0.7f, 0.7f, 0.7f, 1.0f);
 }
@@ -426,6 +448,7 @@ void initModels() {
     telefoane.LoadModel("models/brutalism/telefoane.obj");
     lampPost.LoadModel("models/brutalism/lamp_post.obj");
     lampBulb.LoadModel("models/brutalism/lamp_bulb.obj");
+    floodlight.LoadModel("models/brutalism/floodlight.obj");
 }
 
 void initShaders() {
@@ -479,6 +502,25 @@ void initUniforms() {
     numPointLightsLoc = glGetUniformLocation(myBasicShader.shaderProgram, "numPointLights");
     emissiveColorLoc = glGetUniformLocation(myBasicShader.shaderProgram, "emissiveColor");
 
+    // floodlights: fixed, sent once (world space)
+    std::vector<glm::vec3> spotPositions, spotDirections;
+    for (const SpotLight& spot : SPOT_LIGHTS) {
+        spotPositions.push_back(spot.position);
+        spotDirections.push_back(glm::normalize(spot.target - spot.position));
+    }
+    spotLightPosLoc = glGetUniformLocation(myBasicShader.shaderProgram, "spotLightPos");
+    glUniform3fv(spotLightPosLoc, (GLsizei)spotPositions.size(), glm::value_ptr(spotPositions[0]));
+    spotLightDirLoc = glGetUniformLocation(myBasicShader.shaderProgram, "spotLightDir");
+    glUniform3fv(spotLightDirLoc, (GLsizei)spotDirections.size(), glm::value_ptr(spotDirections[0]));
+    spotLightColorLoc = glGetUniformLocation(myBasicShader.shaderProgram, "spotLightColor");
+    glUniform3fv(spotLightColorLoc, 1, glm::value_ptr(SPOT_COLOR));
+    // the shader compares cosines, so the angles are sent as cos(angle)
+    spotCutOffLoc = glGetUniformLocation(myBasicShader.shaderProgram, "spotCutOff");
+    glUniform1f(spotCutOffLoc, cos(glm::radians(SPOT_INNER_ANGLE)));
+    spotOuterCutOffLoc = glGetUniformLocation(myBasicShader.shaderProgram, "spotOuterCutOff");
+    glUniform1f(spotOuterCutOffLoc, cos(glm::radians(SPOT_OUTER_ANGLE)));
+    numSpotLightsLoc = glGetUniformLocation(myBasicShader.shaderProgram, "numSpotLights");
+
     flatShadingLoc = glGetUniformLocation(myBasicShader.shaderProgram, "flatShading");
     glUniform1i(flatShadingLoc, flatShading);
 
@@ -521,6 +563,9 @@ void renderScene() {
         glm::mat4 lampModel = glm::translate(identity, base);
         renderObject(lampPost, lampModel, myBasicShader);
         renderObject(lampBulb, lampModel, myBasicShader, bulbGlow);
+    }
+    for (const SpotLight& spot : SPOT_LIGHTS) {
+        renderObject(floodlight, glm::translate(identity, spot.position), myBasicShader, bulbGlow);
     }
 }
 
@@ -568,7 +613,7 @@ void renderUI() {
         if (ImGui::Checkbox("Flat shading", &flatShading)) applyShadingMode();
 
         ImGui::SeparatorText("Lighting");
-        if (ImGui::Checkbox("Night (street lamps on)", &nightMode)) applyLighting();
+        if (ImGui::Checkbox("Night (street lamps + floodlights)", &nightMode)) applyLighting();
 
         ImGui::SeparatorText("Camera tour");
         if (tourActive) {

@@ -17,7 +17,7 @@ namespace gps {
 		glfwWindowHint(GLFW_SRGB_CAPABLE, GLFW_TRUE);
 
 		//for antialising
-		glfwWindowHint(GLFW_SAMPLES, 4);
+		// glfwWindowHint(GLFW_SAMPLES, 4);
 
 		this->window = glfwCreateWindow(width, height, title, NULL, NULL);
 		if (!this->window) { throw std::runtime_error("Could not create GLFW3 window!"); }

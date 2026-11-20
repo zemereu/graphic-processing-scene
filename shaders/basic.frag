@@ -18,6 +18,14 @@ uniform vec3 lightColor;
 uniform int numPointLights;
 uniform vec3 pointLightPos[MAX_POINT_LIGHTS];
 uniform vec3 pointLightColor;
+// spot lights (floodlights), position and direction in world space
+#define MAX_SPOT_LIGHTS 4
+uniform int numSpotLights;
+uniform vec3 spotLightPos[MAX_SPOT_LIGHTS];
+uniform vec3 spotLightDir[MAX_SPOT_LIGHTS];
+uniform vec3 spotLightColor;
+uniform float spotCutOff;       // cosine of the inner cone angle (full intensity inside)
+uniform float spotOuterCutOff;  // cosine of the outer cone angle (no light outside)
 // light emitted by the object itself (lamp bulbs at night)
 uniform vec3 emissiveColor;
 // textures
@@ -33,6 +41,9 @@ const float shininess = 32.0f;
 const float constantAtt = 1.0f;
 const float linearAtt = 0.09f;
 const float quadraticAtt = 0.032f;
+// spot light attenuation for a range of ~160 m (Lab 8, table 1)
+const float spotLinearAtt = 0.027f;
+const float spotQuadraticAtt = 0.0028f;
 
 vec3 fPosEye;
 vec3 normalEye;
@@ -76,6 +87,23 @@ void main()
         float dist = length(toLight);
         float att = 1.0f / (constantAtt + linearAtt * dist + quadraticAtt * dist * dist);
         addLight(toLight / dist, pointLightColor, att);
+    }
+
+    // spot lights: like point lights, but only inside a cone around the light direction
+    for (int i = 0; i < numSpotLights; i++) {
+        vec3 lightPosEye = (view * vec4(spotLightPos[i], 1.0f)).xyz;
+        vec3 spotDirEye = normalize((view * vec4(spotLightDir[i], 0.0f)).xyz);
+        vec3 toLight = lightPosEye - fPosEye;
+        float dist = length(toLight);
+        vec3 lightDirEye = toLight / dist;
+
+        // angle between the spot direction and the direction towards this fragment;
+        // smooth falloff between the inner and the outer cone instead of a hard edge
+        float theta = dot(-lightDirEye, spotDirEye);
+        float intensity = clamp((theta - spotOuterCutOff) / (spotCutOff - spotOuterCutOff), 0.0f, 1.0f);
+
+        float att = 1.0f / (constantAtt + spotLinearAtt * dist + spotQuadraticAtt * dist * dist);
+        addLight(lightDirEye, spotLightColor, att * intensity);
     }
 
     vec3 texColor = texture(diffuseTexture, fTexCoords).rgb;
