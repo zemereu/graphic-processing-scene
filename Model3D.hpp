@@ -12,6 +12,12 @@
 
 namespace gps {
 
+    // axis-aligned bounding box
+    struct BoundingBox {
+        glm::vec3 min;
+        glm::vec3 max;
+    };
+
     class Model3D {
 
     public:
@@ -22,6 +28,9 @@ namespace gps {
 		void LoadModel(std::string fileName, std::string basePath);
 
 		void Draw(gps::Shader shaderProgram);
+
+		// one box per mesh (in model coordinates), used for collision detection
+		std::vector<BoundingBox> GetMeshBounds();
 
     private:
 		// Component meshes - group of objects

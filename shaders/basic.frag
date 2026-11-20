@@ -33,6 +33,9 @@ uniform sampler2D diffuseTexture;
 uniform sampler2D specularTexture;
 // view mode
 uniform bool flatShading;
+// fog
+uniform float fogDensity;   // 0 = no fog
+uniform vec3 fogColor;      // same as the sky, so distant objects blend into it
 
 const float ambientStrength = 0.2f;
 const float specularStrength = 0.5f;
@@ -110,5 +113,12 @@ void main()
     vec3 specColor = texture(specularTexture, fTexCoords).rgb;
 
     vec3 color = (ambient + diffuse) * texColor + specular * specColor + emissiveColor * texColor;
-    fColor = vec4(min(color, 1.0f), 1.0f);
+    color = min(color, 1.0f);
+
+    // exponential squared fog: almost clear nearby, then thickens quickly with distance
+    float fragmentDistance = length(fPosEye);
+    float fogFactor = exp(-pow(fragmentDistance * fogDensity, 2.0f)); // 1 = no fog, 0 = only fog
+    color = mix(fogColor, color, clamp(fogFactor, 0.0f, 1.0f));
+
+    fColor = vec4(color, 1.0f);
 }

@@ -53,4 +53,15 @@ namespace gps {
     glm::vec3 Camera::getFrontDirection() {
         return cameraFrontDirection;
     }
+
+    //camera position (used for collision detection)
+    glm::vec3 Camera::getPosition() {
+        return cameraPosition;
+    }
+
+    //move the camera to a position, keeping the viewing direction
+    void Camera::setPosition(glm::vec3 position) {
+        cameraPosition = position;
+        cameraTarget = cameraPosition + cameraFrontDirection;
+    }
 }

@@ -209,6 +209,25 @@ namespace gps {
 		return textureID;
 	}
 
+	// One box per mesh (in model coordinates), used for collision detection.
+	// A building made of several meshes (tower, wing, ...) gets a tighter shape than a single box.
+	std::vector<BoundingBox> Model3D::GetMeshBounds() {
+
+		std::vector<BoundingBox> bounds;
+		for (size_t i = 0; i < meshes.size(); i++) {
+
+			if (meshes[i].vertices.empty())
+				continue;
+			BoundingBox box = { meshes[i].vertices[0].Position, meshes[i].vertices[0].Position };
+			for (const Vertex& v : meshes[i].vertices) {
+				box.min = glm::min(box.min, v.Position);
+				box.max = glm::max(box.max, v.Position);
+			}
+			bounds.push_back(box);
+		}
+		return bounds;
+	}
+
 	Model3D::~Model3D() {
 
 		for (size_t i = 0; i < loadedTextures.size(); i++) {

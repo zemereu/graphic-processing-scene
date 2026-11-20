@@ -25,6 +25,16 @@
 #include <iostream>
 #include <cmath>
 #include <vector>
+#include <random>
+#include <cfloat>
+
+#ifdef _WIN32
+// on laptops with two GPUs, ask the driver to run this program on the dedicated one
+extern "C" {
+    __declspec(dllexport) unsigned long NvOptimusEnablement = 1;
+    __declspec(dllexport) int AmdPowerXpressRequestHighPerformance = 1;
+}
+#endif
 
 // window
 gps::Window myWindow;
@@ -161,6 +171,36 @@ std::vector<float> tourKeyTimes;      // time at which the camera reaches each k
 bool tourActive = false;
 float tourTime = 0.0f;
 
+// fog: distant objects fade into the sky color
+const glm::vec3 DAY_SKY(0.7f, 0.7f, 0.7f);
+const glm::vec3 NIGHT_SKY(0.02f, 0.03f, 0.06f);
+bool fogEnabled = true;
+float fogDensity = 0.0018f;
+GLint fogDensityLoc;
+GLint fogColorLoc;
+
+// rain: line segments animated entirely in the vertex shader (shaders/rain.vert)
+const int RAIN_DROPS = 20000;
+const float RAIN_FALL_SPEED = 25.0f;   // meters per second
+const float RAIN_AREA_SIZE = 80.0f;    // the rain box around the camera, meters
+const float RAIN_AREA_HEIGHT = 40.0f;
+const float RAIN_DROP_LENGTH = 0.8f;
+bool rainEnabled = false;
+float windSpeed = 6.0f;        // meters per second
+float windDirection = 30.0f;   // degrees, 0 = blowing towards +X
+gps::Shader rainShader;
+GLuint rainVAO, rainVBO;
+GLint rainViewLoc, rainProjectionLoc, rainCameraPosLoc, rainTimeLoc, rainFallSpeedLoc, rainWindLoc;
+GLint rainAreaSizeLoc, rainAreaHeightLoc, rainDropLengthLoc, rainColorLoc;
+
+// collision detection: the camera is a sphere that can't enter the buildings' boxes
+const float CAMERA_RADIUS = 1.5f;      // meters
+const float CAMERA_MIN_HEIGHT = 1.8f;  // eye height above the ground plane (y = 0)
+bool collisionsEnabled = true;
+std::vector<gps::BoundingBox> satuMareBounds, genexBounds, restaurantBounds, panoramaBounds,
+                              telefoaneBounds, lampPostBounds, floodlightBounds; // model space, from the meshes
+std::vector<gps::BoundingBox> worldColliders; // world space, rebuilt every frame (some objects move)
+
 // UI
 bool showUI = true;
 
@@ -221,14 +261,112 @@ void applyShadingMode() {
     glUniform1i(flatShadingLoc, flatShading);
 }
 
+// model matrices, shared by rendering and collision detection
+glm::mat4 satuMareMatrix() { return glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, 60.0f)); }
+glm::mat4 genexMatrix() { return glm::translate(glm::mat4(1.0f), glm::vec3(260.0f, 0.0f, 196.0f)); }
+glm::mat4 panoramaMatrix() { return glm::translate(glm::mat4(1.0f), glm::vec3(-60.0f, 40.0f, -260.0f)); }
+
+glm::mat4 restaurantMatrix() {
+    // rotate around its own axis first, then move it on top of the tower (T * R)
+    glm::mat4 m = glm::translate(glm::mat4(1.0f), glm::vec3(260.0f, 108.0f, 229.0f));
+    return glm::rotate(m, glm::radians(restaurantAngle), glm::vec3(0.0f, 1.0f, 0.0f));
+}
+
+glm::mat4 telefoaneMatrix() {
+    // T * R * S: scale and rotate around the building's own base, then move it into place
+    glm::mat4 m = glm::translate(glm::mat4(1.0f), telefoanePos);
+    m = glm::rotate(m, glm::radians(telefoaneAngle), glm::vec3(0.0f, 1.0f, 0.0f));
+    return glm::scale(m, glm::vec3(telefoaneScale));
+}
+
+// box in model space -> box in world space that contains it (the 8 corners are transformed)
+gps::BoundingBox transformBox(const gps::BoundingBox& box, const glm::mat4& m) {
+    gps::BoundingBox result = { glm::vec3(FLT_MAX), glm::vec3(-FLT_MAX) };
+    for (int i = 0; i < 8; i++) {
+        glm::vec3 corner((i & 1) ? box.max.x : box.min.x,
+                         (i & 2) ? box.max.y : box.min.y,
+                         (i & 4) ? box.max.z : box.min.z);
+        glm::vec3 p = glm::vec3(m * glm::vec4(corner, 1.0f));
+        result.min = glm::min(result.min, p);
+        result.max = glm::max(result.max, p);
+    }
+    return result;
+}
+
+void addColliders(const std::vector<gps::BoundingBox>& boxes, const glm::mat4& m) {
+    for (const gps::BoundingBox& box : boxes) {
+        worldColliders.push_back(transformBox(box, m));
+    }
+}
+
+void updateColliders() {
+    worldColliders.clear();
+    addColliders(satuMareBounds, satuMareMatrix());
+    addColliders(genexBounds, genexMatrix());
+    addColliders(restaurantBounds, restaurantMatrix());
+    addColliders(panoramaBounds, panoramaMatrix());
+    addColliders(telefoaneBounds, telefoaneMatrix());
+    for (const glm::vec3& base : LAMP_POSITIONS) {
+        addColliders(lampPostBounds, glm::translate(glm::mat4(1.0f), base));
+    }
+    for (const SpotLight& spot : SPOT_LIGHTS) {
+        addColliders(floodlightBounds, glm::translate(glm::mat4(1.0f), spot.position));
+    }
+}
+
+// sphere vs box: the closest point of the box to the sphere center must be farther than the radius
+bool collides(const glm::vec3& center) {
+    for (const gps::BoundingBox& box : worldColliders) {
+        glm::vec3 closest = glm::clamp(center, box.min, box.max);
+        glm::vec3 d = center - closest;
+        if (glm::dot(d, d) < CAMERA_RADIUS * CAMERA_RADIUS) {
+            return true;
+        }
+    }
+    return false;
+}
+
+// moves the camera, but stops it at walls; the free components of the move are kept,
+// so the camera slides along a wall instead of getting stuck on it
+void moveCamera(gps::MOVE_DIRECTION direction, float distance) {
+    glm::vec3 oldPos = myCamera.getPosition();
+    myCamera.move(direction, distance);
+    if (!collisionsEnabled) return;
+
+    glm::vec3 newPos = myCamera.getPosition();
+    newPos.y = glm::max(newPos.y, CAMERA_MIN_HEIGHT);
+    if (!collides(newPos) || collides(oldPos)) { // already inside (e.g. collisions just turned on): let it out
+        myCamera.setPosition(newPos);
+        return;
+    }
+
+    glm::vec3 pos = oldPos;
+    glm::vec3 delta = newPos - oldPos;
+    for (int axis = 0; axis < 3; axis++) {
+        glm::vec3 attempt = pos;
+        attempt[axis] += delta[axis];
+        if (!collides(attempt)) {
+            pos = attempt;
+        }
+    }
+    myCamera.setPosition(pos);
+}
+
 void applyLighting() {
     myBasicShader.useShaderProgram();
     lightColor = nightMode ? MOON_COLOR : SUN_COLOR;
     glUniform3fv(lightColorLoc, 1, glm::value_ptr(lightColor));
     glUniform1i(numPointLightsLoc, nightMode ? (GLint)LAMP_POSITIONS.size() : 0);
     glUniform1i(numSpotLightsLoc, nightMode ? (GLint)SPOT_LIGHTS.size() : 0);
-    if (nightMode) glClearColor(0.02f, 0.03f, 0.06f, 1.0f);
-    else glClearColor(0.7f, 0.7f, 0.7f, 1.0f);
+    // the fog has the same color as the sky, so far objects blend into the background
+    glm::vec3 sky = nightMode ? NIGHT_SKY : DAY_SKY;
+    glClearColor(sky.r, sky.g, sky.b, 1.0f);
+    glUniform3fv(fogColorLoc, 1, glm::value_ptr(sky));
+}
+
+void applyFog() {
+    myBasicShader.useShaderProgram();
+    glUniform1f(fogDensityLoc, fogEnabled ? fogDensity : 0.0f);
 }
 
 // Catmull-Rom spline: passes through p1 (t = 0) and p2 (t = 1), p0 and p3 shape the curve
@@ -315,6 +453,9 @@ void keyboardCallback(GLFWwindow* window, int key, int scancode, int action, int
         if (key == GLFW_KEY_4) { flatShading = !flatShading; applyShadingMode(); }
         if (key == GLFW_KEY_H) showUI = !showUI;
         if (key == GLFW_KEY_N) { nightMode = !nightMode; applyLighting(); }
+        if (key == GLFW_KEY_F) { fogEnabled = !fogEnabled; applyFog(); }
+        if (key == GLFW_KEY_P) rainEnabled = !rainEnabled;
+        if (key == GLFW_KEY_C) collisionsEnabled = !collisionsEnabled;
         if (key == GLFW_KEY_T) { if (tourActive) stopTour(); else startTour(); }
     }
 
@@ -357,13 +498,15 @@ void mouseCallback(GLFWwindow* window, double xpos, double ypos) {
 void processMovement() {
     if (tourActive) return; // the tour controls the camera
 
+    updateColliders(); // the building and the restaurant may have moved since the last frame
+
     float distance = cameraSpeed * deltaTime;
     if (pressedKeys[GLFW_KEY_LEFT_SHIFT]) {
         distance *= cameraSprintFactor;
     }
 
     if (pressedKeys[GLFW_KEY_W]) {
-        myCamera.move(gps::MOVE_FORWARD, distance);
+        moveCamera(gps::MOVE_FORWARD, distance);
         //update view matrix
         view = myCamera.getViewMatrix();
         myBasicShader.useShaderProgram();
@@ -371,7 +514,7 @@ void processMovement() {
     }
 
     if (pressedKeys[GLFW_KEY_S]) {
-        myCamera.move(gps::MOVE_BACKWARD, distance);
+        moveCamera(gps::MOVE_BACKWARD, distance);
         //update view matrix
         view = myCamera.getViewMatrix();
         myBasicShader.useShaderProgram();
@@ -379,7 +522,7 @@ void processMovement() {
     }
 
     if (pressedKeys[GLFW_KEY_A]) {
-        myCamera.move(gps::MOVE_LEFT, distance);
+        moveCamera(gps::MOVE_LEFT, distance);
         //update view matrix
         view = myCamera.getViewMatrix();
         myBasicShader.useShaderProgram();
@@ -387,7 +530,7 @@ void processMovement() {
     }
 
     if (pressedKeys[GLFW_KEY_D]) {
-        myCamera.move(gps::MOVE_RIGHT, distance);
+        moveCamera(gps::MOVE_RIGHT, distance);
         //update view matrix
         view = myCamera.getViewMatrix();
         myBasicShader.useShaderProgram();
@@ -449,12 +592,89 @@ void initModels() {
     lampPost.LoadModel("models/brutalism/lamp_post.obj");
     lampBulb.LoadModel("models/brutalism/lamp_bulb.obj");
     floodlight.LoadModel("models/brutalism/floodlight.obj");
+
+    // collision shapes, computed once from the meshes
+    satuMareBounds = satuMare.GetMeshBounds();
+    genexBounds = genex.GetMeshBounds();
+    restaurantBounds = genexRestaurant.GetMeshBounds();
+    panoramaBounds = panorama.GetMeshBounds();
+    telefoaneBounds = telefoane.GetMeshBounds();
+    lampPostBounds = lampPost.GetMeshBounds();
+    floodlightBounds = floodlight.GetMeshBounds();
 }
 
 void initShaders() {
     myBasicShader.loadShader(
         "shaders/basic.vert",
         "shaders/basic.frag");
+    rainShader.loadShader(
+        "shaders/rain.vert",
+        "shaders/rain.frag");
+}
+
+void initRain() {
+    // each drop: 2 vertices with the same random seed, w = 0 (bottom) / 1 (top)
+    std::mt19937 rng(42);
+    std::uniform_real_distribution<float> random01(0.0f, 1.0f);
+    std::vector<glm::vec4> vertices;
+    for (int i = 0; i < RAIN_DROPS; i++) {
+        glm::vec3 seed(random01(rng), random01(rng), random01(rng));
+        vertices.push_back(glm::vec4(seed, 0.0f));
+        vertices.push_back(glm::vec4(seed, 1.0f));
+    }
+
+    glGenVertexArrays(1, &rainVAO);
+    glBindVertexArray(rainVAO);
+    glGenBuffers(1, &rainVBO);
+    glBindBuffer(GL_ARRAY_BUFFER, rainVBO);
+    glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(glm::vec4), vertices.data(), GL_STATIC_DRAW);
+    glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, sizeof(glm::vec4), (GLvoid*)0);
+    glEnableVertexAttribArray(0);
+    glBindVertexArray(0);
+
+    GLuint program = rainShader.shaderProgram;
+    rainViewLoc = glGetUniformLocation(program, "view");
+    rainProjectionLoc = glGetUniformLocation(program, "projection");
+    rainCameraPosLoc = glGetUniformLocation(program, "cameraPos");
+    rainTimeLoc = glGetUniformLocation(program, "time");
+    rainFallSpeedLoc = glGetUniformLocation(program, "fallSpeed");
+    rainWindLoc = glGetUniformLocation(program, "wind");
+    rainAreaSizeLoc = glGetUniformLocation(program, "areaSize");
+    rainAreaHeightLoc = glGetUniformLocation(program, "areaHeight");
+    rainDropLengthLoc = glGetUniformLocation(program, "dropLength");
+    rainColorLoc = glGetUniformLocation(program, "rainColor");
+}
+
+void renderRain() {
+    if (!rainEnabled) return;
+
+    rainShader.useShaderProgram();
+    glm::vec3 cameraPos = glm::vec3(glm::inverse(view)[3]); // camera position = translation of the inverse view
+    glm::vec2 wind = windSpeed * glm::vec2(cos(glm::radians(windDirection)), sin(glm::radians(windDirection)));
+    // drops reflect the sky: lighter by day, dim at night
+    glm::vec4 color = nightMode ? glm::vec4(0.45f, 0.5f, 0.6f, 0.35f) : glm::vec4(0.8f, 0.85f, 0.9f, 0.45f);
+
+    glUniformMatrix4fv(rainViewLoc, 1, GL_FALSE, glm::value_ptr(view));
+    glUniformMatrix4fv(rainProjectionLoc, 1, GL_FALSE, glm::value_ptr(projection));
+    glUniform3fv(rainCameraPosLoc, 1, glm::value_ptr(cameraPos));
+    glUniform1f(rainTimeLoc, (float)glfwGetTime());
+    glUniform1f(rainFallSpeedLoc, RAIN_FALL_SPEED);
+    glUniform2fv(rainWindLoc, 1, glm::value_ptr(wind));
+    glUniform1f(rainAreaSizeLoc, RAIN_AREA_SIZE);
+    glUniform1f(rainAreaHeightLoc, RAIN_AREA_HEIGHT);
+    glUniform1f(rainDropLengthLoc, RAIN_DROP_LENGTH);
+    glUniform4fv(rainColorLoc, 1, glm::value_ptr(color));
+
+    // transparent: blend over the scene, test against its depth (no rain inside buildings),
+    // but don't write depth, so drops never hide each other
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glDepthMask(GL_FALSE);
+    glBindVertexArray(rainVAO);
+    glDrawArrays(GL_LINES, 0, RAIN_DROPS * 2);
+    glBindVertexArray(0);
+    glDepthMask(GL_TRUE);
+    glDisable(GL_BLEND);
 }
 
 void initUniforms() {
@@ -524,6 +744,10 @@ void initUniforms() {
     flatShadingLoc = glGetUniformLocation(myBasicShader.shaderProgram, "flatShading");
     glUniform1i(flatShadingLoc, flatShading);
 
+    fogDensityLoc = glGetUniformLocation(myBasicShader.shaderProgram, "fogDensity");
+    fogColorLoc = glGetUniformLocation(myBasicShader.shaderProgram, "fogColor");
+    applyFog();
+
     applyLighting();
 }
 
@@ -544,18 +768,11 @@ void renderScene() {
     // brutalist scene (positions in meters)
     glm::mat4 identity(1.0f);
     renderObject(terrain, identity, myBasicShader);
-    renderObject(satuMare, glm::translate(identity, glm::vec3(0.0f, 0.0f, 60.0f)), myBasicShader);
-    renderObject(genex, glm::translate(identity, glm::vec3(260.0f, 0.0f, 196.0f)), myBasicShader);
-    // restaurant: rotate around its own axis first, then move it on top of the tower (T * R)
-    glm::mat4 restaurantModel = glm::translate(identity, glm::vec3(260.0f, 108.0f, 229.0f));
-    restaurantModel = glm::rotate(restaurantModel, glm::radians(restaurantAngle), glm::vec3(0.0f, 1.0f, 0.0f));
-    renderObject(genexRestaurant, restaurantModel, myBasicShader);
-    renderObject(panorama, glm::translate(identity, glm::vec3(-60.0f, 40.0f, -260.0f)), myBasicShader);
-    // T * R * S: scale and rotate around the building's own base, then move it into place
-    glm::mat4 telefoaneModel = glm::translate(identity, telefoanePos);
-    telefoaneModel = glm::rotate(telefoaneModel, glm::radians(telefoaneAngle), glm::vec3(0.0f, 1.0f, 0.0f));
-    telefoaneModel = glm::scale(telefoaneModel, glm::vec3(telefoaneScale));
-    renderObject(telefoane, telefoaneModel, myBasicShader);
+    renderObject(satuMare, satuMareMatrix(), myBasicShader);
+    renderObject(genex, genexMatrix(), myBasicShader);
+    renderObject(genexRestaurant, restaurantMatrix(), myBasicShader);
+    renderObject(panorama, panoramaMatrix(), myBasicShader);
+    renderObject(telefoane, telefoaneMatrix(), myBasicShader);
 
     // street lamps; the bulbs glow at night
     glm::vec3 bulbGlow = nightMode ? LAMP_GLOW : glm::vec3(0.0f);
@@ -602,6 +819,9 @@ void renderUI() {
         ImGui::Begin("Controls", nullptr,
             ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings);
 
+        ImGui::Text("FPS: %.0f (%.1f ms/frame)", ImGui::GetIO().Framerate, 1000.0f / ImGui::GetIO().Framerate);
+        ImGui::TextDisabled("GPU: %s", (const char*)glGetString(GL_RENDERER));
+
         ImGui::SeparatorText("View mode");
         bool changed = false;
         changed |= ImGui::RadioButton("Solid", &viewMode, VIEW_SOLID);
@@ -614,6 +834,18 @@ void renderUI() {
 
         ImGui::SeparatorText("Lighting");
         if (ImGui::Checkbox("Night (street lamps + floodlights)", &nightMode)) applyLighting();
+
+        ImGui::SeparatorText("Fog");
+        if (ImGui::Checkbox("Fog", &fogEnabled)) applyFog();
+        if (ImGui::SliderFloat("Density", &fogDensity, 0.0005f, 0.01f, "%.4f")) applyFog();
+
+        ImGui::SeparatorText("Weather");
+        ImGui::Checkbox("Rain", &rainEnabled);
+        ImGui::SliderFloat("Wind speed", &windSpeed, 0.0f, 20.0f, "%.0f m/s");
+        ImGui::SliderFloat("Wind direction", &windDirection, 0.0f, 360.0f, "%.0f deg");
+
+        ImGui::SeparatorText("Camera");
+        ImGui::Checkbox("Collisions", &collisionsEnabled);
 
         ImGui::SeparatorText("Camera tour");
         if (tourActive) {
@@ -642,6 +874,9 @@ void renderUI() {
             keyRow("Z / X", "Scale building down / up");
             keyRow("R", "Reset building");
             keyRow("N", "Day / night");
+            keyRow("F", "Fog on / off");
+            keyRow("P", "Rain on / off");
+            keyRow("C", "Collisions on / off");
             keyRow("T", "Start / stop camera tour");
             keyRow("H", "Hide / show this panel");
             keyRow("Esc", "Exit");
@@ -680,6 +915,7 @@ int main(int argc, const char* argv[]) {
     initModels();
     initShaders();
     initUniforms();
+    initRain();
     setWindowCallbacks();
     initUI();
     initTour();
@@ -697,6 +933,7 @@ int main(int argc, const char* argv[]) {
         processObjectTransform();
         updateAnimations();
         renderScene();
+        renderRain();
         renderUI();
 
         glfwPollEvents();

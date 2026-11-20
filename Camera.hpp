@@ -25,6 +25,10 @@ namespace gps {
         void setLookAt(glm::vec3 position, glm::vec3 target);
         //current viewing direction (normalized)
         glm::vec3 getFrontDirection();
+        //camera position (used for collision detection)
+        glm::vec3 getPosition();
+        //move the camera to a position, keeping the viewing direction
+        void setPosition(glm::vec3 position);
 
     private:
         glm::vec3 cameraPosition;
