@@ -40,4 +40,17 @@ namespace gps {
         cameraRightDirection = glm::normalize(glm::cross(cameraFrontDirection, cameraUpDirection));
         cameraTarget = cameraPosition + cameraFrontDirection;
     }
+
+    //place the camera directly (used by the camera tour)
+    void Camera::setLookAt(glm::vec3 position, glm::vec3 target) {
+        cameraPosition = position;
+        cameraTarget = target;
+        cameraFrontDirection = glm::normalize(target - position);
+        cameraRightDirection = glm::normalize(glm::cross(cameraFrontDirection, cameraUpDirection));
+    }
+
+    //current viewing direction (normalized)
+    glm::vec3 Camera::getFrontDirection() {
+        return cameraFrontDirection;
+    }
 }

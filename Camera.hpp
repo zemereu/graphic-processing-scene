@@ -5,9 +5,9 @@
 #include <glm/gtx/transform.hpp>
 
 namespace gps {
-    
-    enum MOVE_DIRECTION {MOVE_FORWARD, MOVE_BACKWARD, MOVE_RIGHT, MOVE_LEFT};
-    
+
+    enum MOVE_DIRECTION { MOVE_FORWARD, MOVE_BACKWARD, MOVE_RIGHT, MOVE_LEFT };
+
     class Camera {
 
     public:
@@ -21,14 +21,18 @@ namespace gps {
         //yaw - camera rotation around the y axis
         //pitch - camera rotation around the x axis
         void rotate(float pitch, float yaw);
-        
+        //place the camera directly (used by the camera tour)
+        void setLookAt(glm::vec3 position, glm::vec3 target);
+        //current viewing direction (normalized)
+        glm::vec3 getFrontDirection();
+
     private:
         glm::vec3 cameraPosition;
         glm::vec3 cameraTarget;
         glm::vec3 cameraFrontDirection;
         glm::vec3 cameraRightDirection;
         glm::vec3 cameraUpDirection;
-    };    
+    };
 }
 
 #endif /* Camera_hpp */

@@ -80,7 +80,7 @@ gps::Model3D telefoane;
 
 // animations
 float restaurantAngle = 0.0f;
-const float RESTAURANT_SPEED = 6.0f; 
+const float RESTAURANT_SPEED = 6.0f;
 
 // keyboard-controlled object (Palatul Telefoanelor)
 const glm::vec3 TELEFOANE_START_POS(-170.0f, 0.0f, 140.0f);
@@ -117,13 +117,37 @@ const std::vector<glm::vec3> LAMP_POSITIONS = { // base of each lamp post (max 1
 gps::Model3D lampPost;
 gps::Model3D lampBulb;
 
+// camera tour: the camera follows a smooth path through these key points
+struct TourKey {
+    glm::vec3 position;
+    glm::vec3 target;   // point the camera looks at
+};
+const std::vector<TourKey> TOUR = {
+    {{40.0f, 35.0f, 380.0f},  {0.0f, 30.0f, 60.0f}},      // overview from the south
+    {{0.0f, 12.0f, 240.0f},   {0.0f, 20.0f, 60.0f}},      // approach the plaza
+    {{-30.0f, 6.0f, 150.0f},  {0.0f, 60.0f, 60.0f}},      // look up at the Administrative Palace
+    {{-120.0f, 15.0f, 215.0f}, {-170.0f, 10.0f, 140.0f}}, // Palatul Telefoanelor
+    {{-130.0f, 25.0f, 60.0f}, {-60.0f, 50.0f, -260.0f}},  // turn north, towards the river
+    {{-60.0f, 60.0f, -120.0f}, {-60.0f, 50.0f, -260.0f}}, // over the river, Hotel Panorama
+    {{120.0f, 50.0f, -40.0f}, {260.0f, 60.0f, 196.0f}},   // swing east towards Genex
+    {{170.0f, 8.0f, 196.0f},  {260.0f, 30.0f, 196.0f}},   // down to the road
+    {{300.0f, 8.0f, 196.0f},  {360.0f, 10.0f, 196.0f}},   // through the gate, under the bridge
+    {{360.0f, 40.0f, 260.0f}, {260.0f, 100.0f, 210.0f}},  // look back at the tower and the restaurant
+    {{40.0f, 35.0f, 380.0f},  {0.0f, 30.0f, 60.0f}},      // back to the start
+};
+const float TOUR_SPEED = 25.0f;       // meters per second along the path
+const float TOUR_MIN_SEGMENT = 3.0f;  // seconds, so short segments are not rushed
+std::vector<float> tourKeyTimes;      // time at which the camera reaches each key point
+bool tourActive = false;
+float tourTime = 0.0f;
+
 // UI
 bool showUI = true;
 
 // shaders
 gps::Shader myBasicShader;
 
-GLenum glCheckError_(const char* file, int line){
+GLenum glCheckError_(const char* file, int line) {
     GLenum errorCode;
     while ((errorCode = glGetError()) != GL_NO_ERROR) {
         std::string error;
@@ -185,6 +209,66 @@ void applyLighting() {
     else glClearColor(0.7f, 0.7f, 0.7f, 1.0f);
 }
 
+// Catmull-Rom spline: passes through p1 (t = 0) and p2 (t = 1), p0 and p3 shape the curve
+glm::vec3 catmullRom(const glm::vec3& p0, const glm::vec3& p1, const glm::vec3& p2, const glm::vec3& p3, float t) {
+    float t2 = t * t, t3 = t2 * t;
+    return 0.5f * ((2.0f * p1) + (-p0 + p2) * t + (2.0f * p0 - 5.0f * p1 + 4.0f * p2 - p3) * t2
+        + (-p0 + 3.0f * p1 - 3.0f * p2 + p3) * t3);
+}
+
+void initTour() {
+    // each segment lasts proportionally to its length -> roughly constant speed
+    tourKeyTimes = { 0.0f };
+    for (size_t i = 0; i + 1 < TOUR.size(); i++) {
+        float length = glm::distance(TOUR[i].position, TOUR[i + 1].position);
+        tourKeyTimes.push_back(tourKeyTimes.back() + glm::max(TOUR_MIN_SEGMENT, length / TOUR_SPEED));
+    }
+}
+
+void uploadView() {
+    view = myCamera.getViewMatrix();
+    myBasicShader.useShaderProgram();
+    glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
+}
+
+void startTour() {
+    tourActive = true;
+    tourTime = 0.0f;
+}
+
+void stopTour() {
+    tourActive = false;
+    // continue with mouse/keyboard from where the tour left the camera, without a jump
+    glm::vec3 front = myCamera.getFrontDirection();
+    yaw = glm::degrees(atan2(front.z, front.x));
+    pitch = glm::degrees(asin(front.y));
+    firstMouse = true;
+}
+
+void updateTour() {
+    if (!tourActive) return;
+
+    tourTime += deltaTime;
+    if (tourTime >= tourKeyTimes.back()) {
+        myCamera.setLookAt(TOUR.back().position, TOUR.back().target);
+        uploadView();
+        stopTour();
+        return;
+    }
+
+    // current segment i: between key i and key i + 1
+    int i = 0;
+    while (tourKeyTimes[i + 1] < tourTime) i++;
+    float t = (tourTime - tourKeyTimes[i]) / (tourKeyTimes[i + 1] - tourKeyTimes[i]);
+
+    auto key = [](int k) { return TOUR[glm::clamp(k, 0, (int)TOUR.size() - 1)]; };
+    glm::vec3 position = catmullRom(key(i - 1).position, key(i).position, key(i + 1).position, key(i + 2).position, t);
+    glm::vec3 target = catmullRom(key(i - 1).target, key(i).target, key(i + 1).target, key(i + 2).target, t);
+
+    myCamera.setLookAt(position, target);
+    uploadView();
+}
+
 void resetTelefoane() {
     telefoanePos = TELEFOANE_START_POS;
     telefoaneAngle = 0.0f;
@@ -209,6 +293,7 @@ void keyboardCallback(GLFWwindow* window, int key, int scancode, int action, int
         if (key == GLFW_KEY_4) { flatShading = !flatShading; applyShadingMode(); }
         if (key == GLFW_KEY_H) showUI = !showUI;
         if (key == GLFW_KEY_N) { nightMode = !nightMode; applyLighting(); }
+        if (key == GLFW_KEY_T) { if (tourActive) stopTour(); else startTour(); }
     }
 
     if (key >= 0 && key < 1024) {
@@ -223,6 +308,7 @@ void keyboardCallback(GLFWwindow* window, int key, int scancode, int action, int
 
 void mouseCallback(GLFWwindow* window, double xpos, double ypos) {
     if (glfwGetInputMode(window, GLFW_CURSOR) != GLFW_CURSOR_DISABLED) return;
+    if (tourActive) return; // the tour controls the camera
 
     if (firstMouse) {
         lastX = xpos;
@@ -247,6 +333,8 @@ void mouseCallback(GLFWwindow* window, double xpos, double ypos) {
 }
 
 void processMovement() {
+    if (tourActive) return; // the tour controls the camera
+
     float distance = cameraSpeed * deltaTime;
     if (pressedKeys[GLFW_KEY_LEFT_SHIFT]) {
         distance *= cameraSprintFactor;
@@ -399,7 +487,7 @@ void initUniforms() {
 
 // draws a model with its own model matrix; normalMatrix is computed per object
 void renderObject(gps::Model3D& object, const glm::mat4& objectModel, gps::Shader shader,
-                  const glm::vec3& emissive = glm::vec3(0.0f)) {
+    const glm::vec3& emissive = glm::vec3(0.0f)) {
     shader.useShaderProgram();
     glUniform3fv(emissiveColorLoc, 1, glm::value_ptr(emissive));
     glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(objectModel));
@@ -482,6 +570,15 @@ void renderUI() {
         ImGui::SeparatorText("Lighting");
         if (ImGui::Checkbox("Night (street lamps on)", &nightMode)) applyLighting();
 
+        ImGui::SeparatorText("Camera tour");
+        if (tourActive) {
+            ImGui::ProgressBar(tourTime / tourKeyTimes.back(), ImVec2(200.0f, 0.0f));
+            if (ImGui::Button("Stop tour")) stopTour();
+        }
+        else if (ImGui::Button("Start tour")) {
+            startTour();
+        }
+
         ImGui::SeparatorText("Palatul Telefoanelor");
         ImGui::Text("Position: %.0f, %.0f", telefoanePos.x, telefoanePos.z);
         ImGui::Text("Rotation: %.0f deg   Scale: %.2f", fmod(telefoaneAngle + 360.0f, 360.0f), telefoaneScale);
@@ -500,6 +597,7 @@ void renderUI() {
             keyRow("Z / X", "Scale building down / up");
             keyRow("R", "Reset building");
             keyRow("N", "Day / night");
+            keyRow("T", "Start / stop camera tour");
             keyRow("H", "Hide / show this panel");
             keyRow("Esc", "Exit");
             ImGui::EndTable();
@@ -539,6 +637,7 @@ int main(int argc, const char* argv[]) {
     initUniforms();
     setWindowCallbacks();
     initUI();
+    initTour();
 
     glCheckError();
     // application loop
@@ -549,6 +648,7 @@ int main(int argc, const char* argv[]) {
         lastFrameTime = now;
 
         processMovement();
+        updateTour();
         processObjectTransform();
         updateAnimations();
         renderScene();
