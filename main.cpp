@@ -18,6 +18,10 @@
 #include "Camera.hpp"
 #include "Model3D.hpp"
 
+#include "imgui/imgui.h"
+#include "imgui/imgui_impl_glfw.h"
+#include "imgui/imgui_impl_opengl3.h"
+
 #include <iostream>
 #include <cmath>
 
@@ -73,9 +77,24 @@ gps::Model3D telefoane;
 float restaurantAngle = 0.0f;
 const float RESTAURANT_SPEED = 6.0f; 
 
+// keyboard-controlled object (Palatul Telefoanelor)
+const glm::vec3 TELEFOANE_START_POS(-170.0f, 0.0f, 140.0f);
+glm::vec3 telefoanePos = TELEFOANE_START_POS;
+float telefoaneAngle = 0.0f;   // degrees, around its own vertical axis
+float telefoaneScale = 1.0f;   // uniform scale
+
+const float OBJECT_MOVE_SPEED = 20.0f;    // meters per second
+const float OBJECT_ROTATE_SPEED = 45.0f;  // degrees per second
+const float OBJECT_SCALE_SPEED = 0.5f;    // +50% per second
+
 // view modes
+enum ViewMode { VIEW_SOLID = 0, VIEW_WIREFRAME = 1, VIEW_POINTS = 2 };
+int viewMode = VIEW_SOLID;
 bool flatShading = false;
 GLint flatShadingLoc;
+
+// UI
+bool showUI = true;
 
 // shaders
 gps::Shader myBasicShader;
@@ -121,6 +140,24 @@ void windowResizeCallback(GLFWwindow* window, int width, int height) {
     glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(projection));
 }
 
+void applyViewMode() {
+    GLenum mode = GL_FILL;
+    if (viewMode == VIEW_WIREFRAME) mode = GL_LINE;
+    if (viewMode == VIEW_POINTS) mode = GL_POINT;
+    glPolygonMode(GL_FRONT_AND_BACK, mode);
+}
+
+void applyShadingMode() {
+    myBasicShader.useShaderProgram();
+    glUniform1i(flatShadingLoc, flatShading);
+}
+
+void resetTelefoane() {
+    telefoanePos = TELEFOANE_START_POS;
+    telefoaneAngle = 0.0f;
+    telefoaneScale = 1.0f;
+}
+
 void keyboardCallback(GLFWwindow* window, int key, int scancode, int action, int mode) {
     if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) { glfwSetWindowShouldClose(window, GL_TRUE); }
 
@@ -133,14 +170,11 @@ void keyboardCallback(GLFWwindow* window, int key, int scancode, int action, int
     }
 
     if (action == GLFW_PRESS) {
-        if (key == GLFW_KEY_1) glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-        if (key == GLFW_KEY_2) glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-        if (key == GLFW_KEY_3) glPolygonMode(GL_FRONT_AND_BACK, GL_POINT);
-        if (key == GLFW_KEY_4) {
-            flatShading = !flatShading;
-            myBasicShader.useShaderProgram();
-            glUniform1i(flatShadingLoc, flatShading);
-        }
+        if (key == GLFW_KEY_1) { viewMode = VIEW_SOLID; applyViewMode(); }
+        if (key == GLFW_KEY_2) { viewMode = VIEW_WIREFRAME; applyViewMode(); }
+        if (key == GLFW_KEY_3) { viewMode = VIEW_POINTS; applyViewMode(); }
+        if (key == GLFW_KEY_4) { flatShading = !flatShading; applyShadingMode(); }
+        if (key == GLFW_KEY_H) showUI = !showUI;
     }
 
     if (key >= 0 && key < 1024) {
@@ -215,6 +249,23 @@ void processMovement() {
         myBasicShader.useShaderProgram();
         glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
     }
+}
+
+// arrows: move, Q/E: rotate, Z/X: scale, R: reset
+void processObjectTransform() {
+    if (pressedKeys[GLFW_KEY_UP])    telefoanePos.z -= OBJECT_MOVE_SPEED * deltaTime;
+    if (pressedKeys[GLFW_KEY_DOWN])  telefoanePos.z += OBJECT_MOVE_SPEED * deltaTime;
+    if (pressedKeys[GLFW_KEY_LEFT])  telefoanePos.x -= OBJECT_MOVE_SPEED * deltaTime;
+    if (pressedKeys[GLFW_KEY_RIGHT]) telefoanePos.x += OBJECT_MOVE_SPEED * deltaTime;
+
+    if (pressedKeys[GLFW_KEY_Q]) telefoaneAngle += OBJECT_ROTATE_SPEED * deltaTime;
+    if (pressedKeys[GLFW_KEY_E]) telefoaneAngle -= OBJECT_ROTATE_SPEED * deltaTime;
+
+    if (pressedKeys[GLFW_KEY_X]) telefoaneScale *= 1.0f + OBJECT_SCALE_SPEED * deltaTime;
+    if (pressedKeys[GLFW_KEY_Z]) telefoaneScale /= 1.0f + OBJECT_SCALE_SPEED * deltaTime;
+    telefoaneScale = glm::clamp(telefoaneScale, 0.2f, 3.0f);
+
+    if (pressedKeys[GLFW_KEY_R]) resetTelefoane();
 }
 
 void updateAnimations() {
@@ -318,10 +369,92 @@ void renderScene() {
     restaurantModel = glm::rotate(restaurantModel, glm::radians(restaurantAngle), glm::vec3(0.0f, 1.0f, 0.0f));
     renderObject(genexRestaurant, restaurantModel, myBasicShader);
     renderObject(panorama, glm::translate(identity, glm::vec3(-60.0f, 40.0f, -260.0f)), myBasicShader);
-    renderObject(telefoane, glm::translate(identity, glm::vec3(-170.0f, 0.0f, 140.0f)), myBasicShader);
+    // T * R * S: scale and rotate around the building's own base, then move it into place
+    glm::mat4 telefoaneModel = glm::translate(identity, telefoanePos);
+    telefoaneModel = glm::rotate(telefoaneModel, glm::radians(telefoaneAngle), glm::vec3(0.0f, 1.0f, 0.0f));
+    telefoaneModel = glm::scale(telefoaneModel, glm::vec3(telefoaneScale));
+    renderObject(telefoane, telefoaneModel, myBasicShader);
+}
+
+void initUI() {
+    IMGUI_CHECKVERSION();
+    ImGui::CreateContext();
+    ImGui::GetIO().IniFilename = nullptr; // don't write imgui.ini next to the exe
+    ImGui::StyleColorsDark();
+    // must run after setWindowCallbacks(): ImGui chains to our callbacks instead of replacing them
+    ImGui_ImplGlfw_InitForOpenGL(myWindow.getWindow(), true);
+    ImGui_ImplOpenGL3_Init("#version 410");
+}
+
+void keyRow(const char* keys, const char* action) {
+    ImGui::TableNextRow();
+    ImGui::TableNextColumn(); ImGui::TextUnformatted(keys);
+    ImGui::TableNextColumn(); ImGui::TextUnformatted(action);
+}
+
+void renderUI() {
+    // with the cursor captured the (invisible) mouse must not click the UI
+    ImGuiIO& io = ImGui::GetIO();
+    bool cursorFree = glfwGetInputMode(myWindow.getWindow(), GLFW_CURSOR) == GLFW_CURSOR_NORMAL;
+    if (cursorFree) io.ConfigFlags &= ~ImGuiConfigFlags_NoMouse;
+    else io.ConfigFlags |= ImGuiConfigFlags_NoMouse;
+
+    ImGui_ImplOpenGL3_NewFrame();
+    ImGui_ImplGlfw_NewFrame();
+    ImGui::NewFrame();
+
+    if (showUI) {
+        ImGui::SetNextWindowPos(ImVec2(10.0f, 10.0f), ImGuiCond_Always);
+        ImGui::SetNextWindowBgAlpha(0.7f);
+        ImGui::Begin("Controls", nullptr,
+            ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings);
+
+        ImGui::SeparatorText("View mode");
+        bool changed = false;
+        changed |= ImGui::RadioButton("Solid", &viewMode, VIEW_SOLID);
+        ImGui::SameLine();
+        changed |= ImGui::RadioButton("Wireframe", &viewMode, VIEW_WIREFRAME);
+        ImGui::SameLine();
+        changed |= ImGui::RadioButton("Points", &viewMode, VIEW_POINTS);
+        if (changed) applyViewMode();
+        if (ImGui::Checkbox("Flat shading", &flatShading)) applyShadingMode();
+
+        ImGui::SeparatorText("Palatul Telefoanelor");
+        ImGui::Text("Position: %.0f, %.0f", telefoanePos.x, telefoanePos.z);
+        ImGui::Text("Rotation: %.0f deg   Scale: %.2f", fmod(telefoaneAngle + 360.0f, 360.0f), telefoaneScale);
+        if (ImGui::Button("Reset building")) resetTelefoane();
+
+        ImGui::SeparatorText("Key map");
+        if (ImGui::BeginTable("keymap", 2, ImGuiTableFlags_SizingFixedFit)) {
+            keyRow("W A S D", "Move camera");
+            keyRow("Shift", "Move faster");
+            keyRow("Mouse", "Look around");
+            keyRow("M", "Free / capture cursor");
+            keyRow("1 / 2 / 3", "Solid / wireframe / points");
+            keyRow("4", "Smooth / flat shading");
+            keyRow("Arrows", "Move building");
+            keyRow("Q / E", "Rotate building");
+            keyRow("Z / X", "Scale building down / up");
+            keyRow("R", "Reset building");
+            keyRow("H", "Hide / show this panel");
+            keyRow("Esc", "Exit");
+            ImGui::EndTable();
+        }
+        ImGui::TextDisabled(cursorFree ? "Press M to control the camera" : "Press M to use the buttons");
+        ImGui::End();
+    }
+
+    ImGui::Render();
+    // ImGui colors are already sRGB: drawing them through the sRGB framebuffer would wash them out
+    glDisable(GL_FRAMEBUFFER_SRGB);
+    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+    glEnable(GL_FRAMEBUFFER_SRGB);
 }
 
 void cleanup() {
+    ImGui_ImplOpenGL3_Shutdown();
+    ImGui_ImplGlfw_Shutdown();
+    ImGui::DestroyContext();
     myWindow.Delete();
     //cleanup code for your own data
 }
@@ -341,6 +474,7 @@ int main(int argc, const char* argv[]) {
     initShaders();
     initUniforms();
     setWindowCallbacks();
+    initUI();
 
     glCheckError();
     // application loop
@@ -351,8 +485,10 @@ int main(int argc, const char* argv[]) {
         lastFrameTime = now;
 
         processMovement();
+        processObjectTransform();
         updateAnimations();
         renderScene();
+        renderUI();
 
         glfwPollEvents();
         glfwSwapBuffers(myWindow.getWindow());
