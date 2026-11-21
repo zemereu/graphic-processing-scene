@@ -1,6 +1,68 @@
 #include "Model3D.hpp"
 
 namespace gps {
+	// anisotropic filtering (EXT_texture_filter_anisotropic, core in OpenGL 4.6): keeps the ground textures sharp
+	// at grazing angles instead of blurring them with the smaller mipmaps
+	static const GLenum TEXTURE_MAX_ANISOTROPY = 0x84FE;
+	static const GLenum MAX_TEXTURE_MAX_ANISOTROPY = 0x84FF;
+
+	static void setTextureFiltering() {
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		GLfloat maxAnisotropy = 1.0f;
+		glGetFloatv(MAX_TEXTURE_MAX_ANISOTROPY, &maxAnisotropy);
+		if (glGetError() == GL_NO_ERROR && maxAnisotropy > 1.0f) {
+			glTexParameterf(GL_TEXTURE_2D, TEXTURE_MAX_ANISOTROPY, glm::min(maxAnisotropy, 8.0f));
+		}
+	}
+
+	// loads an image into the video memory; srgb = color texture (decoded to linear by the GPU),
+	// otherwise the values are used as they are (normal maps)
+	static GLuint loadTextureImage(const char* file_name, bool srgb) {
+		int x, y, n;
+		unsigned char* image_data = stbi_load(file_name, &x, &y, &n, 4);
+		if (!image_data) {
+			fprintf(stderr, "ERROR: could not load %s\n", file_name);
+			return 0;
+		}
+		// OpenGL expects the first row at the bottom: flip vertically
+		int width_in_bytes = x * 4;
+		for (int row = 0; row < y / 2; row++) {
+			unsigned char* top = image_data + row * width_in_bytes;
+			unsigned char* bottom = image_data + (y - row - 1) * width_in_bytes;
+			for (int col = 0; col < width_in_bytes; col++) {
+				std::swap(top[col], bottom[col]);
+			}
+		}
+		GLuint textureID;
+		glGenTextures(1, &textureID);
+		glBindTexture(GL_TEXTURE_2D, textureID);
+		glTexImage2D(GL_TEXTURE_2D, 0, srgb ? GL_SRGB_ALPHA : GL_RGBA8, x, y, 0, GL_RGBA, GL_UNSIGNED_BYTE, image_data);
+		glGenerateMipmap(GL_TEXTURE_2D);
+		setTextureFiltering();
+		glBindTexture(GL_TEXTURE_2D, 0);
+		stbi_image_free(image_data);
+		return textureID;
+	}
+
+	// normal map for the meshes that don't have one: a single texel pointing straight out of the surface,
+	// so the shader can always apply normal mapping without changing anything
+	static Texture flatNormalTexture() {
+		static Texture flat = { 0, "normalTexture", "<flat normal>" };
+		if (flat.id == 0) {
+			unsigned char texel[4] = { 128, 128, 255, 255 };
+			glGenTextures(1, &flat.id);
+			glBindTexture(GL_TEXTURE_2D, flat.id);
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, 1, 1, 0, GL_RGBA, GL_UNSIGNED_BYTE, texel);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+			glBindTexture(GL_TEXTURE_2D, 0);
+		}
+		return flat;
+	}
+
 	void Model3D::LoadModel(std::string fileName) {
 		std::string basePath = fileName.substr(0, fileName.find_last_of('/')) + "/";
 		ReadOBJ(fileName, basePath);
@@ -123,9 +185,24 @@ namespace gps {
 						currentTexture = LoadTexture(basePath + specularTexturePath, "specularTexture");
 						textures.push_back(currentTexture);
 					}
+
+					//normal map ("map_bump" or "norm" in the .mtl file)
+					std::string normalTexturePath = materials[materialId].bump_texname.empty()
+						? materials[materialId].normal_texname : materials[materialId].bump_texname;
+
+					if (!normalTexturePath.empty()) {
+						textures.push_back(LoadTexture(basePath + normalTexturePath, "normalTexture"));
+					}
 				}
 			}
 
+			bool hasNormalMap = false;
+			for (const Texture& t : textures) {
+				hasNormalMap = hasNormalMap || t.type == "normalTexture";
+			}
+			if (!hasNormalMap) {
+				textures.push_back(flatNormalTexture());
+			}
 			meshes.push_back(gps::Mesh(vertices, indices, textures));
 		}
 	}
@@ -140,7 +217,7 @@ namespace gps {
 		}
 
 		gps::Texture currentTexture;
-		currentTexture.id = ReadTextureFromFile(path.c_str());
+		currentTexture.id = type == "normalTexture" ? loadTextureImage(path.c_str(), false) : ReadTextureFromFile(path.c_str());
 		currentTexture.type = std::string(type);
 		currentTexture.path = path;
 
@@ -151,62 +228,7 @@ namespace gps {
 
 	// Reads the pixel data from an image file and loads it into the video memory
 	GLuint Model3D::ReadTextureFromFile(const char* file_name) {
-		int x, y, n;
-		int force_channels = 4;
-		unsigned char* image_data = stbi_load(file_name, &x, &y, &n, force_channels);
-
-		if (!image_data) {
-			fprintf(stderr, "ERROR: could not load %s\n", file_name);
-			return false;
-		}
-
-		// NPOT check
-		if ((x & (x - 1)) != 0 || (y & (y - 1)) != 0) {
-			fprintf(stderr, "WARNING: texture %s is not power-of-2 dimensions\n", file_name);
-		}
-
-		int width_in_bytes = x * 4;
-		unsigned char* top = NULL;
-		unsigned char* bottom = NULL;
-		unsigned char temp = 0;
-		int half_height = y / 2;
-
-		for (int row = 0; row < half_height; row++) {
-			top = image_data + row * width_in_bytes;
-			bottom = image_data + (y - row - 1) * width_in_bytes;
-
-			for (int col = 0; col < width_in_bytes; col++) {
-				temp = *top;
-				*top = *bottom;
-				*bottom = temp;
-				top++;
-				bottom++;
-			}
-		}
-
-		GLuint textureID;
-		glGenTextures(1, &textureID);
-		glBindTexture(GL_TEXTURE_2D, textureID);
-		glTexImage2D(
-			GL_TEXTURE_2D,
-			0,
-			GL_SRGB_ALPHA, // sRGB colors + alpha channel (used by the alpha test of the foliage)
-			x,
-			y,
-			0,
-			GL_RGBA,
-			GL_UNSIGNED_BYTE,
-			image_data
-		);
-		glGenerateMipmap(GL_TEXTURE_2D);
-
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-		glBindTexture(GL_TEXTURE_2D, 0);
-
-		return textureID;
+		return loadTextureImage(file_name, true);   // sRGB colors + alpha channel (alpha test of the foliage)
 	}
 
 	// One box per mesh (in model coordinates), used for collision detection.

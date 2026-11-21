@@ -1,0 +1,157 @@
+newmtl ConcreteSM
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd concrete_sm.jpg
+map_Ks spec_low.jpg
+
+newmtl ConcreteSMDark
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd concrete_sm_dark.jpg
+map_Ks spec_low.jpg
+
+newmtl Fence
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd fence_mesh.png
+map_Ks spec_low.jpg
+
+newmtl GAsphalt
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd g_asphalt_diff.jpg
+map_Ks g_asphalt_spec.jpg
+map_bump g_asphalt_nrm.jpg
+
+newmtl GDirt
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd g_dirt_diff.jpg
+map_Ks g_dirt_spec.jpg
+map_bump g_dirt_nrm.jpg
+
+newmtl Glass
+Ns 96
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd glass.jpg
+map_Ks spec_high.jpg
+
+newmtl PConcrete
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd p_concrete_diff.jpg
+map_Ks p_concrete_spec.jpg
+map_bump p_concrete_nrm.jpg
+
+newmtl PSquare
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd p_square_diff.jpg
+map_Ks p_square_spec.jpg
+map_bump p_square_nrm.jpg
+
+newmtl PaintBlue
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd paint_blue.jpg
+map_Ks spec_low.jpg
+
+newmtl PaintGreen
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd paint_green.jpg
+map_Ks spec_low.jpg
+
+newmtl PaintRed
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd paint_red.jpg
+map_Ks spec_low.jpg
+
+newmtl PaintWhite
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd paint_white.jpg
+map_Ks spec_low.jpg
+
+newmtl PaintYellow
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd paint_yellow.jpg
+map_Ks spec_low.jpg
+
+newmtl Signs
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd city_signs.png
+map_Ks spec_low.jpg
+
+newmtl Steel
+Ns 96
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd steel.jpg
+map_Ks spec_high.jpg
+
+newmtl SteelGreen
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd steel_green.jpg
+map_Ks spec_high.jpg
+
+newmtl Wood
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd wood_slats.jpg
+map_Ks spec_low.jpg
+

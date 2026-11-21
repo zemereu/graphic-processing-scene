@@ -1,19 +1,28 @@
-newmtl Glass
+newmtl Aluminium
 Ns 96
 Ka 1 1 1
 Kd 1 1 1
 Ks 0.5 0.5 0.5
 illum 2
-map_Kd glass.jpg
+map_Kd aluminium.jpg
 map_Ks spec_high.jpg
 
-newmtl Concrete
+newmtl Blinds
 Ns 16
 Ka 1 1 1
 Kd 1 1 1
 Ks 0.5 0.5 0.5
 illum 2
-map_Kd concrete.jpg
+map_Kd blinds.jpg
+map_Ks spec_low.jpg
+
+newmtl ConcreteAged
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd concrete_aged.jpg
 map_Ks spec_low.jpg
 
 newmtl ConcreteDark
@@ -24,4 +33,86 @@ Ks 0.5 0.5 0.5
 illum 2
 map_Kd concrete_dark.jpg
 map_Ks spec_low.jpg
+
+newmtl Glass
+Ns 96
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd glass.jpg
+map_Ks spec_high.jpg
+
+newmtl Grass
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd grass.jpg
+map_Ks spec_low.jpg
+
+newmtl PBrick
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd p_brick_diff.jpg
+map_Ks p_brick_spec.jpg
+map_bump p_brick_nrm.jpg
+
+newmtl PaintWhite
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd paint_white.jpg
+map_Ks spec_low.jpg
+
+newmtl ShaftConcrete
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd shaft_concrete.jpg
+map_Ks spec_low.jpg
+
+newmtl SignBanka
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd sign_banka.png
+map_Ks spec_low.jpg
+
+newmtl SignGenex
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd sign_genex.jpg
+map_Ks spec_low.jpg
+
+newmtl SignZepter
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd sign_zepter.png
+map_Ks spec_low.jpg
+
+newmtl Steel
+Ns 96
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd steel.jpg
+map_Ks spec_high.jpg
 

@@ -32,6 +32,12 @@ uniform vec3 emissiveColor;
 // textures
 uniform sampler2D diffuseTexture;
 uniform sampler2D specularTexture;
+uniform sampler2D normalTexture;   // tangent space, OpenGL convention (flat for the objects without one)
+
+// 0 = normal object, 1 = terrain (two texture scales mixed: hides the repetition of the tiles over large areas),
+// 2 = water (two normal maps sliding in different directions = moving waves, reflects the sky at grazing angles)
+uniform int surfaceMode;
+uniform float time;     // seconds, for the waves
 // view mode
 uniform bool flatShading;
 // shadows of the directional light
@@ -69,7 +75,7 @@ void addLight(vec3 lightDirEye, vec3 color, float att, float shadow)
 
     // Blinn-Phong: half vector between light and view direction instead of the reflection vector
     vec3 halfVector = normalize(lightDirEye + viewDir);
-    float specCoeff = pow(max(dot(normalEye, halfVector), 0.0f), shininess);
+    float specCoeff = pow(max(dot(normalEye, halfVector), 0.0f), surfaceMode == 2 ? 300.0f : shininess);
     specular += (1.0f - shadow) * att * specularStrength * specCoeff * color;
 }
 
@@ -102,6 +108,26 @@ float computeShadow(vec3 lightDirEye)
     return shadow * (1.0f - smoothstep(0.8f, 1.0f, edge));
 }
 
+// normal mapping without tangents in the vertex data: the tangent frame is rebuilt per pixel from the screen-space
+// derivatives of the position and of the texture coordinates ("cotangent frame", C. Schueler, ShaderX5)
+vec3 perturbNormal(vec3 N, vec3 p, vec2 uv, vec3 mapNormal)
+{
+    vec3 dp1 = dFdx(p);
+    vec3 dp2 = dFdy(p);
+    vec2 duv1 = dFdx(uv);
+    vec2 duv2 = dFdy(uv);
+    vec3 dp2perp = cross(dp2, N);
+    vec3 dp1perp = cross(N, dp1);
+    vec3 T = dp2perp * duv1.x + dp1perp * duv2.x;
+    vec3 B = dp2perp * duv1.y + dp1perp * duv2.y;
+    float len = max(dot(T, T), dot(B, B));
+    if (len < 1e-20f) {
+        return N;
+    }
+    float invmax = inversesqrt(len);
+    return normalize(mat3(T * invmax, B * invmax, N) * mapNormal);
+}
+
 void main()
 {
     // alpha test: the foliage (branch cards, tree billboards) is drawn on quads with transparent texture parts
@@ -121,6 +147,22 @@ void main()
         ? normalize(cross(dFdx(fPosEye), dFdy(fPosEye)))
         : normalize(normalMatrix * fNormal);
     viewDir = normalize(-fPosEye);
+
+    // normal map (only in smooth mode: the flat mode shows the polygons)
+    vec2 uv = fTexCoords;
+    if (!flatShading) {
+        vec3 mapNormal;
+        if (surfaceMode == 2) {
+            vec3 n1 = texture(normalTexture, uv + time * vec2(0.031f, 0.017f)).xyz * 2.0f - 1.0f;
+            vec3 n2 = texture(normalTexture, uv * 1.73f + vec2(0.4f, 0.2f) - time * vec2(0.012f, -0.026f)).xyz * 2.0f - 1.0f;
+            mapNormal = normalize(vec3((n1.xy + n2.xy) * 1.6f, n1.z * n2.z));
+        } else {
+            mapNormal = texture(normalTexture, uv).xyz * 2.0f - 1.0f;
+            // far away the details are smaller than a pixel: fade the normal map out (less shimmering)
+            mapNormal.xy *= 1.0f - 0.7f * smoothstep(60.0f, 400.0f, length(fPosEye));
+        }
+        normalEye = perturbNormal(normalEye, fPosEye, uv, normalize(mapNormal));
+    }
 
     // directional light: same direction for every fragment, no attenuation
     vec3 dirLightEye = normalize((view * vec4(lightDir, 0.0f)).xyz);
@@ -153,9 +195,21 @@ void main()
     }
 
     vec3 texColor = texSample.rgb;
+    if (surfaceMode == 1) {
+        // terrain: the same texture at a ~5x larger scale on top: the tiles stop repeating visibly in the distance
+        vec3 macro = texture(diffuseTexture, fTexCoords * 0.19f + vec2(0.37f, 0.71f)).rgb;
+        float w = 0.3f + 0.3f * smoothstep(30.0f, 400.0f, length(fPosEye));
+        texColor = mix(texColor, macro, w);
+    }
     vec3 specColor = texture(specularTexture, fTexCoords).rgb;
 
-    vec3 color = (ambient + diffuse) * texColor + specular * specColor + emissiveColor * texColor;
+    vec3 lit = (ambient + diffuse) * texColor;
+    if (surfaceMode == 2) {
+        // water reflects the sky, more and more towards grazing angles (Schlick's Fresnel approximation)
+        float fresnel = 0.03f + 0.97f * pow(1.0f - max(dot(normalEye, viewDir), 0.0f), 5.0f);
+        lit = mix(lit, fogColor * 0.8f, clamp(fresnel, 0.0f, 0.6f));
+    }
+    vec3 color = lit + specular * specColor + emissiveColor * texColor;
     color = min(color, 1.0f);
 
     // exponential squared fog: almost clear nearby, then thickens quickly with distance

@@ -1,45 +1,176 @@
-newmtl Rock
+newmtl ConcreteSM
 Ns 16
 Ka 1 1 1
 Kd 1 1 1
 Ks 0.5 0.5 0.5
 illum 2
-map_Kd rock.jpg
+map_Kd concrete_sm.jpg
 map_Ks spec_low.jpg
 
-newmtl Grass
+newmtl GAsphalt
 Ns 16
 Ka 1 1 1
 Kd 1 1 1
 Ks 0.5 0.5 0.5
 illum 2
-map_Kd grass.jpg
+map_Kd g_asphalt_diff.jpg
+map_Ks g_asphalt_spec.jpg
+map_bump g_asphalt_nrm.jpg
+
+newmtl GCliff
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd g_cliff_diff.jpg
+map_Ks g_cliff_spec.jpg
+map_bump g_cliff_nrm.jpg
+
+newmtl GForest
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd g_forest_diff.jpg
+map_Ks g_forest_spec.jpg
+map_bump g_forest_nrm.jpg
+
+newmtl GGrass
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd g_grass_diff.jpg
+map_Ks g_grass_spec.jpg
+map_bump g_grass_nrm.jpg
+
+newmtl GGrassRocky
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd g_grass_rocky_diff.jpg
+map_Ks g_grass_rocky_spec.jpg
+map_bump g_grass_rocky_nrm.jpg
+
+newmtl GMudLeaves
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd g_mud_leaves_diff.jpg
+map_Ks g_mud_leaves_spec.jpg
+map_bump g_mud_leaves_nrm.jpg
+
+newmtl GRoad
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd g_road_diff.jpg
+map_Ks g_road_spec.jpg
+map_bump g_road_nrm.jpg
+
+newmtl GRock
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd g_rock_diff.jpg
+map_Ks g_rock_spec.jpg
+map_bump g_rock_nrm.jpg
+
+newmtl PCobbleColor
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd p_cobble_color_diff.jpg
+map_Ks p_cobble_color_spec.jpg
+map_bump p_cobble_color_nrm.jpg
+
+newmtl PCobbleGrey
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd p_cobble_grey_diff.jpg
+map_Ks p_cobble_grey_spec.jpg
+map_bump p_cobble_grey_nrm.jpg
+
+newmtl PConcrete
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd p_concrete_diff.jpg
+map_Ks p_concrete_spec.jpg
+map_bump p_concrete_nrm.jpg
+
+newmtl PHex
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd p_hex_diff.jpg
+map_Ks p_hex_spec.jpg
+map_bump p_hex_nrm.jpg
+
+newmtl PPatterned
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd p_patterned_diff.jpg
+map_Ks p_patterned_spec.jpg
+map_bump p_patterned_nrm.jpg
+
+newmtl PSquare
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd p_square_diff.jpg
+map_Ks p_square_spec.jpg
+map_bump p_square_nrm.jpg
+
+newmtl RoadPaint
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd paint_white.jpg
 map_Ks spec_low.jpg
 
-newmtl Water
-Ns 96
-Ka 1 1 1
-Kd 1 1 1
-Ks 0.5 0.5 0.5
-illum 2
-map_Kd water.jpg
-map_Ks spec_high.jpg
-
-newmtl Pavement
+newmtl Rubber
 Ns 16
 Ka 1 1 1
 Kd 1 1 1
 Ks 0.5 0.5 0.5
 illum 2
-map_Kd pavement.jpg
+map_Kd rubber_red.jpg
 map_Ks spec_low.jpg
 
-newmtl Road
+newmtl Turf
 Ns 16
 Ka 1 1 1
 Kd 1 1 1
 Ks 0.5 0.5 0.5
 illum 2
-map_Kd road.jpg
+map_Kd turf_field.jpg
 map_Ks spec_low.jpg
 

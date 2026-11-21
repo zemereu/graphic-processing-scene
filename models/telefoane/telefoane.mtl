@@ -1,3 +1,48 @@
+newmtl Aluminium
+Ns 96
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd aluminium.jpg
+map_Ks spec_high.jpg
+
+newmtl Bronze
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd bronze.jpg
+map_Ks spec_high.jpg
+
+newmtl BronzeDark
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd bronze_dark.jpg
+map_Ks spec_high.jpg
+
+newmtl ConcreteDark
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd concrete_dark.jpg
+map_Ks spec_low.jpg
+
+newmtl ConcreteWhite
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd concrete_white.jpg
+map_Ks spec_low.jpg
+
 newmtl Glass
 Ns 96
 Ka 1 1 1
@@ -7,22 +52,59 @@ illum 2
 map_Kd glass.jpg
 map_Ks spec_high.jpg
 
-newmtl Concrete
+newmtl Graffiti
 Ns 16
 Ka 1 1 1
 Kd 1 1 1
 Ks 0.5 0.5 0.5
 illum 2
-map_Kd concrete.jpg
+map_Kd graffiti.png
 map_Ks spec_low.jpg
 
-newmtl ConcreteDark
+newmtl Marble
 Ns 16
 Ka 1 1 1
 Kd 1 1 1
 Ks 0.5 0.5 0.5
 illum 2
-map_Kd concrete_dark.jpg
+map_Kd marble.jpg
+map_Ks spec_high.jpg
+
+newmtl PCobbleGrey
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd p_cobble_grey_diff.jpg
+map_Ks p_cobble_grey_spec.jpg
+map_bump p_cobble_grey_nrm.jpg
+
+newmtl PaintRed
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd paint_red.jpg
+map_Ks spec_low.jpg
+
+newmtl PaintWhite
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd paint_white.jpg
+map_Ks spec_low.jpg
+
+newmtl SignTelefoane
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd sign_telefoane.png
 map_Ks spec_low.jpg
 
 newmtl Steel
@@ -34,12 +116,12 @@ illum 2
 map_Kd steel.jpg
 map_Ks spec_high.jpg
 
-newmtl ConcreteWhite
+newmtl Travertine
 Ns 16
 Ka 1 1 1
 Kd 1 1 1
 Ks 0.5 0.5 0.5
 illum 2
-map_Kd concrete_white.jpg
+map_Kd travertine.jpg
 map_Ks spec_low.jpg
 

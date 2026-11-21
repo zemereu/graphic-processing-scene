@@ -1,0 +1,10 @@
+
+Model Information:
+* title:	Residential building (lowpoly apartment block)
+* source:	https://opengameart.org/content/residential-building-lowpoly-apartment-block
+* author:	Mixazzz (M. Khludeev)
+
+Model License:
+* license type:	CC0 1.0 (public domain)
+
+Changes for this project: 16-storey slab: two more copies in the city (residential district)

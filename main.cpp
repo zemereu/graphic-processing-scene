@@ -63,6 +63,7 @@ GLint numPointLightsLoc;
 GLint pointLightPosLoc;
 GLint pointLightColorLoc;
 GLint emissiveColorLoc;
+GLint surfaceModeLoc, timeLoc;  // terrain / water shading modes (basic.frag), time for the waves
 GLint numSpotLightsLoc;
 GLint spotLightPosLoc;
 GLint spotLightDirLoc;
@@ -93,9 +94,12 @@ float mouseSensitivity = 0.1f;
 
 // models 
 gps::Model3D terrain;
+gps::Model3D water;     // river and cooling pond, drawn with moving waves
 gps::Model3D satuMare;
 gps::Model3D genex;
 gps::Model3D genexRestaurant;
+gps::Model3D genexLights;
+gps::Model3D romanitaLights, telefoaneLights, satuMareLights;   // lit windows, drawn (glowing) only at night      // lit windows of Genex, drawn (glowing) only at night
 gps::Model3D panorama;
 gps::Model3D telefoane;
 
@@ -132,8 +136,10 @@ const std::vector<glm::vec3> LAMP_POSITIONS = { // base of each lamp post (max 1
     {-60.0f, 0.0f, 170.0f}, {-20.0f, 0.0f, 170.0f}, {20.0f, 0.0f, 170.0f}, {60.0f, 0.0f, 170.0f},
     // plaza of Palatul Telefoanelor
     {-195.0f, 0.0f, 175.0f}, {-145.0f, 0.0f, 175.0f},
-    // road under Genex
+    // road in front of Genex
     {-455.0f, 0.0f, 186.0f}, {-385.0f, 0.0f, 186.0f},
+    // crossing of the boulevard with the highway, both ends of the bridge (on the sidewalk / quay)
+    {89.1f, 0.4f, 186.0f}, {110.9f, 0.4f, 206.0f}, {84.0f, 0.3f, 35.06f}, {116.0f, 0.3f, 39.08f},
 };
 // floodlights (spot lights) on the Administrative Palace, on at night
 struct SpotLight {
@@ -141,9 +147,9 @@ struct SpotLight {
     glm::vec3 target;   // point the floodlight is aimed at
 };
 const std::vector<SpotLight> SPOT_LIGHTS = { // max 4, see basic.frag
-    {{-5.0f, 18.3f, 88.0f}, {0.0f, 70.0f, 68.0f}},  // on the roof of the low wing (y = 16), aimed at the main tower
-    {{5.0f, 18.3f, 88.0f},  {0.0f, 70.0f, 68.0f}},  // (position = lamp heads; the tripod stands 2.3 m below)
-    {{25.0f, 2.3f, 90.0f},  {19.0f, 40.0f, 72.0f}}, // on the plaza, aimed at the second block
+    {{-5.0f, 15.3f, 86.0f}, {0.0f, 60.0f, 70.0f}},  // on the roof of the podium (y = 13), aimed at the main tower
+    {{5.0f, 15.3f, 86.0f},  {0.0f, 60.0f, 70.0f}},  // (position = lamp heads; the tripod stands 2.3 m below)
+    {{25.0f, 15.3f, 86.0f}, {13.0f, 40.0f, 68.0f}}, // on the podium, aimed at the east tower
 };
 const glm::vec3 SPOT_COLOR(5.0f, 5.0f, 5.5f);  // cool white, strong enough to reach the top of the tower
 const float SPOT_INNER_ANGLE = 10.0f;          // degrees: full intensity inside
@@ -152,6 +158,15 @@ gps::Model3D floodlight;
 gps::Model3D floodlightLens;   // only the lenses glow at night
 gps::Model3D lampPost;
 gps::Model3D lampBulb;
+// the town around the landmarks (tools/city_layout.py): ordinary buildings north / south of the highway, and the street
+// furniture, bridges, fences (no colliders); street lamps that only glow and parked cars (models/city/props.txt)
+gps::Model3D cityNorth, citySouth, cityProps, cityLights;
+std::vector<gps::BoundingBox> cityNorthBounds, citySouthBounds;
+struct CityProp {
+    int car;          // -1 = street lamp, otherwise index in carModels
+    glm::mat4 model;
+};
+std::vector<CityProp> cityProps_;
 
 // camera tour: the camera follows a smooth path through these key points
 struct TourKey {
@@ -159,19 +174,24 @@ struct TourKey {
     glm::vec3 target;   // point the camera looks at
 };
 const std::vector<TourKey> TOUR = {
-    {{40.0f, 45.0f, 420.0f},    {0.0f, 30.0f, 60.0f}},      // overview from the south
-    {{0.0f, 12.0f, 240.0f},     {0.0f, 20.0f, 60.0f}},      // approach the plaza
-    {{-30.0f, 6.0f, 150.0f},    {0.0f, 60.0f, 60.0f}},      // look up at the Administrative Palace
-    {{-120.0f, 15.0f, 215.0f},  {-170.0f, 10.0f, 140.0f}},  // Palatul Telefoanelor
-    {{-300.0f, 10.0f, 196.0f},  {-420.0f, 40.0f, 196.0f}},  // west along the road, towards Genex
-    {{-520.0f, 8.0f, 196.0f},   {-640.0f, 10.0f, 230.0f}},  // through the gate, into the exclusion zone
-    {{-590.0f, 30.0f, 390.0f},  {-690.0f, 15.0f, 300.0f}},  // Pripyat and the Ferris wheel
-    {{-650.0f, 60.0f, 190.0f},  {-780.0f, 30.0f, 70.0f}},   // the power plant
-    {{-680.0f, 75.0f, -150.0f}, {-700.0f, 60.0f, -330.0f}}, // over the river, the Duga radar
-    {{-300.0f, 110.0f, -330.0f}, {-100.0f, 80.0f, -520.0f}},// along the north bank, Hotel Panorama in the mountains
-    {{260.0f, 75.0f, -70.0f},   {450.0f, 60.0f, -150.0f}},  // Motherland Calls on her hill
-    {{560.0f, 70.0f, 40.0f},    {0.0f, 30.0f, 100.0f}},     // look back over the river at the city
-    {{40.0f, 45.0f, 420.0f},    {0.0f, 30.0f, 60.0f}},      // back to the start
+    {{100.0f, 80.0f, 730.0f}, {60.0f, 30.0f, 200.0f}},  // overview of the town from the south
+    {{100.0f, 14.0f, 600.0f}, {100.0f, 12.0f, 300.0f}},  // down the boulevard
+    {{128.0f, 20.0f, 330.0f}, {200.0f, 40.0f, 280.0f}},  // Romanita in its park
+    {{132.0f, 9.0f, 214.0f}, {0.0f, 35.0f, 70.0f}},  // the crossing with the highway, the Administrative Palace
+    {{-30.0f, 6.0f, 150.0f}, {0.0f, 60.0f, 60.0f}},  // look up at the palace from its plaza
+    {{92.0f, 10.0f, 118.0f}, {70.0f, 6.0f, 30.0f}},  // along the boulevard, past the palace
+    {{62.0f, 9.0f, 24.0f}, {-60.0f, 3.0f, -40.0f}},  // on the quay: the river, the footbridge
+    {{-100.0f, 10.0f, 8.0f}, {-170.0f, 10.0f, 140.0f}},  // along the promenade
+    {{-118.0f, 15.0f, 214.0f}, {-170.0f, 10.0f, 140.0f}},  // Palatul Telefoanelor
+    {{-300.0f, 10.0f, 196.0f}, {-420.0f, 40.0f, 196.0f}},  // west along the highway, the Genex gate
+    {{-470.0f, 7.0f, 196.0f}, {-640.0f, 10.0f, 230.0f}},  // the checkpoint, into the exclusion zone
+    {{-590.0f, 30.0f, 390.0f}, {-690.0f, 15.0f, 300.0f}},  // Pripyat and the Ferris wheel
+    {{-650.0f, 60.0f, 190.0f}, {-780.0f, 30.0f, 70.0f}},  // the power plant
+    {{-680.0f, 75.0f, -150.0f}, {-700.0f, 60.0f, -330.0f}},  // over the river, the Duga radar
+    {{-300.0f, 110.0f, -330.0f}, {-100.0f, 80.0f, -520.0f}},  // along the north bank, Hotel Panorama in the mountains
+    {{260.0f, 75.0f, -70.0f}, {450.0f, 60.0f, -150.0f}},  // Motherland Calls on her hill
+    {{560.0f, 70.0f, 40.0f}, {100.0f, 30.0f, 250.0f}},  // look back over the river at the town
+    {{100.0f, 70.0f, 820.0f}, {60.0f, 30.0f, 200.0f}},  // back to the start
 };
 const float TOUR_SPEED = 35.0f;       // meters per second along the path
 const float TOUR_MIN_SEGMENT = 3.0f;  // seconds, so short segments are not rushed
@@ -242,10 +262,10 @@ gps::Model3D ferrisSupport, ferrisWheel, ferrisGondola;
 // Hotel Panorama in the mountains, and the Chornobyl exclusion zone in the forest beyond the gate
 // (positions must match tools/gen_world.py, which flattens the ground under each building)
 const glm::vec3 GENEX_POS(-420.0f, 0.0f, 196.0f);
-const glm::vec3 RESTAURANT_OFFSET(0.0f, 108.0f, 33.0f);  // from the base of Genex
+const glm::vec3 RESTAURANT_OFFSET(-8.23f, 107.88f, 26.86f);  // from the base of Genex (axis of the restaurant)
 const glm::vec3 PANORAMA_POS(-100.0f, 70.0f, -520.0f);
 const glm::vec3 MOTHERLAND_POS(450.0f, 35.0f, -150.0f);
-const glm::vec3 ROMANITA_POS(150.0f, 0.0f, 300.0f);
+const glm::vec3 ROMANITA_POS(200.0f, 0.0f, 280.0f);
 const glm::vec3 POWER_PLANT_POS(-780.0f, 0.0f, 70.0f);
 const glm::vec3 DUGA_POS(-700.0f, 0.0f, -330.0f);
 const glm::vec3 PRIPYAT_POS(-780.0f, 0.0f, 250.0f);
@@ -260,6 +280,26 @@ struct NearTree {
     glm::mat4 model;
 };
 std::vector<NearTree> nearTrees;
+
+// street lamps and parked cars of the town: "lamp x y z yaw" or "car <color> x y z yaw"
+bool loadCityProps(const char* path) {
+    std::ifstream in(path);
+    if (!in) {
+        std::cerr << "Could not open " << path << std::endl;
+        return false;
+    }
+    std::string kind;
+    while (in >> kind) {
+        if (kind[0] == '#') { std::getline(in, kind); continue; }   // comment line
+        int car = -1;
+        if (kind == "car") in >> car;
+        float x, y, z, yaw;
+        in >> x >> y >> z >> yaw;
+        glm::mat4 m = glm::translate(glm::mat4(1.0f), glm::vec3(x, y, z));
+        cityProps_.push_back({ car, glm::rotate(m, glm::radians(yaw), glm::vec3(0.0f, 1.0f, 0.0f)) });
+    }
+    return true;
+}
 const float FERRIS_HUB_HEIGHT = 14.63f;   // must match ferris_support.obj / ferris_wheel.obj
 const float FERRIS_RADIUS = 11.2f;
 const int FERRIS_GONDOLAS = 20;
@@ -300,11 +340,6 @@ GLint depthModelLoc, depthLightSpaceLoc;           // in depthMapShader
 GLint lightSpaceTrMatrixLoc, shadowMapLoc, shadowsEnabledLoc; // in myBasicShader
 glm::mat4 lightSpaceTrMatrix;
 bool depthPass = false;                  // true while drawing into the shadow map
-// performance: the shadow map is redrawn every SHADOW_UPDATE_INTERVAL frames (the sun doesn't move, so it barely
-// changes from one frame to the next) and small objects far from the camera are left out of it
-const int SHADOW_UPDATE_INTERVAL = 2;
-const float SHADOW_DETAIL_DISTANCE = 200.0f;  // meters: trees and cars farther than this cast no shadow
-int framesSinceShadowUpdate = SHADOW_UPDATE_INTERVAL;
 const int SHADOW_MAP_TEXTURE_UNIT = 5;   // units 0-2 are used by the models' own textures
 
 // UI
@@ -488,6 +523,8 @@ void updateColliders() {
     addColliders(pripyatBounds, glm::translate(glm::mat4(1.0f), PRIPYAT_POS));
     addColliders(ferrisSupportBounds, glm::translate(glm::mat4(1.0f), FERRIS_POS));
     addColliders(ferrisWheelBounds, ferrisWheelMatrix());
+    addColliders(cityNorthBounds, glm::mat4(1.0f));
+    addColliders(citySouthBounds, glm::mat4(1.0f));
     for (const glm::vec3& base : LAMP_POSITIONS) {
         addColliders(lampPostBounds, glm::translate(glm::mat4(1.0f), base));
     }
@@ -883,9 +920,14 @@ void initOpenGLState() {
 
 void initModels() {
     terrain.LoadModel("models/terrain/terrain.obj");
+    water.LoadModel("models/terrain/water.obj");
     satuMare.LoadModel("models/satu_mare/satu_mare.obj");
     genex.LoadModel("models/genex/genex.obj");
     genexRestaurant.LoadModel("models/genex/genex_restaurant.obj");
+    genexLights.LoadModel("models/genex/genex_lights.obj");
+    romanitaLights.LoadModel("models/romanita/romanita_lights.obj");
+    telefoaneLights.LoadModel("models/telefoane/telefoane_lights.obj");
+    satuMareLights.LoadModel("models/satu_mare/satu_mare_lights.obj");
     panorama.LoadModel("models/panorama/panorama.obj");
     telefoane.LoadModel("models/telefoane/telefoane.obj");
     lampPost.LoadModel("models/lamp_post/lamp_post.obj");
@@ -916,6 +958,13 @@ void initModels() {
         treeModels[i].LoadModel(std::string("models/trees/tree_") + TREE_SPECIES[i] + ".obj");
     }
     loadNearTrees("models/trees/trees_near.txt");
+    cityNorth.LoadModel("models/city/city_north.obj");
+    citySouth.LoadModel("models/city/city_south.obj");
+    cityProps.LoadModel("models/city/city_props.obj");
+    cityLights.LoadModel("models/city/city_lights.obj");
+    loadCityProps("models/city/props.txt");
+    cityNorthBounds = cityNorth.GetMeshBounds();
+    citySouthBounds = citySouth.GetMeshBounds();
     loadHeightMap("models/terrain/terrain_height.txt");
 
     // collision shapes, computed once from the meshes
@@ -1110,6 +1159,8 @@ void initUniforms() {
     glUniform3fv(pointLightColorLoc, 1, glm::value_ptr(LAMP_COLOR));
     numPointLightsLoc = glGetUniformLocation(myBasicShader.shaderProgram, "numPointLights");
     emissiveColorLoc = glGetUniformLocation(myBasicShader.shaderProgram, "emissiveColor");
+    surfaceModeLoc = glGetUniformLocation(myBasicShader.shaderProgram, "surfaceMode");
+    timeLoc = glGetUniformLocation(myBasicShader.shaderProgram, "time");
 
     // floodlights: fixed, sent once (world space)
     std::vector<glm::vec3> spotPositions, spotDirections;
@@ -1207,6 +1258,9 @@ void renderObject(gps::Model3D& object, const glm::mat4& objectModel, gps::Shade
     }
     shader.useShaderProgram();
     glUniform3fv(emissiveColorLoc, 1, glm::value_ptr(emissive));
+    // 1 = terrain (texture repetition hidden), 2 = water (animated waves + sky reflection), 0 = everything else
+    glUniform1i(surfaceModeLoc, &object == &terrain ? 1 : (&object == &water ? 2 : 0));
+    glUniform1f(timeLoc, (float)glfwGetTime());
     glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(objectModel));
     glm::mat3 nm = glm::mat3(glm::inverseTranspose(view * objectModel));
     glUniformMatrix3fv(normalMatrixLoc, 1, GL_FALSE, glm::value_ptr(nm));
@@ -1232,12 +1286,7 @@ void renderScene() {
 
 // pass 1: the scene from the sun, depth only
 void renderShadowMap() {
-    if (!shadowsEnabled) {
-        framesSinceShadowUpdate = SHADOW_UPDATE_INTERVAL;  // redraw it as soon as the shadows are turned back on
-        return;
-    }
-    if (++framesSinceShadowUpdate < SHADOW_UPDATE_INTERVAL) return;  // keep the map (and its matrix) from last time
-    framesSinceShadowUpdate = 0;
+    if (!shadowsEnabled) return;
     lightSpaceTrMatrix = computeLightSpaceTrMatrix();
     depthMapShader.useShaderProgram();
     glUniformMatrix4fv(depthLightSpaceLoc, 1, GL_FALSE, glm::value_ptr(lightSpaceTrMatrix));
@@ -1268,26 +1317,32 @@ void renderSceneObjects() {
     // brutalist scene (positions in meters)
     glm::mat4 identity(1.0f);
     glm::vec3 cameraPos = glm::vec3(glm::inverse(view)[3]);
-    // in the shadow map only the trees and cars near the camera are drawn
-    auto castsShadow = [&](const glm::mat4& m) {
-        return !depthPass || glm::distance(glm::vec3(m[3]), cameraPos) < SHADOW_DETAIL_DISTANCE;
-    };
     // collects the objects; far from the camera the heavy models are replaced by their simplified copies
+    // (only in the camera pass: the shadow map always uses the full models, so the shadows keep all their detail)
     auto draw = [&](gps::Model3D& object, const glm::mat4& m, const glm::vec3& emissive = glm::vec3(0.0f)) {
         drawList.push_back({ &object, m, emissive, boxDistance(modelBox(object), m, cameraPos) });
     };
     auto lod = [&](gps::Model3D& full, gps::Model3D& simple, const glm::mat4& m) -> gps::Model3D& {
-        return boxDistance(modelBox(full), m, cameraPos) > LOD_DISTANCE ? simple : full;
+        return !depthPass && boxDistance(modelBox(full), m, cameraPos) > LOD_DISTANCE ? simple : full;
     };
     draw(terrain, identity);
+    if (!depthPass) {
+        draw(water, identity);   // flat, under the terrain: it doesn't cast shadows
+    }
     draw(trees, identity);   // no colliders: the camera can pass through the foliage
     for (const NearTree& tree : nearTrees) {
-        if (!castsShadow(tree.model)) continue;
         draw(treeModels[tree.species], tree.model);
     }
     draw(satuMare, satuMareMatrix());
     draw(genex, genexMatrix());
     draw(genexRestaurant, restaurantMatrix());
+    if (nightMode) {
+        draw(genexLights, genexMatrix(), glm::vec3(1.0f));
+        draw(romanitaLights, glm::translate(identity, ROMANITA_POS), glm::vec3(1.0f));
+        draw(telefoaneLights, telefoaneMatrix(), glm::vec3(1.0f));
+        draw(satuMareLights, satuMareMatrix(), glm::vec3(1.0f));
+        draw(cityLights, identity, glm::vec3(1.0f));
+    }
     draw(panorama, panoramaMatrix());
     draw(telefoane, telefoaneMatrix());
     draw(lod(motherland, motherlandLod, glm::translate(identity, MOTHERLAND_POS)), glm::translate(identity, MOTHERLAND_POS));
@@ -1296,6 +1351,17 @@ void renderSceneObjects() {
     draw(lod(duga, dugaLod, glm::translate(identity, DUGA_POS)), glm::translate(identity, DUGA_POS));
     draw(lod(pripyatBlocks, pripyatBlocksLod, glm::translate(identity, PRIPYAT_POS)), glm::translate(identity, PRIPYAT_POS));
     draw(ferrisSupport, glm::translate(identity, FERRIS_POS));
+    draw(cityNorth, identity);
+    draw(citySouth, identity);
+    draw(cityProps, identity);
+    for (const CityProp& prop : cityProps_) {
+        if (prop.car < 0) {
+            draw(lampPost, prop.model);
+            draw(lampBulb, prop.model, nightMode ? LAMP_GLOW : glm::vec3(0.0f));
+        } else {
+            draw(carModels[prop.car], prop.model);
+        }
+    }
     draw(ferrisWheel, ferrisWheelMatrix());
     for (int i = 0; i < FERRIS_GONDOLAS; i++) {
         draw(ferrisGondola, ferrisGondolaMatrix(i));
@@ -1321,7 +1387,6 @@ void renderSceneObjects() {
             if (LANE_DIR[car.lane] < 0.0f) {
                 carModel = glm::rotate(carModel, glm::radians(180.0f), glm::vec3(0.0f, 1.0f, 0.0f));
             }
-            if (!castsShadow(carModel)) continue;
             draw(carModels[car.model], carModel);
             draw(carLights, carModel, carLightGlow);
         }

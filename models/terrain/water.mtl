@@ -1,0 +1,10 @@
+newmtl GWater
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd g_water_diff.jpg
+map_Ks g_water_spec.jpg
+map_bump g_water_nrm.jpg
+

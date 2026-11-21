@@ -1,0 +1,82 @@
+newmtl Concrete
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd concrete.jpg
+map_Ks spec_low.jpg
+
+newmtl ConcreteSM
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd concrete_sm.jpg
+map_Ks spec_low.jpg
+
+newmtl Glass
+Ns 96
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd glass.jpg
+map_Ks spec_high.jpg
+
+newmtl PConcrete
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd p_concrete_diff.jpg
+map_Ks p_concrete_spec.jpg
+map_bump p_concrete_nrm.jpg
+
+newmtl PaintOchre
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd paint_ochre.jpg
+map_Ks spec_low.jpg
+
+newmtl PanelCream
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd panel_cream.jpg
+map_Ks spec_low.jpg
+
+newmtl Roofing
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd roofing.jpg
+map_Ks spec_low.jpg
+
+newmtl Signs
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd city_signs.png
+map_Ks spec_low.jpg
+
+newmtl Steel
+Ns 96
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd steel.jpg
+map_Ks spec_high.jpg
+

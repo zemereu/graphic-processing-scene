@@ -1,0 +1,10 @@
+
+Model Information:
+* title:	Genex Tower
+* source:	SketchUp 3D Warehouse (via 3dmdb.com/en/3d-model/genex-tower/7459062/)
+* author:	3D Warehouse user
+
+Model License:
+* license type:	SketchUp 3D Warehouse General Model License
+
+Changes for this project: converted (GLB -> glTF -> OBJ), Google Earth ground plane removed, rescaled x1.2, rotated parallel to the road, rotating restaurant split into its own model

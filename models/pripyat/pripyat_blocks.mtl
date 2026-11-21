@@ -1,81 +1,333 @@
+newmtl Material_001
+Ns 8
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd t9_Material_001.jpg
+map_Ks spec_006.png
+
 newmtl Material_002
 Ns 68
 Ka 1 1 1
 Kd 1 1 1
 Ks 0.5 0.5 0.5
 illum 2
-map_Kd Material_002.jpg
+map_Kd t9_Material_002.jpg
 map_Ks spec_018.png
 
 newmtl Material_003
-Ns 117
+Ns 68
 Ka 1 1 1
 Kd 1 1 1
 Ks 0.5 0.5 0.5
 illum 2
-map_Kd Material_003.jpg
-map_Ks spec_047.png
+map_Kd t9_Material_003.jpg
+map_Ks spec_018.png
 
 newmtl Material_004
-Ns 68
+Ns 8
 Ka 1 1 1
 Kd 1 1 1
 Ks 0.5 0.5 0.5
 illum 2
-map_Kd Material_004.jpg
-map_Ks spec_018.png
+map_Kd t9_wood.jpg
+map_Ks spec_006.png
 
 newmtl Material_005
+Ns 8
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd t9_Material_005.jpg
+map_Ks spec_006.png
+
+newmtl None
+Ns 8
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd p16_None.jpg
+map_Ks spec_006.png
+
+newmtl None_b_metall_png
+Ns 8
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd p16_None_b_metall_png.jpg
+map_Ks spec_006.png
+
+newmtl None_balkons1_png
+Ns 8
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd p16_None_balkons1_png.jpg
+map_Ks spec_006.png
+
+newmtl None_balkons2_png
+Ns 8
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd p16_None_balkons2_png.jpg
+map_Ks spec_006.png
+
+newmtl None_balkons3_png
+Ns 8
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd p16_None_balkons3_png.jpg
+map_Ks spec_006.png
+
+newmtl None_balkons4_png
+Ns 8
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd p16_None_balkons4_png.jpg
+map_Ks spec_006.png
+
+newmtl None_blackplitka_png
+Ns 8
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd p16_None_blackplitka_png.jpg
+map_Ks spec_006.png
+
+newmtl None_dombokwall_png
+Ns 8
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd p16_None_dombokwall_png.jpg
+map_Ks spec_006.png
+
+newmtl None_door_damofon_png
+Ns 8
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd p16_None_door_damofon_png.jpg
+map_Ks spec_006.png
+
+newmtl None_krisha_png
+Ns 8
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd p16_None_krisha_png.jpg
+map_Ks spec_006.png
+
+newmtl None_my16wins1_png
+Ns 8
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd p16_None_my16wins1_png.jpg
+map_Ks spec_006.png
+
+newmtl None_my16wins2_png
+Ns 8
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd p16_None_my16wins2_png.jpg
+map_Ks spec_006.png
+
+newmtl None_my16wins3_png
+Ns 8
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd p16_None_my16wins3_png.jpg
+map_Ks spec_006.png
+
+newmtl None_my16wins4_png
+Ns 8
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd p16_None_my16wins4_png.jpg
+map_Ks spec_006.png
+
+newmtl None_my16wins5_png
+Ns 8
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd p16_None_my16wins5_png.jpg
+map_Ks spec_006.png
+
+newmtl None_my16wins6_png
+Ns 8
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd p16_None_my16wins6_png.jpg
+map_Ks spec_006.png
+
+newmtl None_my16wins7_png
+Ns 8
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd p16_None_my16wins7_png.jpg
+map_Ks spec_006.png
+
+newmtl None_mysorndoor_png
+Ns 8
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd p16_None_mysorndoor_png.jpg
+map_Ks spec_006.png
+
+newmtl None_podezdwall_png
+Ns 8
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd p16_None_podezdwall_png.jpg
+map_Ks spec_006.png
+
+newmtl None_whiteplitka_png
+Ns 8
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd p16_None_whiteplitka_png.jpg
+map_Ks spec_006.png
+
+newmtl asphalt
 Ns 68
 Ka 1 1 1
 Kd 1 1 1
 Ks 0.5 0.5 0.5
 illum 2
-map_Kd Material_008.jpg
+map_Kd t9_asphalt.jpg
 map_Ks spec_018.png
 
-newmtl Material_006
+newmtl black
+Ns 8
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd t9_black.jpg
+map_Ks spec_006.png
+
+newmtl bricks
+Ns 8
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd t9_bricks.jpg
+map_Ks spec_006.png
+
+newmtl concrate
+Ns 8
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd t9_concrate.jpg
+map_Ks spec_006.png
+
+newmtl concrate2
+Ns 8
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd t9_concrate2.jpg
+map_Ks spec_006.png
+
+newmtl concrate3
+Ns 8
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd t9_concrate.jpg
+map_Ks spec_006.png
+
+newmtl concrate4
 Ns 68
 Ka 1 1 1
 Kd 1 1 1
 Ks 0.5 0.5 0.5
 illum 2
-map_Kd Material_006.jpg
+map_Kd t9_concrate4.jpg
 map_Ks spec_018.png
 
-newmtl Material_007
+newmtl glass
 Ns 68
 Ka 1 1 1
 Kd 1 1 1
 Ks 0.5 0.5 0.5
 illum 2
-map_Kd Material_008.jpg
+map_Kd t9_glass.jpg
 map_Ks spec_018.png
 
-newmtl Material_008
-Ns 68
+newmtl green_metal
+Ns 8
 Ka 1 1 1
 Kd 1 1 1
 Ks 0.5 0.5 0.5
 illum 2
-map_Kd Material_008.jpg
-map_Ks spec_018.png
+map_Kd t9_green_metal2.jpg
+map_Ks spec_006.png
 
-newmtl Material_009
-Ns 68
+newmtl green_metal2
+Ns 8
 Ka 1 1 1
 Kd 1 1 1
 Ks 0.5 0.5 0.5
 illum 2
-map_Kd Material_009.jpg
-map_Ks spec_018.png
+map_Kd t9_green_metal2.jpg
+map_Ks spec_006.png
 
-newmtl Material_010
-Ns 68
+newmtl rusted_metal
+Ns 8
 Ka 1 1 1
 Kd 1 1 1
 Ks 0.5 0.5 0.5
 illum 2
-map_Kd Material_010.jpg
-map_Ks spec_018.png
+map_Kd t9_rusted_metal.jpg
+map_Ks spec_006.png
+
+newmtl wood
+Ns 8
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd t9_wood.jpg
+map_Ks spec_006.png
 

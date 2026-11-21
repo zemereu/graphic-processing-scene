@@ -1,14 +1,20 @@
 
 Model Information:
-* title:	panelka
-* source:	https://sketchfab.com/3d-models/panelka-8878634b8c1a4691b2513437b1afc049
-* author:	cedo (https://sketchfab.com/cedo_model)
+* title:	Residential building (lowpoly apartment block)
+* source:	https://opengameart.org/content/residential-building-lowpoly-apartment-block
+* author:	Mixazzz (M. Khludeev)
 
 Model License:
-* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
-* requirements:	Author must be credited. Commercial use is allowed.
+* license type:	CC0 1.0 (public domain)
 
-If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
-This work is based on "panelka" (https://sketchfab.com/3d-models/panelka-8878634b8c1a4691b2513437b1afc049) by cedo (https://sketchfab.com/cedo_model) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+Changes for this project: 16-storey slab: converted (OBJ -> glTF -> OBJ), two copies placed along the road
+----------------------------------------------------------------------
+Model Information:
+* title:	Nine-story Building USSR
+* source:	https://www.turbosquid.com/3d-models/nine-story-building-ussr-2057848
+* author:	TurboSquid seller (free model)
 
-Changes for this project: converted from glTF, backdrop plane removed, 12 copies arranged as a district
+Model License:
+* license type:	TurboSquid Standard License (royalty free)
+
+Changes for this project: converted from .blend (no textures were included: tinted concrete texture, box-mapped), wires and lamps removed, railings/pipes/wood decimated, 8 copies

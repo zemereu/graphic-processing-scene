@@ -1,3 +1,84 @@
+newmtl Aluminium
+Ns 96
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd aluminium.jpg
+map_Ks spec_high.jpg
+
+newmtl AxisPave
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd axis_pave.jpg
+map_Ks spec_low.jpg
+
+newmtl Blinds
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd blinds.jpg
+map_Ks spec_low.jpg
+
+newmtl ClockSM
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd clock_sm.jpg
+map_Ks spec_low.jpg
+
+newmtl ConcreteSM
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd concrete_sm.jpg
+map_Ks spec_low.jpg
+
+newmtl ConcreteSMDark
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd concrete_sm_dark.jpg
+map_Ks spec_low.jpg
+
+newmtl EmblemSM
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd emblem_sm.png
+map_Ks spec_low.jpg
+
+newmtl FlagEU
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd flag_eu.jpg
+map_Ks spec_low.jpg
+
+newmtl FlagRO
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd flag_ro.jpg
+map_Ks spec_low.jpg
+
 newmtl Glass
 Ns 96
 Ka 1 1 1
@@ -7,22 +88,59 @@ illum 2
 map_Kd glass.jpg
 map_Ks spec_high.jpg
 
-newmtl Concrete
+newmtl Grass
 Ns 16
 Ka 1 1 1
 Kd 1 1 1
 Ks 0.5 0.5 0.5
 illum 2
-map_Kd concrete.jpg
+map_Kd grass.jpg
 map_Ks spec_low.jpg
 
-newmtl ConcreteDark
+newmtl MetalRoof
 Ns 16
 Ka 1 1 1
 Kd 1 1 1
 Ks 0.5 0.5 0.5
 illum 2
-map_Kd concrete_dark.jpg
+map_Kd metal_roof.jpg
+map_Ks spec_high.jpg
+
+newmtl PPatterned
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd p_patterned_diff.jpg
+map_Ks p_patterned_spec.jpg
+map_bump p_patterned_nrm.jpg
+
+newmtl PaintRed
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd paint_red.jpg
+map_Ks spec_low.jpg
+
+newmtl PaintWhite
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd paint_white.jpg
+map_Ks spec_low.jpg
+
+newmtl Pavement
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd pavement.jpg
 map_Ks spec_low.jpg
 
 newmtl Steel
@@ -32,5 +150,14 @@ Kd 1 1 1
 Ks 0.5 0.5 0.5
 illum 2
 map_Kd steel.jpg
+map_Ks spec_high.jpg
+
+newmtl WaterSM
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd water_sm.jpg
 map_Ks spec_high.jpg
 

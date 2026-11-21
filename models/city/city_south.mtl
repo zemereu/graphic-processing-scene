@@ -1,0 +1,325 @@
+newmtl Concrete
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd concrete.jpg
+map_Ks spec_low.jpg
+
+newmtl ConcreteSM
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd concrete_sm.jpg
+map_Ks spec_low.jpg
+
+newmtl ConcreteSMDark
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd concrete_sm_dark.jpg
+map_Ks spec_low.jpg
+
+newmtl Glass
+Ns 96
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd glass.jpg
+map_Ks spec_high.jpg
+
+newmtl None
+Ns 8
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd p16_None.jpg
+map_Ks spec_006.png
+
+newmtl None_b_metall_png
+Ns 8
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd p16_None_b_metall_png.jpg
+map_Ks spec_006.png
+
+newmtl None_balkons1_png
+Ns 8
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd p16_None_balkons1_png.jpg
+map_Ks spec_006.png
+
+newmtl None_balkons2_png
+Ns 8
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd p16_None_balkons2_png.jpg
+map_Ks spec_006.png
+
+newmtl None_balkons3_png
+Ns 8
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd p16_None_balkons3_png.jpg
+map_Ks spec_006.png
+
+newmtl None_balkons4_png
+Ns 8
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd p16_None_balkons4_png.jpg
+map_Ks spec_006.png
+
+newmtl None_blackplitka_png
+Ns 8
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd p16_None_blackplitka_png.jpg
+map_Ks spec_006.png
+
+newmtl None_dombokwall_png
+Ns 8
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd p16_None_dombokwall_png.jpg
+map_Ks spec_006.png
+
+newmtl None_door_damofon_png
+Ns 8
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd p16_None_door_damofon_png.jpg
+map_Ks spec_006.png
+
+newmtl None_krisha_png
+Ns 8
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd p16_None_krisha_png.jpg
+map_Ks spec_006.png
+
+newmtl None_my16wins1_png
+Ns 8
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd p16_None_my16wins1_png.jpg
+map_Ks spec_006.png
+
+newmtl None_my16wins2_png
+Ns 8
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd p16_None_my16wins2_png.jpg
+map_Ks spec_006.png
+
+newmtl None_my16wins3_png
+Ns 8
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd p16_None_my16wins3_png.jpg
+map_Ks spec_006.png
+
+newmtl None_my16wins4_png
+Ns 8
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd p16_None_my16wins4_png.jpg
+map_Ks spec_006.png
+
+newmtl None_my16wins5_png
+Ns 8
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd p16_None_my16wins5_png.jpg
+map_Ks spec_006.png
+
+newmtl None_my16wins6_png
+Ns 8
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd p16_None_my16wins6_png.jpg
+map_Ks spec_006.png
+
+newmtl None_my16wins7_png
+Ns 8
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd p16_None_my16wins7_png.jpg
+map_Ks spec_006.png
+
+newmtl None_mysorndoor_png
+Ns 8
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd p16_None_mysorndoor_png.jpg
+map_Ks spec_006.png
+
+newmtl None_podezdwall_png
+Ns 8
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd p16_None_podezdwall_png.jpg
+map_Ks spec_006.png
+
+newmtl None_whiteplitka_png
+Ns 8
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd p16_None_whiteplitka_png.jpg
+map_Ks spec_006.png
+
+newmtl PConcrete
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd p_concrete_diff.jpg
+map_Ks p_concrete_spec.jpg
+map_bump p_concrete_nrm.jpg
+
+newmtl PaintBlue
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd paint_blue.jpg
+map_Ks spec_low.jpg
+
+newmtl PaintGreen
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd paint_green.jpg
+map_Ks spec_low.jpg
+
+newmtl PaintOchre
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd paint_ochre.jpg
+map_Ks spec_low.jpg
+
+newmtl PaintRed
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd paint_red.jpg
+map_Ks spec_low.jpg
+
+newmtl PaintYellow
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd paint_yellow.jpg
+map_Ks spec_low.jpg
+
+newmtl PanelCream
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd panel_cream.jpg
+map_Ks spec_low.jpg
+
+newmtl PanelGrey
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd panel_grey.jpg
+map_Ks spec_low.jpg
+
+newmtl Roofing
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd roofing.jpg
+map_Ks spec_low.jpg
+
+newmtl Signs
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd city_signs.png
+map_Ks spec_low.jpg
+
+newmtl Steel
+Ns 96
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd steel.jpg
+map_Ks spec_high.jpg
+
+newmtl Wood
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd wood_slats.jpg
+map_Ks spec_low.jpg
+

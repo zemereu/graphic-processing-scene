@@ -1,0 +1,9 @@
+newmtl WindowLit
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd window_lit.jpg
+map_Ks spec_low.jpg
+
