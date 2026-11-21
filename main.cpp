@@ -30,6 +30,7 @@
 #include <cfloat>
 #include <algorithm>
 #include <fstream>
+#include <map>
 #include <string>
 
 #ifdef _WIN32
@@ -231,6 +232,10 @@ gps::Model3D carLights;   // head- and taillights, separate so they can glow at 
 // more landmarks: Motherland Calls (Volgograd), Romanita (Chisinau), Chornobyl (power plant, Duga radar,
 // Pripyat apartment blocks and the Ferris wheel from the Pripyat amusement park)
 gps::Model3D motherland, romanita, powerPlant, duga, pripyatBlocks;
+// level of detail (course 09 - Models, mesh simplification): simplified copies of the heaviest models,
+// drawn instead of the full ones when the camera is far away (the colliders still use the full models)
+gps::Model3D motherlandLod, powerPlantLod, dugaLod, pripyatBlocksLod;
+const float LOD_DISTANCE = 250.0f;   // meters from the camera to the nearest point of the model
 gps::Model3D ferrisSupport, ferrisWheel, ferrisGondola;
 // layout: the Romanian/Moldovan city center on the south bank (palace, Palatul Telefoanelor, Romanita),
 // Genex as the western gate of the city on the main road, Motherland Calls on a hill above the river,
@@ -295,6 +300,11 @@ GLint depthModelLoc, depthLightSpaceLoc;           // in depthMapShader
 GLint lightSpaceTrMatrixLoc, shadowMapLoc, shadowsEnabledLoc; // in myBasicShader
 glm::mat4 lightSpaceTrMatrix;
 bool depthPass = false;                  // true while drawing into the shadow map
+// performance: the shadow map is redrawn every SHADOW_UPDATE_INTERVAL frames (the sun doesn't move, so it barely
+// changes from one frame to the next) and small objects far from the camera are left out of it
+const int SHADOW_UPDATE_INTERVAL = 2;
+const float SHADOW_DETAIL_DISTANCE = 200.0f;  // meters: trees and cars farther than this cast no shadow
+int framesSinceShadowUpdate = SHADOW_UPDATE_INTERVAL;
 const int SHADOW_MAP_TEXTURE_UNIT = 5;   // units 0-2 are used by the models' own textures
 
 // UI
@@ -894,6 +904,10 @@ void initModels() {
     powerPlant.LoadModel("models/power_plant/power_plant.obj");
     duga.LoadModel("models/duga/duga.obj");
     pripyatBlocks.LoadModel("models/pripyat/pripyat_blocks.obj");
+    motherlandLod.LoadModel("models/motherland/motherland_lod.obj");
+    powerPlantLod.LoadModel("models/power_plant/power_plant_lod.obj");
+    dugaLod.LoadModel("models/duga/duga_lod.obj");
+    pripyatBlocksLod.LoadModel("models/pripyat/pripyat_blocks_lod.obj");
     ferrisSupport.LoadModel("models/ferris_wheel/ferris_support.obj");
     ferrisWheel.LoadModel("models/ferris_wheel/ferris_wheel.obj");
     ferrisGondola.LoadModel("models/ferris_wheel/ferris_gondola.obj");
@@ -1127,8 +1141,64 @@ void initUniforms() {
 }
 
 // draws a model with its own model matrix; normalMatrix is computed per object
+// frustum culling: the box of the whole model (model space), computed once per model
+std::map<const gps::Model3D*, gps::BoundingBox> modelBoxes;
+
+const gps::BoundingBox& modelBox(gps::Model3D& object) {
+    auto it = modelBoxes.find(&object);
+    if (it != modelBoxes.end()) return it->second;
+    gps::BoundingBox box{ glm::vec3(FLT_MAX), glm::vec3(-FLT_MAX) };
+    for (const gps::BoundingBox& b : object.GetMeshBounds()) {
+        box.min = glm::min(box.min, b.min);
+        box.max = glm::max(box.max, b.max);
+    }
+    return modelBoxes[&object] = box;
+}
+
+// Cohen-Sutherland region code (course 05 - Clipping), in 3D: 6 bits, one for each plane of the view volume.
+// In clip space a point is inside when -w <= x, y, z <= w.
+enum : unsigned { OUT_LEFT = 1, OUT_RIGHT = 2, OUT_BOTTOM = 4, OUT_TOP = 8, OUT_NEAR = 16, OUT_FAR = 32 };
+
+unsigned outCode(const glm::vec4& c) {
+    unsigned code = 0;
+    if (c.x < -c.w) code |= OUT_LEFT;
+    if (c.x > c.w)  code |= OUT_RIGHT;
+    if (c.y < -c.w) code |= OUT_BOTTOM;
+    if (c.y > c.w)  code |= OUT_TOP;
+    if (c.z < -c.w) code |= OUT_NEAR;
+    if (c.z > c.w)  code |= OUT_FAR;
+    return code;
+}
+
+// frustum culling with "trivial reject": if all 8 corners of the box have a bit in common (AND != 0),
+// the whole box is beyond the same plane, so the object is surely not visible and is not drawn at all
+bool boxVisible(const gps::BoundingBox& box, const glm::mat4& clipMatrix) {
+    unsigned common = OUT_LEFT | OUT_RIGHT | OUT_BOTTOM | OUT_TOP | OUT_NEAR | OUT_FAR;
+    for (int i = 0; i < 8; i++) {
+        glm::vec3 p((i & 1) ? box.max.x : box.min.x, (i & 2) ? box.max.y : box.min.y, (i & 4) ? box.max.z : box.min.z);
+        common &= outCode(clipMatrix * glm::vec4(p, 1.0f));
+        if (common == 0) return true;   // no common plane: (possibly) visible
+    }
+    return false;
+}
+
+// distance from the camera to the nearest point of the object's box (world space)
+float boxDistance(const gps::BoundingBox& box, const glm::mat4& objectModel, const glm::vec3& cameraPos) {
+    glm::vec3 lo(FLT_MAX), hi(-FLT_MAX);
+    for (int i = 0; i < 8; i++) {
+        glm::vec3 p((i & 1) ? box.max.x : box.min.x, (i & 2) ? box.max.y : box.min.y, (i & 4) ? box.max.z : box.min.z);
+        glm::vec3 w = glm::vec3(objectModel * glm::vec4(p, 1.0f));
+        lo = glm::min(lo, w);
+        hi = glm::max(hi, w);
+    }
+    return glm::distance(cameraPos, glm::clamp(cameraPos, lo, hi));
+}
+
 void renderObject(gps::Model3D& object, const glm::mat4& objectModel, gps::Shader shader,
     const glm::vec3& emissive = glm::vec3(0.0f)) {
+    // skip the objects that are not in the shadow map area / not in front of the camera
+    glm::mat4 clipMatrix = depthPass ? lightSpaceTrMatrix : projection * view;
+    if (!boxVisible(modelBox(object), clipMatrix * objectModel)) return;
     if (depthPass) { // shadow map: only the geometry matters
         depthMapShader.useShaderProgram();
         glUniformMatrix4fv(depthModelLoc, 1, GL_FALSE, glm::value_ptr(objectModel));
@@ -1162,7 +1232,12 @@ void renderScene() {
 
 // pass 1: the scene from the sun, depth only
 void renderShadowMap() {
-    if (!shadowsEnabled) return;
+    if (!shadowsEnabled) {
+        framesSinceShadowUpdate = SHADOW_UPDATE_INTERVAL;  // redraw it as soon as the shadows are turned back on
+        return;
+    }
+    if (++framesSinceShadowUpdate < SHADOW_UPDATE_INTERVAL) return;  // keep the map (and its matrix) from last time
+    framesSinceShadowUpdate = 0;
     lightSpaceTrMatrix = computeLightSpaceTrMatrix();
     depthMapShader.useShaderProgram();
     glUniformMatrix4fv(depthLightSpaceLoc, 1, GL_FALSE, glm::value_ptr(lightSpaceTrMatrix));
@@ -1180,40 +1255,62 @@ void renderShadowMap() {
 }
 
 // all the objects of the scene; used by both passes (the shadow map and the normal rendering)
+// one object to draw in this pass
+struct DrawItem {
+    gps::Model3D* object;
+    glm::mat4 model;
+    glm::vec3 emissive;
+    float distance;   // from the camera, to the nearest point of the object
+};
+
 void renderSceneObjects() {
+    std::vector<DrawItem> drawList;
     // brutalist scene (positions in meters)
     glm::mat4 identity(1.0f);
-    renderObject(terrain, identity, myBasicShader);
-    renderObject(trees, identity, myBasicShader);   // no colliders: the camera can pass through the foliage
+    glm::vec3 cameraPos = glm::vec3(glm::inverse(view)[3]);
+    // in the shadow map only the trees and cars near the camera are drawn
+    auto castsShadow = [&](const glm::mat4& m) {
+        return !depthPass || glm::distance(glm::vec3(m[3]), cameraPos) < SHADOW_DETAIL_DISTANCE;
+    };
+    // collects the objects; far from the camera the heavy models are replaced by their simplified copies
+    auto draw = [&](gps::Model3D& object, const glm::mat4& m, const glm::vec3& emissive = glm::vec3(0.0f)) {
+        drawList.push_back({ &object, m, emissive, boxDistance(modelBox(object), m, cameraPos) });
+    };
+    auto lod = [&](gps::Model3D& full, gps::Model3D& simple, const glm::mat4& m) -> gps::Model3D& {
+        return boxDistance(modelBox(full), m, cameraPos) > LOD_DISTANCE ? simple : full;
+    };
+    draw(terrain, identity);
+    draw(trees, identity);   // no colliders: the camera can pass through the foliage
     for (const NearTree& tree : nearTrees) {
-        renderObject(treeModels[tree.species], tree.model, myBasicShader);
+        if (!castsShadow(tree.model)) continue;
+        draw(treeModels[tree.species], tree.model);
     }
-    renderObject(satuMare, satuMareMatrix(), myBasicShader);
-    renderObject(genex, genexMatrix(), myBasicShader);
-    renderObject(genexRestaurant, restaurantMatrix(), myBasicShader);
-    renderObject(panorama, panoramaMatrix(), myBasicShader);
-    renderObject(telefoane, telefoaneMatrix(), myBasicShader);
-    renderObject(motherland, glm::translate(identity, MOTHERLAND_POS), myBasicShader);
-    renderObject(romanita, glm::translate(identity, ROMANITA_POS), myBasicShader);
-    renderObject(powerPlant, glm::translate(identity, POWER_PLANT_POS), myBasicShader);
-    renderObject(duga, glm::translate(identity, DUGA_POS), myBasicShader);
-    renderObject(pripyatBlocks, glm::translate(identity, PRIPYAT_POS), myBasicShader);
-    renderObject(ferrisSupport, glm::translate(identity, FERRIS_POS), myBasicShader);
-    renderObject(ferrisWheel, ferrisWheelMatrix(), myBasicShader);
+    draw(satuMare, satuMareMatrix());
+    draw(genex, genexMatrix());
+    draw(genexRestaurant, restaurantMatrix());
+    draw(panorama, panoramaMatrix());
+    draw(telefoane, telefoaneMatrix());
+    draw(lod(motherland, motherlandLod, glm::translate(identity, MOTHERLAND_POS)), glm::translate(identity, MOTHERLAND_POS));
+    draw(romanita, glm::translate(identity, ROMANITA_POS));
+    draw(lod(powerPlant, powerPlantLod, glm::translate(identity, POWER_PLANT_POS)), glm::translate(identity, POWER_PLANT_POS));
+    draw(lod(duga, dugaLod, glm::translate(identity, DUGA_POS)), glm::translate(identity, DUGA_POS));
+    draw(lod(pripyatBlocks, pripyatBlocksLod, glm::translate(identity, PRIPYAT_POS)), glm::translate(identity, PRIPYAT_POS));
+    draw(ferrisSupport, glm::translate(identity, FERRIS_POS));
+    draw(ferrisWheel, ferrisWheelMatrix());
     for (int i = 0; i < FERRIS_GONDOLAS; i++) {
-        renderObject(ferrisGondola, ferrisGondolaMatrix(i), myBasicShader);
+        draw(ferrisGondola, ferrisGondolaMatrix(i));
     }
 
     // street lamps; the bulbs glow at night
     glm::vec3 bulbGlow = nightMode ? LAMP_GLOW : glm::vec3(0.0f);
     for (const glm::vec3& base : LAMP_POSITIONS) {
         glm::mat4 lampModel = glm::translate(identity, base);
-        renderObject(lampPost, lampModel, myBasicShader);
-        renderObject(lampBulb, lampModel, myBasicShader, bulbGlow);
+        draw(lampPost, lampModel);
+        draw(lampBulb, lampModel, bulbGlow);
     }
     for (const SpotLight& spot : SPOT_LIGHTS) {
-        renderObject(floodlight, glm::translate(identity, spot.position), myBasicShader);
-        renderObject(floodlightLens, glm::translate(identity, spot.position), myBasicShader, bulbGlow);
+        draw(floodlight, glm::translate(identity, spot.position));
+        draw(floodlightLens, glm::translate(identity, spot.position), bulbGlow);
     }
 
     // traffic; the cars face +X, the westbound ones are turned around
@@ -1224,9 +1321,19 @@ void renderSceneObjects() {
             if (LANE_DIR[car.lane] < 0.0f) {
                 carModel = glm::rotate(carModel, glm::radians(180.0f), glm::vec3(0.0f, 1.0f, 0.0f));
             }
-            renderObject(carModels[car.model], carModel, myBasicShader);
-            renderObject(carLights, carModel, myBasicShader, carLightGlow);
+            if (!castsShadow(carModel)) continue;
+            draw(carModels[car.model], carModel);
+            draw(carLights, carModel, carLightGlow);
         }
+    }
+    // z-buffer (course 07 - Fragment processing): drawn from near to far, the hidden fragments of the objects behind
+    // fail the depth test before the (expensive) lighting shader runs for them; the order doesn't matter for the depth map
+    if (!depthPass) {
+        std::sort(drawList.begin(), drawList.end(),
+            [](const DrawItem& a, const DrawItem& b) { return a.distance < b.distance; });
+    }
+    for (const DrawItem& item : drawList) {
+        renderObject(*item.object, item.model, myBasicShader, item.emissive);
     }
 }
 
