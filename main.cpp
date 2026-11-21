@@ -12,6 +12,7 @@
 #include <glm/gtc/matrix_transform.hpp> //glm extension for generating common transformation matrices
 #include <glm/gtc/matrix_inverse.hpp> //glm extension for computing inverse matrices
 #include <glm/gtc/type_ptr.hpp> //glm extension for accessing the internal data structure of glm types
+#include <glm/gtc/constants.hpp> //glm::two_pi
 
 #include "Window.h"
 #include "Shader.hpp"
@@ -27,6 +28,8 @@
 #include <vector>
 #include <random>
 #include <cfloat>
+#include <algorithm>
+#include <fstream>
 
 #ifdef _WIN32
 // on laptops with two GPUs, ask the driver to run this program on the dedicated one
@@ -128,7 +131,7 @@ const std::vector<glm::vec3> LAMP_POSITIONS = { // base of each lamp post (max 1
     // plaza of Palatul Telefoanelor
     {-195.0f, 0.0f, 175.0f}, {-145.0f, 0.0f, 175.0f},
     // road under Genex
-    {225.0f, 0.0f, 186.0f}, {295.0f, 0.0f, 186.0f},
+    {-455.0f, 0.0f, 186.0f}, {-385.0f, 0.0f, 186.0f},
 };
 // floodlights (spot lights) on the Administrative Palace, on at night
 struct SpotLight {
@@ -153,19 +156,21 @@ struct TourKey {
     glm::vec3 target;   // point the camera looks at
 };
 const std::vector<TourKey> TOUR = {
-    {{40.0f, 35.0f, 380.0f},  {0.0f, 30.0f, 60.0f}},      // overview from the south
-    {{0.0f, 12.0f, 240.0f},   {0.0f, 20.0f, 60.0f}},      // approach the plaza
-    {{-30.0f, 6.0f, 150.0f},  {0.0f, 60.0f, 60.0f}},      // look up at the Administrative Palace
-    {{-120.0f, 15.0f, 215.0f}, {-170.0f, 10.0f, 140.0f}}, // Palatul Telefoanelor
-    {{-130.0f, 25.0f, 60.0f}, {-60.0f, 50.0f, -260.0f}},  // turn north, towards the river
-    {{-60.0f, 60.0f, -120.0f}, {-60.0f, 50.0f, -260.0f}}, // over the river, Hotel Panorama
-    {{120.0f, 50.0f, -40.0f}, {260.0f, 60.0f, 196.0f}},   // swing east towards Genex
-    {{170.0f, 8.0f, 196.0f},  {260.0f, 30.0f, 196.0f}},   // down to the road
-    {{300.0f, 8.0f, 196.0f},  {360.0f, 10.0f, 196.0f}},   // through the gate, under the bridge
-    {{360.0f, 40.0f, 260.0f}, {260.0f, 100.0f, 210.0f}},  // look back at the tower and the restaurant
-    {{40.0f, 35.0f, 380.0f},  {0.0f, 30.0f, 60.0f}},      // back to the start
+    {{40.0f, 45.0f, 420.0f},    {0.0f, 30.0f, 60.0f}},      // overview from the south
+    {{0.0f, 12.0f, 240.0f},     {0.0f, 20.0f, 60.0f}},      // approach the plaza
+    {{-30.0f, 6.0f, 150.0f},    {0.0f, 60.0f, 60.0f}},      // look up at the Administrative Palace
+    {{-120.0f, 15.0f, 215.0f},  {-170.0f, 10.0f, 140.0f}},  // Palatul Telefoanelor
+    {{-300.0f, 10.0f, 196.0f},  {-420.0f, 40.0f, 196.0f}},  // west along the road, towards Genex
+    {{-520.0f, 8.0f, 196.0f},   {-640.0f, 10.0f, 230.0f}},  // through the gate, into the exclusion zone
+    {{-590.0f, 30.0f, 390.0f},  {-690.0f, 15.0f, 300.0f}},  // Pripyat and the Ferris wheel
+    {{-650.0f, 60.0f, 190.0f},  {-780.0f, 30.0f, 70.0f}},   // the power plant
+    {{-680.0f, 75.0f, -150.0f}, {-700.0f, 60.0f, -330.0f}}, // over the river, the Duga radar
+    {{-300.0f, 110.0f, -330.0f}, {-100.0f, 80.0f, -520.0f}},// along the north bank, Hotel Panorama in the mountains
+    {{260.0f, 75.0f, -70.0f},   {450.0f, 60.0f, -150.0f}},  // Motherland Calls on her hill
+    {{560.0f, 70.0f, 40.0f},    {0.0f, 30.0f, 100.0f}},     // look back over the river at the city
+    {{40.0f, 45.0f, 420.0f},    {0.0f, 30.0f, 60.0f}},      // back to the start
 };
-const float TOUR_SPEED = 25.0f;       // meters per second along the path
+const float TOUR_SPEED = 35.0f;       // meters per second along the path
 const float TOUR_MIN_SEGMENT = 3.0f;  // seconds, so short segments are not rushed
 std::vector<float> tourKeyTimes;      // time at which the camera reaches each key point
 bool tourActive = false;
@@ -175,7 +180,7 @@ float tourTime = 0.0f;
 const glm::vec3 DAY_SKY(0.7f, 0.7f, 0.7f);
 const glm::vec3 NIGHT_SKY(0.02f, 0.03f, 0.06f);
 bool fogEnabled = true;
-float fogDensity = 0.0018f;
+float fogDensity = 0.0012f;   // the world is 2 km wide: lighter fog than before
 GLint fogDensityLoc;
 GLint fogColorLoc;
 
@@ -195,11 +200,77 @@ GLint rainAreaSizeLoc, rainAreaHeightLoc, rainDropLengthLoc, rainColorLoc;
 
 // collision detection: the camera is a sphere that can't enter the buildings' boxes
 const float CAMERA_RADIUS = 1.5f;      // meters
-const float CAMERA_MIN_HEIGHT = 1.8f;  // eye height above the ground plane (y = 0)
+const float CAMERA_MIN_HEIGHT = 1.8f;  // eye height above the ground (terrain height map)
 bool collisionsEnabled = true;
 std::vector<gps::BoundingBox> satuMareBounds, genexBounds, restaurantBounds, panoramaBounds,
                               telefoaneBounds, lampPostBounds, floodlightBounds; // model space, from the meshes
 std::vector<gps::BoundingBox> worldColliders; // world space, rebuilt every frame (some objects move)
+
+// traffic: cars are created at one end of the road while the program runs and removed at the other
+struct Car {
+    float x;      // position along the road (the road runs along X)
+    float speed;  // meters per second
+    int lane;     // 0 = eastbound (+X), 1 = westbound (-X)
+    int model;    // index in carModels (body color)
+};
+const int CAR_COLORS = 4;
+const float ROAD_END = 1000.0f;                  // the road ends with the terrain; the fog hides it
+const float LANE_Z[2] = { 199.0f, 193.0f };      // right-hand traffic
+const float LANE_DIR[2] = { 1.0f, -1.0f };
+const float ROAD_Y = 0.25f;
+const float CAR_MIN_GAP = 12.0f;                 // meters to the car in front
+bool trafficEnabled = true;
+std::vector<Car> cars;
+float nextSpawnTime[2] = { 0.0f, 0.0f };
+std::mt19937 trafficRng(7);
+gps::Model3D carModels[CAR_COLORS];
+gps::Model3D carLights;   // head- and taillights, separate so they can glow at night
+
+// more landmarks: Motherland Calls (Volgograd), Romanita (Chisinau), Chornobyl (power plant, Duga radar,
+// Pripyat apartment blocks and the Ferris wheel from the Pripyat amusement park)
+gps::Model3D motherland, romanita, powerPlant, duga, pripyatBlocks;
+gps::Model3D ferrisSupport, ferrisWheel, ferrisGondola;
+// layout: the Romanian/Moldovan city center on the south bank (palace, Palatul Telefoanelor, Romanita),
+// Genex as the western gate of the city on the main road, Motherland Calls on a hill above the river,
+// Hotel Panorama in the mountains, and the Chornobyl exclusion zone in the forest beyond the gate
+// (positions must match tools/gen_world.py, which flattens the ground under each building)
+const glm::vec3 GENEX_POS(-420.0f, 0.0f, 196.0f);
+const glm::vec3 RESTAURANT_OFFSET(0.0f, 108.0f, 33.0f);  // from the base of Genex
+const glm::vec3 PANORAMA_POS(-100.0f, 70.0f, -520.0f);
+const glm::vec3 MOTHERLAND_POS(450.0f, 35.0f, -150.0f);
+const glm::vec3 ROMANITA_POS(150.0f, 0.0f, 300.0f);
+const glm::vec3 POWER_PLANT_POS(-780.0f, 0.0f, 70.0f);
+const glm::vec3 DUGA_POS(-700.0f, 0.0f, -330.0f);
+const glm::vec3 PRIPYAT_POS(-780.0f, 0.0f, 250.0f);
+const glm::vec3 FERRIS_POS(-640.0f, 0.0f, 320.0f);
+gps::Model3D trees;
+const float FERRIS_HUB_HEIGHT = 14.0f;   // must match ferris_support.obj / ferris_wheel.obj
+const float FERRIS_RADIUS = 12.0f;
+const int FERRIS_GONDOLAS = 16;
+const float FERRIS_SPEED = 4.0f;         // degrees per second
+float ferrisAngle = 0.0f;
+std::vector<gps::BoundingBox> motherlandBounds, romanitaBounds, powerPlantBounds, dugaBounds, pripyatBounds,
+                              ferrisSupportBounds, ferrisWheelBounds;
+
+// terrain height map (written by tools/gen_world.py together with the terrain),
+// used to keep the camera above the ground: heights on a regular grid, read once at startup
+struct HeightMap {
+    float x0 = 0.0f, z0 = 0.0f, step = 1.0f;   // world position of the first sample, grid spacing
+    int nx = 0, nz = 0;
+    std::vector<float> heights;                // nz rows of nx values
+};
+HeightMap terrainHeights;
+
+// antialiasing: the scene is drawn into a multisampled framebuffer of our own, resolved into a texture
+// and copied to the screen. The window's own framebuffer stays single-sampled (MSAA on it got corrupted
+// on maximize with the NVIDIA driver); our framebuffer is recreated, under our control, on every resize.
+const int MSAA_SAMPLES = 4;
+bool antialiasingEnabled = true;
+GLuint msaaFBO = 0, msaaColorRBO = 0, msaaDepthRBO = 0;   // multisampled color + depth
+GLuint resolveFBO = 0, resolveTexture = 0;                // single-sampled result, read by the screen pass
+int sceneWidth = 0, sceneHeight = 0;
+gps::Shader screenShader;
+GLuint screenVAO = 0;                                      // empty: the fullscreen triangle comes from gl_VertexID
 
 // UI
 bool showUI = true;
@@ -234,6 +305,61 @@ GLenum glCheckError_(const char* file, int line) {
 }
 #define glCheckError() glCheckError_(__FILE__, __LINE__)
 
+void deleteSceneFramebuffers() {
+    if (msaaFBO) glDeleteFramebuffers(1, &msaaFBO);
+    if (msaaColorRBO) glDeleteRenderbuffers(1, &msaaColorRBO);
+    if (msaaDepthRBO) glDeleteRenderbuffers(1, &msaaDepthRBO);
+    if (resolveFBO) glDeleteFramebuffers(1, &resolveFBO);
+    if (resolveTexture) glDeleteTextures(1, &resolveTexture);
+    msaaFBO = msaaColorRBO = msaaDepthRBO = resolveFBO = resolveTexture = 0;
+}
+
+// (re)creates the framebuffers at the window size; samples = 0 means no antialiasing
+void createSceneFramebuffers(int width, int height) {
+    deleteSceneFramebuffers();
+    sceneWidth = width;
+    sceneHeight = height;
+
+    GLint maxSamples = 0;
+    glGetIntegerv(GL_MAX_SAMPLES, &maxSamples);
+    int samples = antialiasingEnabled ? glm::min(MSAA_SAMPLES, (int)maxSamples) : 0;
+
+    // RGBA16F: the scene stays in linear colors (no banding in the dark night scenes);
+    // the conversion to sRGB happens once, when the result is copied to the screen
+    glGenRenderbuffers(1, &msaaColorRBO);
+    glBindRenderbuffer(GL_RENDERBUFFER, msaaColorRBO);
+    glRenderbufferStorageMultisample(GL_RENDERBUFFER, samples, GL_RGBA16F, width, height);
+    glGenRenderbuffers(1, &msaaDepthRBO);
+    glBindRenderbuffer(GL_RENDERBUFFER, msaaDepthRBO);
+    glRenderbufferStorageMultisample(GL_RENDERBUFFER, samples, GL_DEPTH_COMPONENT24, width, height);
+    glBindRenderbuffer(GL_RENDERBUFFER, 0);
+
+    glGenFramebuffers(1, &msaaFBO);
+    glBindFramebuffer(GL_FRAMEBUFFER, msaaFBO);
+    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, msaaColorRBO);
+    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, msaaDepthRBO);
+    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
+        std::cerr << "The multisampled framebuffer is incomplete" << std::endl;
+    }
+
+    glGenTextures(1, &resolveTexture);
+    glBindTexture(GL_TEXTURE_2D, resolveTexture);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, width, height, 0, GL_RGBA, GL_FLOAT, nullptr);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glBindTexture(GL_TEXTURE_2D, 0);
+
+    glGenFramebuffers(1, &resolveFBO);
+    glBindFramebuffer(GL_FRAMEBUFFER, resolveFBO);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, resolveTexture, 0);
+    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
+        std::cerr << "The resolve framebuffer is incomplete" << std::endl;
+    }
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
+
 void windowResizeCallback(GLFWwindow* window, int width, int height) {
     fprintf(stdout, "Window resized! New width: %d , and height: %d\n", width, height);
     if (width == 0 || height == 0) return; // window minimized
@@ -243,8 +369,9 @@ void windowResizeCallback(GLFWwindow* window, int width, int height) {
     glfwGetFramebufferSize(window, &fbWidth, &fbHeight);
     myWindow.setWindowDimensions(WindowDimensions{ fbWidth, fbHeight });
     glViewport(0, 0, fbWidth, fbHeight);
+    createSceneFramebuffers(fbWidth, fbHeight);
 
-    projection = glm::perspective(glm::radians(45.0f), (float)fbWidth / (float)fbHeight, 0.5f, 1500.0f);
+    projection = glm::perspective(glm::radians(45.0f), (float)fbWidth / (float)fbHeight, 0.5f, 3000.0f);
     myBasicShader.useShaderProgram();
     glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(projection));
 }
@@ -263,13 +390,26 @@ void applyShadingMode() {
 
 // model matrices, shared by rendering and collision detection
 glm::mat4 satuMareMatrix() { return glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, 60.0f)); }
-glm::mat4 genexMatrix() { return glm::translate(glm::mat4(1.0f), glm::vec3(260.0f, 0.0f, 196.0f)); }
-glm::mat4 panoramaMatrix() { return glm::translate(glm::mat4(1.0f), glm::vec3(-60.0f, 40.0f, -260.0f)); }
+glm::mat4 genexMatrix() { return glm::translate(glm::mat4(1.0f), GENEX_POS); }
+glm::mat4 panoramaMatrix() { return glm::translate(glm::mat4(1.0f), PANORAMA_POS); }
 
 glm::mat4 restaurantMatrix() {
     // rotate around its own axis first, then move it on top of the tower (T * R)
-    glm::mat4 m = glm::translate(glm::mat4(1.0f), glm::vec3(260.0f, 108.0f, 229.0f));
+    glm::mat4 m = glm::translate(glm::mat4(1.0f), GENEX_POS + RESTAURANT_OFFSET);
     return glm::rotate(m, glm::radians(restaurantAngle), glm::vec3(0.0f, 1.0f, 0.0f));
+}
+
+glm::mat4 ferrisWheelMatrix() {
+    // the wheel turns around its horizontal axle (Z), at the height of the hub
+    glm::mat4 m = glm::translate(glm::mat4(1.0f), FERRIS_POS + glm::vec3(0.0f, FERRIS_HUB_HEIGHT, 0.0f));
+    return glm::rotate(m, glm::radians(ferrisAngle), glm::vec3(0.0f, 0.0f, 1.0f));
+}
+
+// the gondolas hang from the rim: they follow the wheel, but only by translation, so they stay upright
+glm::mat4 ferrisGondolaMatrix(int i) {
+    float angle = glm::radians(ferrisAngle) + glm::two_pi<float>() * i / FERRIS_GONDOLAS;
+    glm::vec3 hub = FERRIS_POS + glm::vec3(0.0f, FERRIS_HUB_HEIGHT, 0.0f);
+    return glm::translate(glm::mat4(1.0f), hub + FERRIS_RADIUS * glm::vec3(cos(angle), sin(angle), 0.0f));
 }
 
 glm::mat4 telefoaneMatrix() {
@@ -306,12 +446,45 @@ void updateColliders() {
     addColliders(restaurantBounds, restaurantMatrix());
     addColliders(panoramaBounds, panoramaMatrix());
     addColliders(telefoaneBounds, telefoaneMatrix());
+    addColliders(motherlandBounds, glm::translate(glm::mat4(1.0f), MOTHERLAND_POS));
+    addColliders(romanitaBounds, glm::translate(glm::mat4(1.0f), ROMANITA_POS));
+    addColliders(powerPlantBounds, glm::translate(glm::mat4(1.0f), POWER_PLANT_POS));
+    addColliders(dugaBounds, glm::translate(glm::mat4(1.0f), DUGA_POS));
+    addColliders(pripyatBounds, glm::translate(glm::mat4(1.0f), PRIPYAT_POS));
+    addColliders(ferrisSupportBounds, glm::translate(glm::mat4(1.0f), FERRIS_POS));
+    addColliders(ferrisWheelBounds, ferrisWheelMatrix());
     for (const glm::vec3& base : LAMP_POSITIONS) {
         addColliders(lampPostBounds, glm::translate(glm::mat4(1.0f), base));
     }
     for (const SpotLight& spot : SPOT_LIGHTS) {
         addColliders(floodlightBounds, glm::translate(glm::mat4(1.0f), spot.position));
     }
+}
+
+bool loadHeightMap(const char* path) {
+    std::ifstream in(path);
+    if (!in) {
+        std::cerr << "Could not open the height map " << path << std::endl;
+        return false;
+    }
+    HeightMap& m = terrainHeights;
+    in >> m.x0 >> m.z0 >> m.step >> m.nx >> m.nz;
+    m.heights.resize((size_t)m.nx * m.nz);
+    for (float& h : m.heights) in >> h;
+    return (bool)in;
+}
+
+// ground height under (x, z): bilinear interpolation between the 4 nearest samples
+float groundHeight(float x, float z) {
+    const HeightMap& m = terrainHeights;
+    if (m.heights.empty()) return 0.0f;
+    float fx = glm::clamp((x - m.x0) / m.step, 0.0f, (float)(m.nx - 1) - 0.001f);
+    float fz = glm::clamp((z - m.z0) / m.step, 0.0f, (float)(m.nz - 1) - 0.001f);
+    int i = (int)fx, j = (int)fz;
+    float tx = fx - i, tz = fz - j;
+    float h00 = m.heights[j * m.nx + i], h10 = m.heights[j * m.nx + i + 1];
+    float h01 = m.heights[(j + 1) * m.nx + i], h11 = m.heights[(j + 1) * m.nx + i + 1];
+    return glm::mix(glm::mix(h00, h10, tx), glm::mix(h01, h11, tx), tz);
 }
 
 // sphere vs box: the closest point of the box to the sphere center must be farther than the radius
@@ -334,7 +507,7 @@ void moveCamera(gps::MOVE_DIRECTION direction, float distance) {
     if (!collisionsEnabled) return;
 
     glm::vec3 newPos = myCamera.getPosition();
-    newPos.y = glm::max(newPos.y, CAMERA_MIN_HEIGHT);
+    newPos.y = glm::max(newPos.y, groundHeight(newPos.x, newPos.z) + CAMERA_MIN_HEIGHT);
     if (!collides(newPos) || collides(oldPos)) { // already inside (e.g. collisions just turned on): let it out
         myCamera.setPosition(newPos);
         return;
@@ -350,6 +523,67 @@ void moveCamera(gps::MOVE_DIRECTION direction, float distance) {
         }
     }
     myCamera.setPosition(pos);
+}
+
+Car randomCar(int lane, float x) {
+    std::uniform_real_distribution<float> speed(11.0f, 19.0f);   // ~40-70 km/h
+    std::uniform_int_distribution<int> color(0, CAR_COLORS - 1);
+    return Car{ x, speed(trafficRng), lane, color(trafficRng) };
+}
+
+float randomSpawnDelay() {
+    std::uniform_real_distribution<float> delay(2.0f, 6.0f);     // seconds between two cars in a lane
+    return delay(trafficRng);
+}
+
+// at startup the road is filled along its whole length, so it isn't empty while the first cars arrive
+void initTraffic() {
+    cars.clear();
+    for (int lane = 0; lane < 2; lane++) {
+        float distance = 0.0f;
+        while (distance < 2.0f * ROAD_END) {
+            Car car = randomCar(lane, 0.0f);
+            car.x = LANE_DIR[lane] * (distance - ROAD_END);   // from the lane's start towards its end
+            cars.push_back(car);
+            distance += car.speed * randomSpawnDelay();
+        }
+        nextSpawnTime[lane] = (float)glfwGetTime() + randomSpawnDelay();
+    }
+}
+
+void updateTraffic() {
+    if (!trafficEnabled) return;
+    float now = (float)glfwGetTime();
+
+    // spawn: a new car at the start of each lane, unless the previous one is still too close
+    for (int lane = 0; lane < 2; lane++) {
+        if (now < nextSpawnTime[lane]) continue;
+        float start = -LANE_DIR[lane] * ROAD_END;
+        bool startIsFree = true;
+        for (const Car& car : cars) {
+            if (car.lane == lane && fabs(car.x - start) < CAR_MIN_GAP) startIsFree = false;
+        }
+        if (startIsFree) {
+            cars.push_back(randomCar(lane, start));
+            nextSpawnTime[lane] = now + randomSpawnDelay();
+        }
+    }
+
+    // move: a car slows down to the speed of the car in front if it gets too close
+    for (Car& car : cars) {
+        float speed = car.speed;
+        for (const Car& other : cars) {
+            float ahead = (other.x - car.x) * LANE_DIR[car.lane];
+            if (other.lane == car.lane && ahead > 0.0f && ahead < CAR_MIN_GAP) {
+                speed = glm::min(speed, other.speed);
+            }
+        }
+        car.x += LANE_DIR[car.lane] * speed * deltaTime;
+    }
+
+    // remove the cars that reached the end of the road
+    cars.erase(std::remove_if(cars.begin(), cars.end(),
+        [](const Car& car) { return car.x * LANE_DIR[car.lane] > ROAD_END; }), cars.end());
 }
 
 void applyLighting() {
@@ -456,6 +690,11 @@ void keyboardCallback(GLFWwindow* window, int key, int scancode, int action, int
         if (key == GLFW_KEY_F) { fogEnabled = !fogEnabled; applyFog(); }
         if (key == GLFW_KEY_P) rainEnabled = !rainEnabled;
         if (key == GLFW_KEY_C) collisionsEnabled = !collisionsEnabled;
+        if (key == GLFW_KEY_V) trafficEnabled = !trafficEnabled;
+        if (key == GLFW_KEY_B) {
+            antialiasingEnabled = !antialiasingEnabled;
+            createSceneFramebuffers(sceneWidth, sceneHeight);
+        }
         if (key == GLFW_KEY_T) { if (tourActive) stopTour(); else startTour(); }
     }
 
@@ -557,6 +796,7 @@ void processObjectTransform() {
 
 void updateAnimations() {
     restaurantAngle = fmod(restaurantAngle + RESTAURANT_SPEED * deltaTime, 360.0f);
+    ferrisAngle = fmod(ferrisAngle + FERRIS_SPEED * deltaTime, 360.0f);
 }
 
 void initOpenGLWindow() {
@@ -592,6 +832,23 @@ void initModels() {
     lampPost.LoadModel("models/brutalism/lamp_post.obj");
     lampBulb.LoadModel("models/brutalism/lamp_bulb.obj");
     floodlight.LoadModel("models/brutalism/floodlight.obj");
+    const char* carFiles[CAR_COLORS] = {
+        "models/brutalism/car_red.obj", "models/brutalism/car_blue.obj",
+        "models/brutalism/car_white.obj", "models/brutalism/car_yellow.obj" };
+    for (int i = 0; i < CAR_COLORS; i++) {
+        carModels[i].LoadModel(carFiles[i]);
+    }
+    carLights.LoadModel("models/brutalism/car_lights.obj");
+    motherland.LoadModel("models/brutalism/motherland.obj");
+    romanita.LoadModel("models/brutalism/romanita.obj");
+    powerPlant.LoadModel("models/brutalism/power_plant.obj");
+    duga.LoadModel("models/brutalism/duga.obj");
+    pripyatBlocks.LoadModel("models/brutalism/pripyat_blocks.obj");
+    ferrisSupport.LoadModel("models/brutalism/ferris_support.obj");
+    ferrisWheel.LoadModel("models/brutalism/ferris_wheel.obj");
+    ferrisGondola.LoadModel("models/brutalism/ferris_gondola.obj");
+    trees.LoadModel("models/brutalism/trees.obj");
+    loadHeightMap("models/brutalism/terrain_height.txt");
 
     // collision shapes, computed once from the meshes
     satuMareBounds = satuMare.GetMeshBounds();
@@ -601,9 +858,19 @@ void initModels() {
     telefoaneBounds = telefoane.GetMeshBounds();
     lampPostBounds = lampPost.GetMeshBounds();
     floodlightBounds = floodlight.GetMeshBounds();
+    motherlandBounds = motherland.GetMeshBounds();
+    romanitaBounds = romanita.GetMeshBounds();
+    powerPlantBounds = powerPlant.GetMeshBounds();
+    dugaBounds = duga.GetMeshBounds();
+    pripyatBounds = pripyatBlocks.GetMeshBounds();
+    ferrisSupportBounds = ferrisSupport.GetMeshBounds();
+    ferrisWheelBounds = ferrisWheel.GetMeshBounds();
 }
 
 void initShaders() {
+    screenShader.loadShader(
+        "shaders/screen.vert",
+        "shaders/screen.frag");
     myBasicShader.loadShader(
         "shaders/basic.vert",
         "shaders/basic.frag");
@@ -693,7 +960,7 @@ void initUniforms() {
     // create projection matrix
     projection = glm::perspective(glm::radians(45.0f),
         (float)myWindow.getWindowDimensions().width / (float)myWindow.getWindowDimensions().height,
-        0.5f, 1500.0f);
+        0.5f, 3000.0f);
     projectionLoc = glGetUniformLocation(myBasicShader.shaderProgram, "projection");
     // send projection matrix to shader
     glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(projection));
@@ -768,11 +1035,22 @@ void renderScene() {
     // brutalist scene (positions in meters)
     glm::mat4 identity(1.0f);
     renderObject(terrain, identity, myBasicShader);
+    renderObject(trees, identity, myBasicShader);   // no colliders: the camera can pass through the foliage
     renderObject(satuMare, satuMareMatrix(), myBasicShader);
     renderObject(genex, genexMatrix(), myBasicShader);
     renderObject(genexRestaurant, restaurantMatrix(), myBasicShader);
     renderObject(panorama, panoramaMatrix(), myBasicShader);
     renderObject(telefoane, telefoaneMatrix(), myBasicShader);
+    renderObject(motherland, glm::translate(identity, MOTHERLAND_POS), myBasicShader);
+    renderObject(romanita, glm::translate(identity, ROMANITA_POS), myBasicShader);
+    renderObject(powerPlant, glm::translate(identity, POWER_PLANT_POS), myBasicShader);
+    renderObject(duga, glm::translate(identity, DUGA_POS), myBasicShader);
+    renderObject(pripyatBlocks, glm::translate(identity, PRIPYAT_POS), myBasicShader);
+    renderObject(ferrisSupport, glm::translate(identity, FERRIS_POS), myBasicShader);
+    renderObject(ferrisWheel, ferrisWheelMatrix(), myBasicShader);
+    for (int i = 0; i < FERRIS_GONDOLAS; i++) {
+        renderObject(ferrisGondola, ferrisGondolaMatrix(i), myBasicShader);
+    }
 
     // street lamps; the bulbs glow at night
     glm::vec3 bulbGlow = nightMode ? LAMP_GLOW : glm::vec3(0.0f);
@@ -783,6 +1061,19 @@ void renderScene() {
     }
     for (const SpotLight& spot : SPOT_LIGHTS) {
         renderObject(floodlight, glm::translate(identity, spot.position), myBasicShader, bulbGlow);
+    }
+
+    // traffic; the cars face +X, the westbound ones are turned around
+    glm::vec3 carLightGlow = nightMode ? glm::vec3(1.0f) : glm::vec3(0.0f);
+    if (trafficEnabled) {
+        for (const Car& car : cars) {
+            glm::mat4 carModel = glm::translate(identity, glm::vec3(car.x, ROAD_Y, LANE_Z[car.lane]));
+            if (LANE_DIR[car.lane] < 0.0f) {
+                carModel = glm::rotate(carModel, glm::radians(180.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+            }
+            renderObject(carModels[car.model], carModel, myBasicShader);
+            renderObject(carLights, carModel, myBasicShader, carLightGlow);
+        }
     }
 }
 
@@ -800,6 +1091,21 @@ void keyRow(const char* keys, const char* action) {
     ImGui::TableNextRow();
     ImGui::TableNextColumn(); ImGui::TextUnformatted(keys);
     ImGui::TableNextColumn(); ImGui::TextUnformatted(action);
+}
+
+// draws the resolved scene over the whole window
+void renderScreenQuad() {
+    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL); // the wireframe/points view modes apply to the scene, not to this copy
+    glDisable(GL_DEPTH_TEST);
+    screenShader.useShaderProgram();
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, resolveTexture);
+    glUniform1i(glGetUniformLocation(screenShader.shaderProgram, "screenTexture"), 0);
+    glBindVertexArray(screenVAO);
+    glDrawArrays(GL_TRIANGLES, 0, 3);
+    glBindVertexArray(0);
+    glEnable(GL_DEPTH_TEST);
+    applyViewMode();
 }
 
 void renderUI() {
@@ -844,6 +1150,16 @@ void renderUI() {
         ImGui::SliderFloat("Wind speed", &windSpeed, 0.0f, 20.0f, "%.0f m/s");
         ImGui::SliderFloat("Wind direction", &windDirection, 0.0f, 360.0f, "%.0f deg");
 
+        ImGui::SeparatorText("Traffic");
+        ImGui::Checkbox("Traffic", &trafficEnabled);
+        ImGui::SameLine();
+        ImGui::TextDisabled("(%d cars on the road)", (int)cars.size());
+
+        ImGui::SeparatorText("Rendering");
+        if (ImGui::Checkbox("Antialiasing (MSAA 4x)", &antialiasingEnabled)) {
+            createSceneFramebuffers(sceneWidth, sceneHeight);
+        }
+
         ImGui::SeparatorText("Camera");
         ImGui::Checkbox("Collisions", &collisionsEnabled);
 
@@ -877,6 +1193,8 @@ void renderUI() {
             keyRow("F", "Fog on / off");
             keyRow("P", "Rain on / off");
             keyRow("C", "Collisions on / off");
+            keyRow("B", "Antialiasing on / off");
+            keyRow("V", "Traffic on / off");
             keyRow("T", "Start / stop camera tour");
             keyRow("H", "Hide / show this panel");
             keyRow("Esc", "Exit");
@@ -894,6 +1212,7 @@ void renderUI() {
 }
 
 void cleanup() {
+    deleteSceneFramebuffers();
     ImGui_ImplOpenGL3_Shutdown();
     ImGui_ImplGlfw_Shutdown();
     ImGui::DestroyContext();
@@ -916,6 +1235,9 @@ int main(int argc, const char* argv[]) {
     initShaders();
     initUniforms();
     initRain();
+    glGenVertexArrays(1, &screenVAO);
+    createSceneFramebuffers(myWindow.getWindowDimensions().width, myWindow.getWindowDimensions().height);
+    initTraffic();
     setWindowCallbacks();
     initUI();
     initTour();
@@ -932,8 +1254,18 @@ int main(int argc, const char* argv[]) {
         updateTour();
         processObjectTransform();
         updateAnimations();
+        updateTraffic();
+        // 1. the scene (and the rain) into the multisampled framebuffer
+        glBindFramebuffer(GL_FRAMEBUFFER, msaaFBO);
         renderScene();
         renderRain();
+        // 2. resolve: average the samples of each pixel into the texture
+        glBindFramebuffer(GL_READ_FRAMEBUFFER, msaaFBO);
+        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, resolveFBO);
+        glBlitFramebuffer(0, 0, sceneWidth, sceneHeight, 0, 0, sceneWidth, sceneHeight, GL_COLOR_BUFFER_BIT, GL_NEAREST);
+        // 3. copy the texture to the window, then the UI on top
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        renderScreenQuad();
         renderUI();
 
         glfwPollEvents();

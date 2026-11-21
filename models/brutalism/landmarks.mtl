@@ -1,0 +1,90 @@
+newmtl Concrete
+Ns 32
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd concrete.jpg
+map_Ks spec_low.jpg
+
+newmtl Glass
+Ns 32
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd glass.jpg
+map_Ks spec_high.jpg
+
+newmtl Grass
+Ns 32
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd grass.jpg
+map_Ks spec_low.jpg
+
+newmtl FacadeGrid
+Ns 32
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd facade_grid.jpg
+map_Ks facade_grid_spec.jpg
+
+newmtl FacadeFins
+Ns 32
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd facade_fins.jpg
+map_Ks facade_fins_spec.jpg
+
+newmtl FacadeRibbon
+Ns 32
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd facade_ribbon.jpg
+map_Ks facade_ribbon_spec.jpg
+
+newmtl Steel
+Ns 32
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd steel.jpg
+map_Ks spec_high.jpg
+
+newmtl Stripes
+Ns 32
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd stripes.jpg
+map_Ks spec_low.jpg
+
+newmtl FacadePanel
+Ns 32
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd facade_panel.jpg
+map_Ks facade_panel_spec.jpg
+
+newmtl Yellow
+Ns 32
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd car_yellow.jpg
+map_Ks spec_high.jpg
+
