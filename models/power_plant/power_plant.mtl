@@ -1,0 +1,234 @@
+newmtl Bitumen_Roof
+Ns 8
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd Bitumen_Roof.jpg
+map_Ks spec_006.png
+
+newmtl Bitumen_Wall
+Ns 8
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd Bitumen_Wall.jpg
+map_Ks spec_006.png
+
+newmtl Concrete
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd concrete.jpg
+map_Ks spec_low.jpg
+
+newmtl ConcreteDark
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd concrete_dark.jpg
+map_Ks spec_low.jpg
+
+newmtl Concrete_Heavy
+Ns 12
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd Concrete_Heavy.jpg
+map_Ks spec_006.png
+
+newmtl Concrete_Light
+Ns 10
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd Concrete_Light.jpg
+map_Ks spec_006.png
+
+newmtl Gls_Gray
+Ns 19
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd Gls_Gray.jpg
+map_Ks spec_007.png
+
+newmtl Mtl_Alum
+Ns 17
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd Mtl_Alum.jpg
+map_Ks spec_006.png
+
+newmtl Mtl_Corrugated
+Ns 14
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd Mtl_Corrugated.jpg
+map_Ks spec_006.png
+
+newmtl Mtl_Iron
+Ns 8
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd Mtl_Iron.jpg
+map_Ks spec_006.png
+
+newmtl Mtl_Perforated
+Ns 17
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd Mtl_Perforated.jpg
+map_Ks spec_006.png
+
+newmtl Mtl_Rusty
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd Mtl_Rusty.jpg
+map_Ks spec_006.png
+
+newmtl Paint_02
+Ns 15
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd Paint_02.jpg
+map_Ks spec_006.png
+
+newmtl Paint_07
+Ns 14
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd Paint_07.jpg
+map_Ks spec_006.png
+
+newmtl Paint_16
+Ns 14
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd Paint_16.jpg
+map_Ks spec_006.png
+
+newmtl Paint_19
+Ns 14
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd Paint_19.jpg
+map_Ks spec_006.png
+
+newmtl Paint_Red
+Ns 13
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd Paint_Red.jpg
+map_Ks spec_006.png
+
+newmtl PanelWhite0
+Ns 27
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd PanelWhite0.jpg
+map_Ks spec_007.png
+
+newmtl PanelWhite1
+Ns 13
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd PanelWhite1.jpg
+map_Ks spec_006.png
+
+newmtl PanelWhite2
+Ns 13
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd PanelWhite2.jpg
+map_Ks spec_006.png
+
+newmtl PanelWhite3
+Ns 13
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd PanelWhite3.jpg
+map_Ks spec_006.png
+
+newmtl PanelWhite4
+Ns 13
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd PanelWhite4.jpg
+map_Ks spec_006.png
+
+newmtl PanelWhite5
+Ns 13
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd PanelWhite5.jpg
+map_Ks spec_006.png
+
+newmtl PanelWhite6
+Ns 13
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd PanelWhite6.jpg
+map_Ks spec_006.png
+
+newmtl Steel
+Ns 96
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd steel.jpg
+map_Ks spec_high.jpg
+
+newmtl White_Glossy
+Ns 14
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd White_Glossy.jpg
+map_Ks spec_006.png
+

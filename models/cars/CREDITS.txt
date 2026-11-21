@@ -1,0 +1,14 @@
+
+Model Information:
+* title:	Dacia 1300 LowPoly
+* source:	https://sketchfab.com/3d-models/dacia-1300-lowpoly-563d3a48dd094a40a1a51bf17901a08d
+* author:	solid3DDD (https://sketchfab.com/solid3ddd)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Dacia 1300 LowPoly" (https://sketchfab.com/3d-models/dacia-1300-lowpoly-563d3a48dd094a40a1a51bf17901a08d) by solid3DDD (https://sketchfab.com/solid3ddd) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+
+Changes for this project: converted from glTF, rescaled to 4.35 m, interior removed, decimated, body recolored for 4 variants, lights split into a separate model that glows at night

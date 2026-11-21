@@ -1,0 +1,45 @@
+newmtl Rock
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd rock.jpg
+map_Ks spec_low.jpg
+
+newmtl Grass
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd grass.jpg
+map_Ks spec_low.jpg
+
+newmtl Water
+Ns 96
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd water.jpg
+map_Ks spec_high.jpg
+
+newmtl Pavement
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd pavement.jpg
+map_Ks spec_low.jpg
+
+newmtl Road
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd road.jpg
+map_Ks spec_low.jpg
+

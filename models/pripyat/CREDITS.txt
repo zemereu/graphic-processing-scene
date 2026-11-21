@@ -1,0 +1,14 @@
+
+Model Information:
+* title:	panelka
+* source:	https://sketchfab.com/3d-models/panelka-8878634b8c1a4691b2513437b1afc049
+* author:	cedo (https://sketchfab.com/cedo_model)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "panelka" (https://sketchfab.com/3d-models/panelka-8878634b8c1a4691b2513437b1afc049) by cedo (https://sketchfab.com/cedo_model) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+
+Changes for this project: converted from glTF, backdrop plane removed, 12 copies arranged as a district

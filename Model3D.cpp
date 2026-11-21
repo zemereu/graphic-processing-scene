@@ -190,7 +190,7 @@ namespace gps {
 		glTexImage2D(
 			GL_TEXTURE_2D,
 			0,
-			GL_SRGB, //GL_SRGB,//GL_RGBA,
+			GL_SRGB_ALPHA, // sRGB colors + alpha channel (used by the alpha test of the foliage)
 			x,
 			y,
 			0,

@@ -1,0 +1,54 @@
+newmtl BODY_yellow
+Ns 8
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd BODY_yellow.jpg
+map_Ks spec_021.png
+
+newmtl black
+Ns 8
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd black.jpg
+map_Ks spec_021.png
+
+newmtl black_br_lights
+Ns 8
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd black_br_lights_2.jpg
+map_Ks spec_021.png
+
+newmtl black_br_lights_2
+Ns 8
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd black_br_lights_2.jpg
+map_Ks spec_021.png
+
+newmtl black_headlights
+Ns 8
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd black.jpg
+map_Ks spec_021.png
+
+newmtl glass
+Ns 8
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd glass.jpg
+map_Ks spec_021.png
+

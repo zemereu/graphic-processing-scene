@@ -1,0 +1,14 @@
+
+Model Information:
+* title:	The Motherland Calls
+* source:	https://sketchfab.com/3d-models/the-motherland-calls-893bf47bc20b4d6d9b88a55c9d40dfe9
+* author:	Neo_minigan (https://sketchfab.com/neominigan)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "The Motherland Calls" (https://sketchfab.com/3d-models/the-motherland-calls-893bf47bc20b4d6d9b88a55c9d40dfe9) by Neo_minigan (https://sketchfab.com/neominigan) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+
+Changes for this project: converted from glTF, rescaled to 85 m, decimated from 1.87M to ~240k triangles, placed on procedural terraces

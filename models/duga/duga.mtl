@@ -1,0 +1,36 @@
+newmtl Aluminum___Anodized_Glossy_Red
+Ns 88
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd Aluminum___Anodized_Glossy_Red.jpg
+map_Ks spec_043.png
+
+newmtl Concrete
+Ns 61
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd Concrete.jpg
+map_Ks spec_031.png
+
+newmtl Gold___Polished
+Ns 61
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd Gold___Polished.jpg
+map_Ks spec_031.png
+
+newmtl Silver___Polished
+Ns 87
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd Silver___Polished.jpg
+map_Ks spec_043.png
+

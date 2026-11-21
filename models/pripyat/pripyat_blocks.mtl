@@ -1,0 +1,81 @@
+newmtl Material_002
+Ns 68
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd Material_002.jpg
+map_Ks spec_018.png
+
+newmtl Material_003
+Ns 117
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd Material_003.jpg
+map_Ks spec_047.png
+
+newmtl Material_004
+Ns 68
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd Material_004.jpg
+map_Ks spec_018.png
+
+newmtl Material_005
+Ns 68
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd Material_008.jpg
+map_Ks spec_018.png
+
+newmtl Material_006
+Ns 68
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd Material_006.jpg
+map_Ks spec_018.png
+
+newmtl Material_007
+Ns 68
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd Material_008.jpg
+map_Ks spec_018.png
+
+newmtl Material_008
+Ns 68
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd Material_008.jpg
+map_Ks spec_018.png
+
+newmtl Material_009
+Ns 68
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd Material_009.jpg
+map_Ks spec_018.png
+
+newmtl Material_010
+Ns 68
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd Material_010.jpg
+map_Ks spec_018.png
+

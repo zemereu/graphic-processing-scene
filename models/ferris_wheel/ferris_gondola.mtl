@@ -1,0 +1,45 @@
+newmtl material
+Ns 30
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd material.jpg
+map_Ks spec_008.png
+
+newmtl metal_construction
+Ns 30
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd metal_construction.jpg
+map_Ks spec_008.png
+
+newmtl metal_construction1
+Ns 30
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd metal_construction1.jpg
+map_Ks spec_008.png
+
+newmtl metal_floor
+Ns 68
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd metal_floor.jpg
+map_Ks spec_028.png
+
+newmtl seats
+Ns 30
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd seats.jpg
+map_Ks spec_008.png
+

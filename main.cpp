@@ -30,6 +30,7 @@
 #include <cfloat>
 #include <algorithm>
 #include <fstream>
+#include <string>
 
 #ifdef _WIN32
 // on laptops with two GPUs, ask the driver to run this program on the dedicated one
@@ -139,14 +140,15 @@ struct SpotLight {
     glm::vec3 target;   // point the floodlight is aimed at
 };
 const std::vector<SpotLight> SPOT_LIGHTS = { // max 4, see basic.frag
-    {{-5.0f, 14.5f, 84.0f}, {0.0f, 70.0f, 68.0f}},  // on the roof of the low wing, aimed at the main tower
-    {{5.0f, 14.5f, 84.0f},  {0.0f, 70.0f, 68.0f}},
-    {{25.0f, 0.2f, 90.0f},  {19.0f, 40.0f, 72.0f}}, // on the plaza, aimed at the second block
+    {{-5.0f, 18.3f, 88.0f}, {0.0f, 70.0f, 68.0f}},  // on the roof of the low wing (y = 16), aimed at the main tower
+    {{5.0f, 18.3f, 88.0f},  {0.0f, 70.0f, 68.0f}},  // (position = lamp heads; the tripod stands 2.3 m below)
+    {{25.0f, 2.3f, 90.0f},  {19.0f, 40.0f, 72.0f}}, // on the plaza, aimed at the second block
 };
 const glm::vec3 SPOT_COLOR(5.0f, 5.0f, 5.5f);  // cool white, strong enough to reach the top of the tower
 const float SPOT_INNER_ANGLE = 10.0f;          // degrees: full intensity inside
 const float SPOT_OUTER_ANGLE = 15.0f;          // degrees: fades out between inner and outer
 gps::Model3D floodlight;
+gps::Model3D floodlightLens;   // only the lenses glow at night
 gps::Model3D lampPost;
 gps::Model3D lampBulb;
 
@@ -243,10 +245,19 @@ const glm::vec3 POWER_PLANT_POS(-780.0f, 0.0f, 70.0f);
 const glm::vec3 DUGA_POS(-700.0f, 0.0f, -330.0f);
 const glm::vec3 PRIPYAT_POS(-780.0f, 0.0f, 250.0f);
 const glm::vec3 FERRIS_POS(-640.0f, 0.0f, 320.0f);
-gps::Model3D trees;
-const float FERRIS_HUB_HEIGHT = 14.0f;   // must match ferris_support.obj / ferris_wheel.obj
-const float FERRIS_RADIUS = 12.0f;
-const int FERRIS_GONDOLAS = 16;
+gps::Model3D trees;   // distant forest: crossed billboard quads, all in one model
+// trees near the tour path: one full 3D model per species, drawn at every position from trees_near.txt
+const char* TREE_SPECIES[] = { "fir", "pine", "noble", "dead", "dead2" };
+const int TREE_SPECIES_COUNT = 5;
+gps::Model3D treeModels[TREE_SPECIES_COUNT];
+struct NearTree {
+    int species;
+    glm::mat4 model;
+};
+std::vector<NearTree> nearTrees;
+const float FERRIS_HUB_HEIGHT = 14.63f;   // must match ferris_support.obj / ferris_wheel.obj
+const float FERRIS_RADIUS = 11.2f;
+const int FERRIS_GONDOLAS = 20;
 const float FERRIS_SPEED = 4.0f;         // degrees per second
 float ferrisAngle = 0.0f;
 std::vector<gps::BoundingBox> motherlandBounds, romanitaBounds, powerPlantBounds, dugaBounds, pripyatBounds,
@@ -271,6 +282,20 @@ GLuint resolveFBO = 0, resolveTexture = 0;                // single-sampled resu
 int sceneWidth = 0, sceneHeight = 0;
 gps::Shader screenShader;
 GLuint screenVAO = 0;                                      // empty: the fullscreen triangle comes from gl_VertexID
+
+// shadow mapping (directional light): the scene is first drawn from the sun into a depth texture;
+// a fragment is in shadow if something closer to the sun covers it in that texture
+const int SHADOW_MAP_SIZE = 4096;
+const float SHADOW_AREA = 800.0f;        // meters covered by the shadow map, centered on the camera
+const float SHADOW_DEPTH_RANGE = 800.0f; // meters in front of / behind the center, along the sun's direction
+bool shadowsEnabled = true;
+GLuint depthMapFBO = 0, depthMapTexture = 0;
+gps::Shader depthMapShader;
+GLint depthModelLoc, depthLightSpaceLoc;           // in depthMapShader
+GLint lightSpaceTrMatrixLoc, shadowMapLoc, shadowsEnabledLoc; // in myBasicShader
+glm::mat4 lightSpaceTrMatrix;
+bool depthPass = false;                  // true while drawing into the shadow map
+const int SHADOW_MAP_TEXTURE_UNIT = 5;   // units 0-2 are used by the models' own textures
 
 // UI
 bool showUI = true;
@@ -459,6 +484,29 @@ void updateColliders() {
     for (const SpotLight& spot : SPOT_LIGHTS) {
         addColliders(floodlightBounds, glm::translate(glm::mat4(1.0f), spot.position));
     }
+}
+
+// one line per tree: species x y z yaw(degrees) scale
+bool loadNearTrees(const char* path) {
+    std::ifstream in(path);
+    if (!in) {
+        std::cerr << "Could not open " << path << std::endl;
+        return false;
+    }
+    std::string name;
+    while (in >> name) {
+        if (name[0] == '#') { std::getline(in, name); continue; }   // comment line
+        float x, y, z, yaw, scale;
+        in >> x >> y >> z >> yaw >> scale;
+        for (int i = 0; i < TREE_SPECIES_COUNT; i++) {
+            if (name == TREE_SPECIES[i]) {
+                glm::mat4 m = glm::translate(glm::mat4(1.0f), glm::vec3(x, y, z));
+                m = glm::rotate(m, glm::radians(yaw), glm::vec3(0.0f, 1.0f, 0.0f));
+                nearTrees.push_back({ i, glm::scale(m, glm::vec3(scale)) });
+            }
+        }
+    }
+    return true;
 }
 
 bool loadHeightMap(const char* path) {
@@ -691,6 +739,7 @@ void keyboardCallback(GLFWwindow* window, int key, int scancode, int action, int
         if (key == GLFW_KEY_P) rainEnabled = !rainEnabled;
         if (key == GLFW_KEY_C) collisionsEnabled = !collisionsEnabled;
         if (key == GLFW_KEY_V) trafficEnabled = !trafficEnabled;
+        if (key == GLFW_KEY_O) shadowsEnabled = !shadowsEnabled;
         if (key == GLFW_KEY_B) {
             antialiasingEnabled = !antialiasingEnabled;
             createSceneFramebuffers(sceneWidth, sceneHeight);
@@ -823,32 +872,37 @@ void initOpenGLState() {
 }
 
 void initModels() {
-    terrain.LoadModel("models/brutalism/terrain.obj");
-    satuMare.LoadModel("models/brutalism/satu_mare.obj");
-    genex.LoadModel("models/brutalism/genex.obj");
-    genexRestaurant.LoadModel("models/brutalism/genex_restaurant.obj");
-    panorama.LoadModel("models/brutalism/panorama.obj");
-    telefoane.LoadModel("models/brutalism/telefoane.obj");
-    lampPost.LoadModel("models/brutalism/lamp_post.obj");
-    lampBulb.LoadModel("models/brutalism/lamp_bulb.obj");
-    floodlight.LoadModel("models/brutalism/floodlight.obj");
+    terrain.LoadModel("models/terrain/terrain.obj");
+    satuMare.LoadModel("models/satu_mare/satu_mare.obj");
+    genex.LoadModel("models/genex/genex.obj");
+    genexRestaurant.LoadModel("models/genex/genex_restaurant.obj");
+    panorama.LoadModel("models/panorama/panorama.obj");
+    telefoane.LoadModel("models/telefoane/telefoane.obj");
+    lampPost.LoadModel("models/lamp_post/lamp_post.obj");
+    lampBulb.LoadModel("models/lamp_post/lamp_bulb.obj");
+    floodlight.LoadModel("models/floodlight/floodlight.obj");
+    floodlightLens.LoadModel("models/floodlight/floodlight_lens.obj");
     const char* carFiles[CAR_COLORS] = {
-        "models/brutalism/car_red.obj", "models/brutalism/car_blue.obj",
-        "models/brutalism/car_white.obj", "models/brutalism/car_yellow.obj" };
+        "models/cars/car_red.obj", "models/cars/car_blue.obj",
+        "models/cars/car_white.obj", "models/cars/car_yellow.obj" };
     for (int i = 0; i < CAR_COLORS; i++) {
         carModels[i].LoadModel(carFiles[i]);
     }
-    carLights.LoadModel("models/brutalism/car_lights.obj");
-    motherland.LoadModel("models/brutalism/motherland.obj");
-    romanita.LoadModel("models/brutalism/romanita.obj");
-    powerPlant.LoadModel("models/brutalism/power_plant.obj");
-    duga.LoadModel("models/brutalism/duga.obj");
-    pripyatBlocks.LoadModel("models/brutalism/pripyat_blocks.obj");
-    ferrisSupport.LoadModel("models/brutalism/ferris_support.obj");
-    ferrisWheel.LoadModel("models/brutalism/ferris_wheel.obj");
-    ferrisGondola.LoadModel("models/brutalism/ferris_gondola.obj");
-    trees.LoadModel("models/brutalism/trees.obj");
-    loadHeightMap("models/brutalism/terrain_height.txt");
+    carLights.LoadModel("models/cars/car_lights.obj");
+    motherland.LoadModel("models/motherland/motherland.obj");
+    romanita.LoadModel("models/romanita/romanita.obj");
+    powerPlant.LoadModel("models/power_plant/power_plant.obj");
+    duga.LoadModel("models/duga/duga.obj");
+    pripyatBlocks.LoadModel("models/pripyat/pripyat_blocks.obj");
+    ferrisSupport.LoadModel("models/ferris_wheel/ferris_support.obj");
+    ferrisWheel.LoadModel("models/ferris_wheel/ferris_wheel.obj");
+    ferrisGondola.LoadModel("models/ferris_wheel/ferris_gondola.obj");
+    trees.LoadModel("models/trees/trees.obj");
+    for (int i = 0; i < TREE_SPECIES_COUNT; i++) {
+        treeModels[i].LoadModel(std::string("models/trees/tree_") + TREE_SPECIES[i] + ".obj");
+    }
+    loadNearTrees("models/trees/trees_near.txt");
+    loadHeightMap("models/terrain/terrain_height.txt");
 
     // collision shapes, computed once from the meshes
     satuMareBounds = satuMare.GetMeshBounds();
@@ -877,6 +931,60 @@ void initShaders() {
     rainShader.loadShader(
         "shaders/rain.vert",
         "shaders/rain.frag");
+    depthMapShader.loadShader(
+        "shaders/shadow.vert",
+        "shaders/shadow.frag");
+}
+
+void initShadowMap() {
+    // depth texture: what the sun "sees" (distance to the closest surface for each texel)
+    glGenTextures(1, &depthMapTexture);
+    glBindTexture(GL_TEXTURE_2D, depthMapTexture);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT24, SHADOW_MAP_SIZE, SHADOW_MAP_SIZE, 0,
+                 GL_DEPTH_COMPONENT, GL_FLOAT, nullptr);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    // outside the shadow map: depth 1 = nothing in front = lit
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+    float border[] = { 1.0f, 1.0f, 1.0f, 1.0f };
+    glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, border);
+    glBindTexture(GL_TEXTURE_2D, 0);
+
+    // framebuffer with only a depth attachment, no color
+    glGenFramebuffers(1, &depthMapFBO);
+    glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthMapTexture, 0);
+    glDrawBuffer(GL_NONE);
+    glReadBuffer(GL_NONE);
+    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
+        std::cerr << "The shadow map framebuffer is incomplete" << std::endl;
+    }
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+    depthModelLoc = glGetUniformLocation(depthMapShader.shaderProgram, "model");
+    depthLightSpaceLoc = glGetUniformLocation(depthMapShader.shaderProgram, "lightSpaceTrMatrix");
+    lightSpaceTrMatrixLoc = glGetUniformLocation(myBasicShader.shaderProgram, "lightSpaceTrMatrix");
+    shadowMapLoc = glGetUniformLocation(myBasicShader.shaderProgram, "shadowMap");
+    shadowsEnabledLoc = glGetUniformLocation(myBasicShader.shaderProgram, "shadowsEnabled");
+}
+
+// orthographic projection from the sun (parallel rays), over an area centered on the camera.
+// The center is snapped to whole shadow-map texels, so the shadows don't shimmer while the camera moves.
+glm::mat4 computeLightSpaceTrMatrix() {
+    glm::vec3 sunDir = glm::normalize(lightDir);
+    glm::mat4 lightView = glm::lookAt(sunDir, glm::vec3(0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+
+    glm::vec3 cameraPos = glm::vec3(glm::inverse(view)[3]);
+    glm::vec3 center = glm::vec3(lightView * glm::vec4(cameraPos.x, 0.0f, cameraPos.z, 1.0f));
+    float texel = SHADOW_AREA / SHADOW_MAP_SIZE;
+    center.x = floor(center.x / texel) * texel;
+    center.y = floor(center.y / texel) * texel;
+
+    float half = SHADOW_AREA / 2.0f;
+    glm::mat4 lightProjection = glm::ortho(center.x - half, center.x + half, center.y - half, center.y + half,
+                                           -center.z - SHADOW_DEPTH_RANGE, -center.z + SHADOW_DEPTH_RANGE);
+    return lightProjection * lightView;
 }
 
 void initRain() {
@@ -1021,6 +1129,12 @@ void initUniforms() {
 // draws a model with its own model matrix; normalMatrix is computed per object
 void renderObject(gps::Model3D& object, const glm::mat4& objectModel, gps::Shader shader,
     const glm::vec3& emissive = glm::vec3(0.0f)) {
+    if (depthPass) { // shadow map: only the geometry matters
+        depthMapShader.useShaderProgram();
+        glUniformMatrix4fv(depthModelLoc, 1, GL_FALSE, glm::value_ptr(objectModel));
+        object.Draw(depthMapShader);
+        return;
+    }
     shader.useShaderProgram();
     glUniform3fv(emissiveColorLoc, 1, glm::value_ptr(emissive));
     glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(objectModel));
@@ -1029,13 +1143,51 @@ void renderObject(gps::Model3D& object, const glm::mat4& objectModel, gps::Shade
     object.Draw(shader);
 }
 
+void renderSceneObjects();
+
 void renderScene() {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+    // the shadow map from the depth pass, read by the lighting shader
+    myBasicShader.useShaderProgram();
+    glUniformMatrix4fv(lightSpaceTrMatrixLoc, 1, GL_FALSE, glm::value_ptr(lightSpaceTrMatrix));
+    glUniform1i(shadowsEnabledLoc, shadowsEnabled);
+    glActiveTexture(GL_TEXTURE0 + SHADOW_MAP_TEXTURE_UNIT);
+    glBindTexture(GL_TEXTURE_2D, depthMapTexture);
+    glUniform1i(shadowMapLoc, SHADOW_MAP_TEXTURE_UNIT);
+    glActiveTexture(GL_TEXTURE0);
+
+    renderSceneObjects();
+}
+
+// pass 1: the scene from the sun, depth only
+void renderShadowMap() {
+    if (!shadowsEnabled) return;
+    lightSpaceTrMatrix = computeLightSpaceTrMatrix();
+    depthMapShader.useShaderProgram();
+    glUniformMatrix4fv(depthLightSpaceLoc, 1, GL_FALSE, glm::value_ptr(lightSpaceTrMatrix));
+
+    glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
+    glViewport(0, 0, SHADOW_MAP_SIZE, SHADOW_MAP_SIZE);
+    glClear(GL_DEPTH_BUFFER_BIT);
+    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);  // wireframe/points don't apply to the shadows
+    depthPass = true;
+    renderSceneObjects();
+    depthPass = false;
+    applyViewMode();
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glViewport(0, 0, sceneWidth, sceneHeight);
+}
+
+// all the objects of the scene; used by both passes (the shadow map and the normal rendering)
+void renderSceneObjects() {
     // brutalist scene (positions in meters)
     glm::mat4 identity(1.0f);
     renderObject(terrain, identity, myBasicShader);
     renderObject(trees, identity, myBasicShader);   // no colliders: the camera can pass through the foliage
+    for (const NearTree& tree : nearTrees) {
+        renderObject(treeModels[tree.species], tree.model, myBasicShader);
+    }
     renderObject(satuMare, satuMareMatrix(), myBasicShader);
     renderObject(genex, genexMatrix(), myBasicShader);
     renderObject(genexRestaurant, restaurantMatrix(), myBasicShader);
@@ -1060,7 +1212,8 @@ void renderScene() {
         renderObject(lampBulb, lampModel, myBasicShader, bulbGlow);
     }
     for (const SpotLight& spot : SPOT_LIGHTS) {
-        renderObject(floodlight, glm::translate(identity, spot.position), myBasicShader, bulbGlow);
+        renderObject(floodlight, glm::translate(identity, spot.position), myBasicShader);
+        renderObject(floodlightLens, glm::translate(identity, spot.position), myBasicShader, bulbGlow);
     }
 
     // traffic; the cars face +X, the westbound ones are turned around
@@ -1156,6 +1309,7 @@ void renderUI() {
         ImGui::TextDisabled("(%d cars on the road)", (int)cars.size());
 
         ImGui::SeparatorText("Rendering");
+        ImGui::Checkbox("Shadows", &shadowsEnabled);
         if (ImGui::Checkbox("Antialiasing (MSAA 4x)", &antialiasingEnabled)) {
             createSceneFramebuffers(sceneWidth, sceneHeight);
         }
@@ -1193,6 +1347,7 @@ void renderUI() {
             keyRow("F", "Fog on / off");
             keyRow("P", "Rain on / off");
             keyRow("C", "Collisions on / off");
+            keyRow("O", "Shadows on / off");
             keyRow("B", "Antialiasing on / off");
             keyRow("V", "Traffic on / off");
             keyRow("T", "Start / stop camera tour");
@@ -1212,6 +1367,8 @@ void renderUI() {
 }
 
 void cleanup() {
+    glDeleteFramebuffers(1, &depthMapFBO);
+    glDeleteTextures(1, &depthMapTexture);
     deleteSceneFramebuffers();
     ImGui_ImplOpenGL3_Shutdown();
     ImGui_ImplGlfw_Shutdown();
@@ -1235,6 +1392,7 @@ int main(int argc, const char* argv[]) {
     initShaders();
     initUniforms();
     initRain();
+    initShadowMap();
     glGenVertexArrays(1, &screenVAO);
     createSceneFramebuffers(myWindow.getWindowDimensions().width, myWindow.getWindowDimensions().height);
     initTraffic();
@@ -1255,6 +1413,8 @@ int main(int argc, const char* argv[]) {
         processObjectTransform();
         updateAnimations();
         updateTraffic();
+        // 0. shadow map: the scene from the sun
+        renderShadowMap();
         // 1. the scene (and the rain) into the multisampled framebuffer
         glBindFramebuffer(GL_FRAMEBUFFER, msaaFBO);
         renderScene();

@@ -1,0 +1,14 @@
+
+Model Information:
+* title:	Floodlight
+* source:	https://sketchfab.com/3d-models/floodlight-f70a99f82f5849d8967a3be8f08b82bb
+* author:	BrightBlue (https://sketchfab.com/Jafun)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Floodlight" (https://sketchfab.com/3d-models/floodlight-f70a99f82f5849d8967a3be8f08b82bb) by BrightBlue (https://sketchfab.com/Jafun) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+
+Changes for this project: converted from glTF, rescaled x0.45, lamp heads tilted up 40 degrees, lenses split into a separate model that glows at night

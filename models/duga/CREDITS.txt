@@ -1,0 +1,14 @@
+
+Model Information:
+* title:	DUGA RADAR
+* source:	https://sketchfab.com/3d-models/duga-radar-814ef7ef2e2044b5abe6cfa797361ece
+* author:	PIPO (https://sketchfab.com/pipo_)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "DUGA RADAR" (https://sketchfab.com/3d-models/duga-radar-814ef7ef2e2044b5abe6cfa797361ece) by PIPO (https://sketchfab.com/pipo_) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+
+Changes for this project: converted from glTF, rescaled x1.3, decimated from 5.9M triangles, split in 20 m bays

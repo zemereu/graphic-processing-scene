@@ -1,0 +1,6 @@
+"Hotel PANORAMA" (https://skfb.ly/6VztX) by andrey3712 is licensed under Creative Commons Attribution
+(http://creativecommons.org/licenses/by/4.0/).
+
+Changes made for this project: converted from the original OBJ, ground plane removed, polygons
+triangulated, rescaled to metres, rotated, split into per-floor meshes, materials, UVs and textures added
+(tools/convert_panorama.py).

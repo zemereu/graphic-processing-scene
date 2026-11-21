@@ -1,0 +1,45 @@
+newmtl 3_legs
+Ns 30
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd 3_legs.jpg
+map_Ks spec_008.png
+
+newmtl bolts2
+Ns 30
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd bolts2.jpg
+map_Ks spec_008.png
+
+newmtl ladder
+Ns 30
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd ladder.jpg
+map_Ks spec_008.png
+
+newmtl other
+Ns 30
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd other.jpg
+map_Ks spec_008.png
+
+newmtl wood
+Ns 30
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd wood.jpg
+map_Ks spec_008.png
+

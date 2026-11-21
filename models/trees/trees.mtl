@@ -1,0 +1,36 @@
+newmtl Christmas_tree_1_Billboard_Mat
+Ns 8
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd bb_Christmas_tree_1_Billboard_Mat.png
+map_Ks spec_006.png
+
+newmtl Christmas_tree_2_Billboard_Mat
+Ns 105
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd bb_Christmas_tree_2_Billboard_Mat.png
+map_Ks spec_039.png
+
+newmtl Christmas_tree_3_Billboard_Mat
+Ns 8
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd bb_Christmas_tree_3_Billboard_Mat.png
+map_Ks spec_006.png
+
+newmtl Christmas_tree_6_Billboard_Mat
+Ns 8
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd bb_Christmas_tree_6_Billboard_Mat.png
+map_Ks spec_006.png
+

@@ -1,0 +1,14 @@
+
+Model Information:
+* title:	Soviet Streetlight Pack (Remake and part 2)
+* source:	https://sketchfab.com/3d-models/soviet-streetlight-pack-remake-and-part-2-eff51e05a3b5449895f6eb1312d7e881
+* author:	Unka II (https://sketchfab.com/UnkaII)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Soviet Streetlight Pack (Remake and part 2)" (https://sketchfab.com/3d-models/soviet-streetlight-pack-remake-and-part-2-eff51e05a3b5449895f6eb1312d7e881) by Unka II (https://sketchfab.com/UnkaII) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+
+Changes for this project: RKU luminaire converted from glTF, rescaled x0.25, re-tilted and mounted on a procedural concrete pole
