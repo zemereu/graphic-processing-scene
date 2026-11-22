@@ -1,3 +1,12 @@
+newmtl Bronze
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd bronze.jpg
+map_Ks spec_high.jpg
+
 newmtl Concrete
 Ns 16
 Ka 1 1 1
@@ -25,6 +34,15 @@ illum 2
 map_Kd concrete_sm_dark.jpg
 map_Ks spec_low.jpg
 
+newmtl Copper
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd copper_green.jpg
+map_Ks spec_high.jpg
+
 newmtl Glass
 Ns 96
 Ka 1 1 1
@@ -32,6 +50,24 @@ Kd 1 1 1
 Ks 0.5 0.5 0.5
 illum 2
 map_Kd glass.jpg
+map_Ks spec_high.jpg
+
+newmtl Gold
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd gold.jpg
+map_Ks spec_high.jpg
+
+newmtl MetalRoof
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd metal_roof.jpg
 map_Ks spec_high.jpg
 
 newmtl None
@@ -260,6 +296,15 @@ illum 2
 map_Kd paint_red.jpg
 map_Ks spec_low.jpg
 
+newmtl PaintWhite
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd paint_white.jpg
+map_Ks spec_low.jpg
+
 newmtl PaintYellow
 Ns 16
 Ka 1 1 1
@@ -312,6 +357,24 @@ Kd 1 1 1
 Ks 0.5 0.5 0.5
 illum 2
 map_Kd steel.jpg
+map_Ks spec_high.jpg
+
+newmtl SteelDark
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd steel_dark.jpg
+map_Ks spec_high.jpg
+
+newmtl SteelGreen
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd steel_green.jpg
 map_Ks spec_high.jpg
 
 newmtl Wood

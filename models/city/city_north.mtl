@@ -16,6 +16,15 @@ illum 2
 map_Kd concrete_sm.jpg
 map_Ks spec_low.jpg
 
+newmtl ConcreteSMDark
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd concrete_sm_dark.jpg
+map_Ks spec_low.jpg
+
 newmtl Glass
 Ns 96
 Ka 1 1 1
@@ -35,6 +44,24 @@ map_Kd p_concrete_diff.jpg
 map_Ks p_concrete_spec.jpg
 map_bump p_concrete_nrm.jpg
 
+newmtl PaintBlue
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd paint_blue.jpg
+map_Ks spec_low.jpg
+
+newmtl PaintGreen
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd paint_green.jpg
+map_Ks spec_low.jpg
+
 newmtl PaintOchre
 Ns 16
 Ka 1 1 1
@@ -44,6 +71,24 @@ illum 2
 map_Kd paint_ochre.jpg
 map_Ks spec_low.jpg
 
+newmtl PaintRed
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd paint_red.jpg
+map_Ks spec_low.jpg
+
+newmtl PaintYellow
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd paint_yellow.jpg
+map_Ks spec_low.jpg
+
 newmtl PanelCream
 Ns 16
 Ka 1 1 1
@@ -51,6 +96,15 @@ Kd 1 1 1
 Ks 0.5 0.5 0.5
 illum 2
 map_Kd panel_cream.jpg
+map_Ks spec_low.jpg
+
+newmtl PanelGrey
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd panel_grey.jpg
 map_Ks spec_low.jpg
 
 newmtl Roofing
@@ -78,5 +132,14 @@ Kd 1 1 1
 Ks 0.5 0.5 0.5
 illum 2
 map_Kd steel.jpg
+map_Ks spec_high.jpg
+
+newmtl SteelDark
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd steel_dark.jpg
 map_Ks spec_high.jpg
 

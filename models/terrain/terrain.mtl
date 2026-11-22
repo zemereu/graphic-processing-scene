@@ -7,6 +7,15 @@ illum 2
 map_Kd concrete_sm.jpg
 map_Ks spec_low.jpg
 
+newmtl Flowers
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd flowers.jpg
+map_Ks spec_low.jpg
+
 newmtl GAsphalt
 Ns 16
 Ka 1 1 1
@@ -26,6 +35,16 @@ illum 2
 map_Kd g_cliff_diff.jpg
 map_Ks g_cliff_spec.jpg
 map_bump g_cliff_nrm.jpg
+
+newmtl GDirt
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd g_dirt_diff.jpg
+map_Ks g_dirt_spec.jpg
+map_bump g_dirt_nrm.jpg
 
 newmtl GForest
 Ns 16

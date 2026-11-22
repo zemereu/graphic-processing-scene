@@ -32,6 +32,7 @@
 #include <fstream>
 #include <map>
 #include <string>
+#include <sstream>
 
 #ifdef _WIN32
 // on laptops with two GPUs, ask the driver to run this program on the dedicated one
@@ -174,8 +175,10 @@ struct TourKey {
     glm::vec3 target;   // point the camera looks at
 };
 const std::vector<TourKey> TOUR = {
-    {{100.0f, 80.0f, 730.0f}, {60.0f, 30.0f, 200.0f}},  // overview of the town from the south
-    {{100.0f, 14.0f, 600.0f}, {100.0f, 12.0f, 300.0f}},  // down the boulevard
+    {{100.0f, 40.0f, 990.0f}, {100.0f, 8.0f, 700.0f}},  // from the road coming in from the south, the roundabout ahead
+    {{100.0f, 16.0f, 738.0f}, {100.0f, 12.0f, 660.0f}},  // the monument in the middle of the roundabout
+    {{152.0f, 15.0f, 684.0f}, {100.0f, 14.0f, 660.0f}},  // around the roundabout: the curved streets
+    {{100.0f, 14.0f, 612.0f}, {100.0f, 12.0f, 300.0f}},  // down the boulevard
     {{128.0f, 20.0f, 330.0f}, {200.0f, 40.0f, 280.0f}},  // Romanita in its park
     {{132.0f, 9.0f, 214.0f}, {0.0f, 35.0f, 70.0f}},  // the crossing with the highway, the Administrative Palace
     {{-30.0f, 6.0f, 150.0f}, {0.0f, 60.0f, 60.0f}},  // look up at the palace from its plaza
@@ -190,8 +193,10 @@ const std::vector<TourKey> TOUR = {
     {{-680.0f, 75.0f, -150.0f}, {-700.0f, 60.0f, -330.0f}},  // over the river, the Duga radar
     {{-300.0f, 110.0f, -330.0f}, {-100.0f, 80.0f, -520.0f}},  // along the north bank, Hotel Panorama in the mountains
     {{260.0f, 75.0f, -70.0f}, {450.0f, 60.0f, -150.0f}},  // Motherland Calls on her hill
-    {{560.0f, 70.0f, 40.0f}, {100.0f, 30.0f, 250.0f}},  // look back over the river at the town
-    {{100.0f, 70.0f, 820.0f}, {60.0f, 30.0f, 200.0f}},  // back to the start
+    {{560.0f, 70.0f, 40.0f}, {520.0f, 20.0f, 400.0f}},  // back over the river, down the curved avenue in the east
+    {{610.0f, 50.0f, 420.0f}, {470.0f, 10.0f, 640.0f}},  // over the eastern housing estate
+    {{420.0f, 42.0f, 900.0f}, {100.0f, 15.0f, 700.0f}},  // the new southern district, back towards the roundabout
+    {{100.0f, 40.0f, 990.0f}, {100.0f, 8.0f, 700.0f}},  // back to the start
 };
 const float TOUR_SPEED = 35.0f;       // meters per second along the path
 const float TOUR_MIN_SEGMENT = 3.0f;  // seconds, so short segments are not rushed
@@ -229,22 +234,36 @@ std::vector<gps::BoundingBox> satuMareBounds, genexBounds, restaurantBounds, pan
                               telefoaneBounds, lampPostBounds, floodlightBounds; // model space, from the meshes
 std::vector<gps::BoundingBox> worldColliders; // world space, rebuilt every frame (some objects move)
 
-// traffic: cars are created at one end of the road while the program runs and removed at the other
+// traffic on all the roads (models/city/traffic.txt): every road is split into lanes (right-hand traffic) and the
+// lanes are joined through the junctions, the roundabout, the bridge and the turning places by short curves.
+// A car follows its lane, keeps its distance to the car in front and at the end of the lane goes on into one of the
+// next lanes, chosen at random; it waits in front of a junction while another car is on a curve that crosses its own.
+struct TrafficLane {
+    std::vector<glm::vec3> points;
+    std::vector<float> distance;    // distance along the lane at each point
+    float length = 0.0f;
+    float speed = 10.0f;            // speed limit, m/s
+    int junction = -1;              // >= 0: a curve through a junction
+    std::vector<int> next;          // the lanes a car can go on into
+    std::vector<int> conflicts;     // the curves of the same junction that cross this one
+    int occupants = 0;              // cars on this lane now
+};
 struct Car {
-    float x;      // position along the road (the road runs along X)
-    float speed;  // meters per second
-    int lane;     // 0 = eastbound (+X), 1 = westbound (-X)
-    int model;    // index in carModels (body color)
+    int lane;          // the lane the car is on
+    float s;           // distance along the lane
+    float speed;       // m/s
+    float eagerness;   // multiplies the speed limit
+    int next;          // the lane after this one (chosen when the car enters the lane)
+    int model;         // index in carModels (body color)
+    float waited;      // seconds spent waiting in front of a junction
 };
 const int CAR_COLORS = 4;
-const float ROAD_END = 1000.0f;                  // the road ends with the terrain; the fog hides it
-const float LANE_Z[2] = { 199.0f, 193.0f };      // right-hand traffic
-const float LANE_DIR[2] = { 1.0f, -1.0f };
-const float ROAD_Y = 0.25f;
-const float CAR_MIN_GAP = 12.0f;                 // meters to the car in front
+const float CAR_LENGTH = 4.4f;
+const float CAR_GAP = 2.5f;                       // meters between two cars that stand in a queue
 bool trafficEnabled = true;
+int trafficCars = 200;                            // how many cars drive on the roads
+std::vector<TrafficLane> trafficLanes;
 std::vector<Car> cars;
-float nextSpawnTime[2] = { 0.0f, 0.0f };
 std::mt19937 trafficRng(7);
 gps::Model3D carModels[CAR_COLORS];
 gps::Model3D carLights;   // head- and taillights, separate so they can glow at night
@@ -620,65 +639,156 @@ void moveCamera(gps::MOVE_DIRECTION direction, float distance) {
     myCamera.setPosition(pos);
 }
 
-Car randomCar(int lane, float x) {
-    std::uniform_real_distribution<float> speed(11.0f, 19.0f);   // ~40-70 km/h
-    std::uniform_int_distribution<int> color(0, CAR_COLORS - 1);
-    return Car{ x, speed(trafficRng), lane, color(trafficRng) };
+bool loadTraffic(const char* path) {
+    std::ifstream in(path);
+    if (!in) {
+        std::cerr << "Cannot open " << path << std::endl;
+        return false;
+    }
+    std::string line;
+    while (std::getline(in, line)) {
+        std::istringstream words(line);
+        std::string tag;
+        words >> tag;
+        if (tag == "lane") {
+            int id, junction, n;
+            float speed;
+            words >> id >> junction >> speed >> n;
+            if ((int)trafficLanes.size() <= id) trafficLanes.resize(id + 1);
+            TrafficLane& lane = trafficLanes[id];
+            lane.junction = junction;
+            lane.speed = speed;
+            for (int i = 0; i < n; i++) {
+                glm::vec3 p;
+                words >> p.x >> p.y >> p.z;
+                lane.distance.push_back(lane.points.empty() ? 0.0f : lane.distance.back() + glm::distance(lane.points.back(), p));
+                lane.points.push_back(p);
+            }
+            lane.length = lane.distance.back();
+        } else if (tag == "next" || tag == "conf") {
+            int id, k, other;
+            words >> id >> k;
+            std::vector<int>& list = tag == "next" ? trafficLanes[id].next : trafficLanes[id].conflicts;
+            for (int i = 0; i < k; i++) {
+                words >> other;
+                list.push_back(other);
+            }
+        }
+    }
+    return !trafficLanes.empty();
 }
 
-float randomSpawnDelay() {
-    std::uniform_real_distribution<float> delay(2.0f, 6.0f);     // seconds between two cars in a lane
-    return delay(trafficRng);
+int pickNextLane(int lane) {
+    const std::vector<int>& next = trafficLanes[lane].next;
+    std::uniform_int_distribution<int> pick(0, (int)next.size() - 1);
+    return next[pick(trafficRng)];
 }
 
-// at startup the road is filled along its whole length, so it isn't empty while the first cars arrive
+// the cars are spread over the lanes (not the junctions), at least 12 m apart
 void initTraffic() {
     cars.clear();
-    for (int lane = 0; lane < 2; lane++) {
-        float distance = 0.0f;
-        while (distance < 2.0f * ROAD_END) {
-            Car car = randomCar(lane, 0.0f);
-            car.x = LANE_DIR[lane] * (distance - ROAD_END);   // from the lane's start towards its end
-            cars.push_back(car);
-            distance += car.speed * randomSpawnDelay();
+    for (TrafficLane& lane : trafficLanes) lane.occupants = 0;
+    std::vector<int> roads;
+    std::vector<float> weights;
+    for (int i = 0; i < (int)trafficLanes.size(); i++) {
+        if (trafficLanes[i].junction < 0 && trafficLanes[i].length > 20.0f) {
+            roads.push_back(i);
+            weights.push_back(trafficLanes[i].length);
         }
-        nextSpawnTime[lane] = (float)glfwGetTime() + randomSpawnDelay();
     }
+    if (roads.empty()) return;
+    std::discrete_distribution<int> pickLane(weights.begin(), weights.end());
+    std::uniform_real_distribution<float> unit(0.0f, 1.0f);
+    std::uniform_int_distribution<int> color(0, CAR_COLORS - 1);
+    for (int attempt = 0; attempt < trafficCars * 20 && (int)cars.size() < trafficCars; attempt++) {
+        int lane = roads[pickLane(trafficRng)];
+        float s = unit(trafficRng) * (trafficLanes[lane].length - CAR_LENGTH);
+        bool free = true;
+        for (const Car& car : cars) {
+            if (car.lane == lane && fabs(car.s - s) < 12.0f) free = false;
+        }
+        if (!free) continue;
+        float eagerness = 0.85f + 0.25f * unit(trafficRng);
+        cars.push_back(Car{ lane, s, trafficLanes[lane].speed * eagerness, eagerness, pickNextLane(lane),
+                            color(trafficRng), 0.0f });
+        trafficLanes[lane].occupants++;
+    }
+}
+
+// a junction curve can be entered if nobody is on a curve that crosses it and there is room after it
+bool junctionFree(int lane) {
+    const TrafficLane& curve = trafficLanes[lane];
+    for (int other : curve.conflicts) {
+        if (trafficLanes[other].occupants > 0) return false;
+    }
+    return true;
 }
 
 void updateTraffic() {
-    if (!trafficEnabled) return;
-    float now = (float)glfwGetTime();
-
-    // spawn: a new car at the start of each lane, unless the previous one is still too close
-    for (int lane = 0; lane < 2; lane++) {
-        if (now < nextSpawnTime[lane]) continue;
-        float start = -LANE_DIR[lane] * ROAD_END;
-        bool startIsFree = true;
-        for (const Car& car : cars) {
-            if (car.lane == lane && fabs(car.x - start) < CAR_MIN_GAP) startIsFree = false;
-        }
-        if (startIsFree) {
-            cars.push_back(randomCar(lane, start));
-            nextSpawnTime[lane] = now + randomSpawnDelay();
-        }
+    if (!trafficEnabled || trafficLanes.empty()) return;
+    float dt = glm::min(deltaTime, 0.1f);
+    // the cars of each lane, in the order they drive
+    std::vector<std::vector<int>> onLane(trafficLanes.size());
+    for (int i = 0; i < (int)cars.size(); i++) onLane[cars[i].lane].push_back(i);
+    for (std::vector<int>& list : onLane) {
+        std::sort(list.begin(), list.end(), [](int a, int b) { return cars[a].s < cars[b].s; });
     }
-
-    // move: a car slows down to the speed of the car in front if it gets too close
-    for (Car& car : cars) {
-        float speed = car.speed;
-        for (const Car& other : cars) {
-            float ahead = (other.x - car.x) * LANE_DIR[car.lane];
-            if (other.lane == car.lane && ahead > 0.0f && ahead < CAR_MIN_GAP) {
-                speed = glm::min(speed, other.speed);
+    // the rear of the last car on a lane (from the lane's start); FLT_MAX if the lane is empty
+    auto firstCar = [&](int lane) {
+        return onLane[lane].empty() ? FLT_MAX : cars[onLane[lane].front()].s - CAR_LENGTH;
+    };
+    for (int i = 0; i < (int)cars.size(); i++) {
+        Car& car = cars[i];
+        const TrafficLane& lane = trafficLanes[car.lane];
+        float toEnd = lane.length - car.s;
+        // the obstacle in front: the next car on this lane, or the last car on the next lane
+        float gap = FLT_MAX;
+        const std::vector<int>& here = onLane[car.lane];
+        auto it = std::find(here.begin(), here.end(), i);
+        if (it + 1 != here.end()) {
+            gap = cars[*(it + 1)].s - car.s - CAR_LENGTH;
+        } else {
+            gap = toEnd + firstCar(car.next);
+            // a junction curve: also the car after it, so nobody stops in the middle of the junction
+            const TrafficLane& next = trafficLanes[car.next];
+            if (next.junction >= 0 && !next.next.empty()) {
+                gap = glm::min(gap, toEnd + next.length + firstCar(next.next[0]));
+                bool blocked = !junctionFree(car.next) ||
+                               firstCar(next.next[0]) < CAR_LENGTH + CAR_GAP;
+                if (lane.junction < 0 && blocked && car.waited < 8.0f) gap = glm::min(gap, toEnd - 1.0f);
             }
         }
-        car.x += LANE_DIR[car.lane] * speed * deltaTime;
+        float target = glm::min(lane.speed * car.eagerness, sqrtf(glm::max(0.0f, 2.0f * 5.0f * (gap - CAR_GAP))));
+        car.speed = car.speed < target ? glm::min(target, car.speed + 3.0f * dt) : glm::max(target, car.speed - 9.0f * dt);
+        car.waited = (car.speed < 0.3f && toEnd < 6.0f) ? car.waited + dt : 0.0f;
+        car.s += car.speed * dt;
+        // on into the next lane (possibly more than one if the lane is very short)
+        while (car.s >= trafficLanes[car.lane].length) {
+            car.s -= trafficLanes[car.lane].length;
+            trafficLanes[car.lane].occupants--;
+            car.lane = car.next;
+            trafficLanes[car.lane].occupants++;
+            car.next = pickNextLane(car.lane);
+        }
     }
+}
 
-    // remove the cars that reached the end of the road
-    cars.erase(std::remove_if(cars.begin(), cars.end(),
-        [](const Car& car) { return car.x * LANE_DIR[car.lane] > ROAD_END; }), cars.end());
+// position and orientation of a car on its lane (it faces +X in model space)
+glm::mat4 carMatrix(const Car& car) {
+    const TrafficLane& lane = trafficLanes[car.lane];
+    int i = (int)(std::upper_bound(lane.distance.begin(), lane.distance.end(), car.s) - lane.distance.begin()) - 1;
+    i = glm::clamp(i, 0, (int)lane.points.size() - 2);
+    float t = glm::clamp((car.s - lane.distance[i]) / glm::max(lane.distance[i + 1] - lane.distance[i], 1e-4f), 0.0f, 1.0f);
+    glm::vec3 position = glm::mix(lane.points[i], lane.points[i + 1], t);
+    glm::vec3 forward = glm::normalize(lane.points[i + 1] - lane.points[i]);
+    glm::vec3 side = glm::normalize(glm::cross(forward, glm::vec3(0.0f, 1.0f, 0.0f)));
+    glm::vec3 up = glm::cross(side, forward);
+    glm::mat4 m(1.0f);
+    m[0] = glm::vec4(forward, 0.0f);
+    m[1] = glm::vec4(up, 0.0f);
+    m[2] = glm::vec4(side, 0.0f);
+    m[3] = glm::vec4(position, 1.0f);
+    return m;
 }
 
 void applyLighting() {
@@ -963,6 +1073,7 @@ void initModels() {
     cityProps.LoadModel("models/city/city_props.obj");
     cityLights.LoadModel("models/city/city_lights.obj");
     loadCityProps("models/city/props.txt");
+    loadTraffic("models/city/traffic.txt");
     cityNorthBounds = cityNorth.GetMeshBounds();
     citySouthBounds = citySouth.GetMeshBounds();
     loadHeightMap("models/terrain/terrain_height.txt");
@@ -1379,14 +1490,11 @@ void renderSceneObjects() {
         draw(floodlightLens, glm::translate(identity, spot.position), bulbGlow);
     }
 
-    // traffic; the cars face +X, the westbound ones are turned around
+    // traffic
     glm::vec3 carLightGlow = nightMode ? glm::vec3(1.0f) : glm::vec3(0.0f);
     if (trafficEnabled) {
         for (const Car& car : cars) {
-            glm::mat4 carModel = glm::translate(identity, glm::vec3(car.x, ROAD_Y, LANE_Z[car.lane]));
-            if (LANE_DIR[car.lane] < 0.0f) {
-                carModel = glm::rotate(carModel, glm::radians(180.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-            }
+            glm::mat4 carModel = carMatrix(car);
             draw(carModels[car.model], carModel);
             draw(carLights, carModel, carLightGlow);
         }
@@ -1478,7 +1586,8 @@ void renderUI() {
         ImGui::SeparatorText("Traffic");
         ImGui::Checkbox("Traffic", &trafficEnabled);
         ImGui::SameLine();
-        ImGui::TextDisabled("(%d cars on the road)", (int)cars.size());
+        ImGui::TextDisabled("(%d cars on the roads)", (int)cars.size());
+        if (ImGui::SliderInt("Cars", &trafficCars, 0, 400)) initTraffic();
 
         ImGui::SeparatorText("Rendering");
         ImGui::Checkbox("Shadows", &shadowsEnabled);
