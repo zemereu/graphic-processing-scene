@@ -141,6 +141,7 @@
     <ClCompile Include="Scene.cpp" />
     <ClCompile Include="Lighting.cpp" />
     <ClCompile Include="Shadows.cpp" />
+    <ClCompile Include="Skybox.cpp" />
     <ClCompile Include="Renderer.cpp" />
     <ClCompile Include="Rain.cpp" />
     <ClCompile Include="Collision.cpp" />
@@ -167,6 +168,7 @@
     <ClInclude Include="Scene.hpp" />
     <ClInclude Include="Lighting.hpp" />
     <ClInclude Include="Shadows.hpp" />
+    <ClInclude Include="Skybox.hpp" />
     <ClInclude Include="Renderer.hpp" />
     <ClInclude Include="Rain.hpp" />
     <ClInclude Include="Collision.hpp" />

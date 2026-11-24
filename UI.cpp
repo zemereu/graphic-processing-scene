@@ -62,8 +62,15 @@ void renderUI() {
         if (changed) applyViewMode();
         if (ImGui::Checkbox("Flat shading", &flatShading)) applyShadingMode();
 
-        ImGui::SeparatorText("Lighting");
-        if (ImGui::Checkbox("Night (street lamps + floodlights)", &nightMode)) applyLighting();
+        ImGui::SeparatorText("Time of day");
+        int hours = (int)timeOfDay, minutes = (int)((timeOfDay - hours) * 60.0f);
+        char clock[8];
+        snprintf(clock, sizeof(clock), "%02d:%02d", hours, minutes);   // shown on the slider instead of the number
+        ImGui::SliderFloat("Time", &timeOfDay, 0.0f, 23.99f, clock);
+        ImGui::Checkbox("Animate", &dayCycleRunning);
+        ImGui::SameLine();
+        ImGui::SetNextItemWidth(120.0f);
+        ImGui::SliderFloat("Speed", &dayCycleSpeed, 0.02f, 1.0f, "%.2f h/s");
 
         ImGui::SeparatorText("Fog");
         if (ImGui::Checkbox("Fog", &fogEnabled)) applyFog();
@@ -71,6 +78,8 @@ void renderUI() {
 
         ImGui::SeparatorText("Weather");
         ImGui::Checkbox("Rain", &rainEnabled);
+        ImGui::SameLine();
+        ImGui::Checkbox("Lightning", &lightningEnabled);
         ImGui::SliderFloat("Wind speed", &windSpeed, 0.0f, 20.0f, "%.0f m/s");
         ImGui::SliderFloat("Wind direction", &windDirection, 0.0f, 360.0f, "%.0f deg");
 
@@ -82,6 +91,9 @@ void renderUI() {
 
         ImGui::SeparatorText("Rendering");
         ImGui::Checkbox("Shadows", &shadowsEnabled);
+        ImGui::SameLine();
+        ImGui::Checkbox("Show shadow map", &showShadowMap);
+        ImGui::Checkbox("Bloom", &bloomEnabled);
         if (ImGui::Checkbox("Antialiasing (MSAA 4x)", &antialiasingEnabled)) {
             createSceneFramebuffers(sceneWidth, sceneHeight);
         }
@@ -115,7 +127,8 @@ void renderUI() {
             keyRow("Q / E", "Rotate building");
             keyRow("Z / X", "Scale building down / up");
             keyRow("R", "Reset building");
-            keyRow("N", "Day / night");
+            keyRow("N", "Jump to day / night");
+            keyRow("L", "Day cycle on / off");
             keyRow("F", "Fog on / off");
             keyRow("P", "Rain on / off");
             keyRow("C", "Collisions on / off");
@@ -128,6 +141,18 @@ void renderUI() {
             ImGui::EndTable();
         }
         ImGui::TextDisabled(cursorFree ? "Press M to control the camera" : "Press M to use the buttons");
+        ImGui::End();
+    }
+
+    // the depth map of the shadow pass: the scene seen from the sun (dark = close to the sun)
+    if (showUI && showShadowMap && shadowsEnabled) {
+        const float size = 300.0f;
+        ImGui::SetNextWindowPos(ImVec2(io.DisplaySize.x - 10.0f, io.DisplaySize.y - 10.0f), ImGuiCond_Always,
+            ImVec2(1.0f, 1.0f));
+        ImGui::Begin("Shadow map (view from the sun)", &showShadowMap,
+            ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings);
+        // flipped vertically: OpenGL textures start at the bottom, ImGui at the top
+        ImGui::Image((ImTextureID)depthMapTexture, ImVec2(size, size), ImVec2(0.0f, 1.0f), ImVec2(1.0f, 0.0f));
         ImGui::End();
     }
 

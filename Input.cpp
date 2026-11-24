@@ -55,7 +55,8 @@ void keyboardCallback(GLFWwindow* window, int key, int scancode, int action, int
         if (key == GLFW_KEY_3) { viewMode = VIEW_POINTS; applyViewMode(); }
         if (key == GLFW_KEY_4) { flatShading = !flatShading; applyShadingMode(); }
         if (key == GLFW_KEY_H) showUI = !showUI;
-        if (key == GLFW_KEY_N) { nightMode = !nightMode; applyLighting(); }
+        if (key == GLFW_KEY_N) toggleDayNight();
+        if (key == GLFW_KEY_L) dayCycleRunning = !dayCycleRunning;
         if (key == GLFW_KEY_F) { fogEnabled = !fogEnabled; applyFog(); }
         if (key == GLFW_KEY_P) rainEnabled = !rainEnabled;
         if (key == GLFW_KEY_C) collisionsEnabled = !collisionsEnabled;

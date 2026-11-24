@@ -59,7 +59,6 @@ extern GLint spotCutOffLoc;
 extern GLint spotOuterCutOffLoc;
 extern GLint flatShadingLoc;
 extern GLint fogDensityLoc;
-extern GLint fogColorLoc;
 extern GLint lightSpaceTrMatrixLoc, shadowMapLoc, shadowsEnabledLoc;   // shadow mapping
 
 GLenum glCheckError_(const char* file, int line);

@@ -1,0 +1,6 @@
+"Qwantani Sunset (Pure Sky)" (https://polyhaven.com/a/qwantani_sunset_puresky) and "Qwantani Night (Pure Sky)"
+(https://polyhaven.com/a/qwantani_night_puresky) by Greg Zaal (photography) and Jarod Guest (processing),
+Poly Haven, CC0 (https://creativecommons.org/publicdomain/zero/1.0/).
+
+Changes made for this project: the panoramas were cut into the 6 faces of a cube map (day/ and night/), rotated so
+the sun is towards +Z, the direction of the sun light in Lighting.cpp (tools/equirect_to_cubemap.py).

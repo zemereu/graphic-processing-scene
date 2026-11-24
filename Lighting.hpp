@@ -1,6 +1,7 @@
-// Lighting and fog. Day: the sun only. Night: a dim moon, the street lamps (point lights) and the floodlights on the
-// Administrative Palace (spot lights). The fog has the color of the sky. initUniforms() sets up the uniforms of the
-// main shader (camera matrices, lights, fog); applyLighting() / applyFog() update them when a setting changes.
+// Lighting, time of day and fog. The sun moves along its daily path; at night a dim moon, the street lamps (point
+// lights) and the floodlights on the Administrative Palace (spot lights) light the scene. The fog has the color of
+// the sky. initUniforms() sets up the uniforms of the main shader (camera matrices, lights, fog); updateDayCycle()
+// moves the sun every frame; applyLighting() / applyFog() update the uniforms when a setting changes.
 #pragma once
 
 #include "App.hpp"
@@ -8,11 +9,26 @@
 // light parameters
 extern glm::vec3 lightDir;
 extern glm::vec3 lightColor;
+extern GLint skyLightLoc;
 
-// lighting: day = sun only, night = dim moon + street lamps (point lights)
-extern bool nightMode;
-const glm::vec3 SUN_COLOR(1.0f, 1.0f, 1.0f);
+// time of day: the sun's path at the equinox, at latitude 45 degrees: it rises in the east (-Z) at 6:00, is highest
+// in the south (+X, 45 degrees up) at 12:00 and sets in the west (+Z) at 18:00; the moon is opposite the sun
+extern float timeOfDay;        // hours, 0..24
+extern bool dayCycleRunning;   // the time advances on its own
+extern float dayCycleSpeed;    // hours per second
+const float DAY_TIME = 16.0f;  // N jumps between these two
+const float NIGHT_TIME = 22.0f;
+const float LATITUDE = 45.0f;  // degrees: how high the sun gets at noon (90 - latitude)
+extern float dayFactor;         // 1 = day sky, 0 = night sky, in between: twilight
+extern float daySkyAngle, nightSkyAngle;   // the skies turn so the glow of the sun / moon in them follows the light
+
+// the lights of the town come on one group after the other as it gets dark (and go off in the morning):
+// first the windows, then the street lamps and the cars' lights (nightMode), last the floodlights
+extern bool windowsLit, nightMode, floodlightsOn;
+const glm::vec3 SUN_COLOR(1.0f, 0.97f, 0.92f);
+const glm::vec3 SUNSET_COLOR(1.0f, 0.5f, 0.25f);   // near the horizon the light crosses more air: red / orange
 const glm::vec3 MOON_COLOR(0.10f, 0.12f, 0.20f);
+const glm::vec3 SKY_LIGHT_COLOR(0.16f, 0.18f, 0.22f);   // ambient light of a bright sky, a little blue
 const glm::vec3 LAMP_COLOR(2.0f, 1.5f, 1.0f);   // warm; above 1 so it still lights the plaza after attenuation
 const glm::vec3 LAMP_GLOW(1.0f, 0.85f, 0.6f);   // color of the bulbs when they are on
 const float LAMP_LIGHT_HEIGHT = 7.3f;           // light source = center of the bulb
@@ -27,12 +43,15 @@ const glm::vec3 SPOT_COLOR(5.0f, 5.0f, 5.5f);  // cool white, strong enough to r
 const float SPOT_INNER_ANGLE = 10.0f;          // degrees: full intensity inside
 const float SPOT_OUTER_ANGLE = 15.0f;          // degrees: fades out between inner and outer
 
-// fog: distant objects fade into the sky color
+// background color behind the skybox (the fog takes its color from the skybox, see Skybox.hpp)
 const glm::vec3 DAY_SKY(0.7f, 0.7f, 0.7f);
 const glm::vec3 NIGHT_SKY(0.02f, 0.03f, 0.06f);
 extern bool fogEnabled;
 extern float fogDensity;
 
 void initUniforms();
+glm::vec3 sunDirection(float hours);   // direction towards the sun (world space)
+void updateDayCycle();                 // every frame: moves the sun, sets the light and which lights are on
+void toggleDayNight();                 // N: jumps to DAY_TIME / NIGHT_TIME
 void applyLighting();
 void applyFog();

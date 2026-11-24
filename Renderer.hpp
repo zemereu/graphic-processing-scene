@@ -18,6 +18,16 @@ extern int sceneWidth, sceneHeight;
 extern gps::Shader screenShader;
 extern GLuint screenVAO;                             // empty: the fullscreen triangle comes from gl_VertexID
 
+// HDR: the scene keeps colors above 1 (lamps, the sun); the screen pass adds the bloom (glow around the brightest
+// parts: bright pass + Gaussian blur at half resolution) and maps everything to the screen with a filmic curve
+extern bool bloomEnabled;
+extern gps::Shader bloomShader;
+extern GLuint bloomFBO[2], bloomTexture[2];          // half resolution, ping-pong for the blur
+const float BLOOM_THRESHOLD = 1.0f;
+const float BLOOM_STRENGTH = 0.6f;
+const int BLOOM_BLUR_PASSES = 5;                     // each = one horizontal + one vertical blur
+const float EXPOSURE = 0.8f;
+
 const float LOD_DISTANCE = 250.0f;   // meters from the camera to the nearest point of the model
 
 void initOpenGLState();
@@ -28,4 +38,5 @@ void createSceneFramebuffers(int width, int height);   // at the window size; re
 void deleteSceneFramebuffers();
 void renderSceneObjects();   // all the objects, used by both passes (shadow map and camera)
 void renderScene();          // the camera pass
-void renderScreenQuad();     // the resolved image over the whole window
+void renderBloom();          // after the resolve: the glow of the bright parts, into bloomTexture[0]
+void renderScreenQuad();     // the resolved image (+ bloom, tone mapped) over the whole window

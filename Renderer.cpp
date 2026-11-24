@@ -2,6 +2,7 @@
 #include "Scene.hpp"
 #include "Lighting.hpp"
 #include "Shadows.hpp"
+#include "Skybox.hpp"
 #include "Rain.hpp"
 #include "Traffic.hpp"
 
@@ -23,6 +24,9 @@ GLuint resolveFBO = 0, resolveTexture = 0;                // single-sampled resu
 int sceneWidth = 0, sceneHeight = 0;
 gps::Shader screenShader;
 GLuint screenVAO = 0;                                      // empty: the fullscreen triangle comes from gl_VertexID
+bool bloomEnabled = true;
+gps::Shader bloomShader;
+GLuint bloomFBO[2] = { 0, 0 }, bloomTexture[2] = { 0, 0 };
 
 void initOpenGLState() {
     glClearColor(0.7f, 0.7f, 0.7f, 1.0f);
@@ -40,6 +44,9 @@ void initShaders() {
     screenShader.loadShader(
         "shaders/screen.vert",
         "shaders/screen.frag");
+    bloomShader.loadShader(
+        "shaders/screen.vert",
+        "shaders/bloom.frag");
     myBasicShader.loadShader(
         "shaders/basic.vert",
         "shaders/basic.frag");
@@ -70,6 +77,11 @@ void deleteSceneFramebuffers() {
     if (resolveFBO) glDeleteFramebuffers(1, &resolveFBO);
     if (resolveTexture) glDeleteTextures(1, &resolveTexture);
     msaaFBO = msaaColorRBO = msaaDepthRBO = resolveFBO = resolveTexture = 0;
+    for (int i = 0; i < 2; i++) {
+        if (bloomFBO[i]) glDeleteFramebuffers(1, &bloomFBO[i]);
+        if (bloomTexture[i]) glDeleteTextures(1, &bloomTexture[i]);
+        bloomFBO[i] = bloomTexture[i] = 0;
+    }
 }
 
 // (re)creates the framebuffers at the window size; samples = 0 means no antialiasing
@@ -115,6 +127,24 @@ void createSceneFramebuffers(int width, int height) {
     if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
         std::cerr << "The resolve framebuffer is incomplete" << std::endl;
     }
+
+    // bloom: two half-resolution HDR textures (the blur reads one and writes the other)
+    for (int i = 0; i < 2; i++) {
+        glGenTextures(1, &bloomTexture[i]);
+        glBindTexture(GL_TEXTURE_2D, bloomTexture[i]);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, glm::max(width / 2, 1), glm::max(height / 2, 1), 0, GL_RGBA, GL_FLOAT, nullptr);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+        glGenFramebuffers(1, &bloomFBO[i]);
+        glBindFramebuffer(GL_FRAMEBUFFER, bloomFBO[i]);
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, bloomTexture[i], 0);
+        if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
+            std::cerr << "The bloom framebuffer is incomplete" << std::endl;
+        }
+    }
+    glBindTexture(GL_TEXTURE_2D, 0);
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
@@ -172,14 +202,35 @@ float boxDistance(const gps::BoundingBox& box, const glm::mat4& objectModel, con
     return glm::distance(cameraPos, glm::clamp(cameraPos, lo, hi));
 }
 
+// wind in the trees (windSway() in basic.vert / shadow.vert): only the near trees sway
+const float TREE_LEAN = 0.004f;   // how far the top of a tree leans: this fraction of its height per m/s of wind
+
+void setWindSway(GLuint program, gps::Model3D& object, const glm::mat4& objectModel) {
+    bool tree = &object >= &treeModels[0] && &object < &treeModels[0] + TREE_SPECIES_COUNT;
+    float height = tree ? modelBox(object).max.y : 0.0f;
+    glUniform1f(glGetUniformLocation(program, "swayHeight"), height);
+    if (!tree) return;
+    // the wind (world space, see Rain) taken into the tree's own space (its rotation and scale)
+    glm::vec3 windWorld(cos(glm::radians(windDirection)), 0.0f, sin(glm::radians(windDirection)));
+    glm::vec3 windModel = glm::normalize(glm::inverse(glm::mat3(objectModel)) * windWorld);
+    glUniform3fv(glGetUniformLocation(program, "swayWind"), 1,
+        glm::value_ptr(windModel * (windSpeed * TREE_LEAN * height)));
+    // a phase from the tree's position: neighbours don't sway in step
+    glm::vec3 pos = glm::vec3(objectModel[3]);
+    float phase = glm::fract(sin(pos.x * 12.9898f + pos.z * 78.233f) * 43758.5453f) * glm::two_pi<float>();
+    glUniform1f(glGetUniformLocation(program, "swayPhase"), phase);
+    glUniform1f(glGetUniformLocation(program, "time"), (float)glfwGetTime());
+}
+
 void renderObject(gps::Model3D& object, const glm::mat4& objectModel, gps::Shader shader,
     const glm::vec3& emissive = glm::vec3(0.0f)) {
     // skip the objects that are not in the shadow map area / not in front of the camera
-    glm::mat4 clipMatrix = depthPass ? lightSpaceTrMatrix : projection * view;
+    glm::mat4 clipMatrix = depthPass ? depthPassMatrix : projection * view;
     if (!boxVisible(modelBox(object), clipMatrix * objectModel)) return;
     if (depthPass) { // shadow map: only the geometry matters
         depthMapShader.useShaderProgram();
         glUniformMatrix4fv(depthModelLoc, 1, GL_FALSE, glm::value_ptr(objectModel));
+        setWindSway(depthMapShader.shaderProgram, object, objectModel);
         object.Draw(depthMapShader);
         return;
     }
@@ -189,6 +240,7 @@ void renderObject(gps::Model3D& object, const glm::mat4& objectModel, gps::Shade
     glUniform1i(surfaceModeLoc, &object == &terrain ? 1 : (&object == &water ? 2 : 0));
     glUniform1f(timeLoc, (float)glfwGetTime());
     glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(objectModel));
+    setWindSway(shader.shaderProgram, object, objectModel);
     glm::mat3 nm = glm::mat3(glm::inverseTranspose(view * objectModel));
     glUniformMatrix3fv(normalMatrixLoc, 1, GL_FALSE, glm::value_ptr(nm));
     object.Draw(shader);
@@ -197,14 +249,10 @@ void renderObject(gps::Model3D& object, const glm::mat4& objectModel, gps::Shade
 void renderScene() {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    // the shadow map from the depth pass, read by the lighting shader
-    myBasicShader.useShaderProgram();
-    glUniformMatrix4fv(lightSpaceTrMatrixLoc, 1, GL_FALSE, glm::value_ptr(lightSpaceTrMatrix));
-    glUniform1i(shadowsEnabledLoc, shadowsEnabled);
-    glActiveTexture(GL_TEXTURE0 + SHADOW_MAP_TEXTURE_UNIT);
-    glBindTexture(GL_TEXTURE_2D, depthMapTexture);
-    glUniform1i(shadowMapLoc, SHADOW_MAP_TEXTURE_UNIT);
-    glActiveTexture(GL_TEXTURE0);
+    // the shadow maps from the depth passes, read by the lighting shader
+    bindShadowMaps();
+    // the sky of the current time of day: fog color and water reflections
+    bindSkyTexture();
 
     renderSceneObjects();
 }
@@ -242,7 +290,7 @@ void renderSceneObjects() {
     draw(satuMare, satuMareMatrix());
     draw(genex, genexMatrix());
     draw(genexRestaurant, restaurantMatrix());
-    if (nightMode) {
+    if (windowsLit) {
         draw(genexLights, genexMatrix(), glm::vec3(1.0f));
         draw(romanitaLights, glm::translate(identity, ROMANITA_POS), glm::vec3(1.0f));
         draw(telefoaneLights, telefoaneMatrix(), glm::vec3(1.0f));
@@ -280,9 +328,11 @@ void renderSceneObjects() {
         draw(lampPost, lampModel);
         draw(lampBulb, lampModel, bulbGlow);
     }
+    glm::vec3 lensGlow = floodlightsOn ? LAMP_GLOW : glm::vec3(0.0f);
     for (const SpotLight& spot : SPOT_LIGHTS) {
+        if (spotShadowPass) break;   // the light is inside the floodlight: its own housing would hide it
         draw(floodlight, glm::translate(identity, spot.position));
-        draw(floodlightLens, glm::translate(identity, spot.position), bulbGlow);
+        draw(floodlightLens, glm::translate(identity, spot.position), lensGlow);
     }
 
     // traffic
@@ -305,7 +355,49 @@ void renderSceneObjects() {
     }
 }
 
-// draws the resolved scene over the whole window
+// bloom: the parts brighter than the threshold, blurred at half resolution, end up in bloomTexture[0]
+void renderBloom() {
+    if (!bloomEnabled) return;
+    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+    glDisable(GL_DEPTH_TEST);
+    glDisable(GL_FRAMEBUFFER_SRGB);   // linear HDR values, not colors for the screen
+    glViewport(0, 0, glm::max(sceneWidth / 2, 1), glm::max(sceneHeight / 2, 1));
+    bloomShader.useShaderProgram();
+    glUniform1i(glGetUniformLocation(bloomShader.shaderProgram, "image"), 0);
+    glUniform1f(glGetUniformLocation(bloomShader.shaderProgram, "threshold"), BLOOM_THRESHOLD);
+    GLint modeLoc = glGetUniformLocation(bloomShader.shaderProgram, "mode");
+    GLint directionLoc = glGetUniformLocation(bloomShader.shaderProgram, "direction");
+    glActiveTexture(GL_TEXTURE0);
+    glBindVertexArray(screenVAO);
+
+    // bright pass (the half-size target also averages 2x2 pixels)
+    glBindFramebuffer(GL_FRAMEBUFFER, bloomFBO[0]);
+    glUniform1i(modeLoc, 0);
+    glBindTexture(GL_TEXTURE_2D, resolveTexture);
+    glDrawArrays(GL_TRIANGLES, 0, 3);
+
+    // Gaussian blur, separable: horizontal into [1], vertical back into [0], repeated (each repeat widens the glow)
+    glUniform1i(modeLoc, 1);
+    glm::vec2 texel(1.0f / glm::max(sceneWidth / 2, 1), 1.0f / glm::max(sceneHeight / 2, 1));
+    for (int i = 0; i < BLOOM_BLUR_PASSES; i++) {
+        glBindFramebuffer(GL_FRAMEBUFFER, bloomFBO[1]);
+        glUniform2f(directionLoc, texel.x, 0.0f);
+        glBindTexture(GL_TEXTURE_2D, bloomTexture[0]);
+        glDrawArrays(GL_TRIANGLES, 0, 3);
+        glBindFramebuffer(GL_FRAMEBUFFER, bloomFBO[0]);
+        glUniform2f(directionLoc, 0.0f, texel.y);
+        glBindTexture(GL_TEXTURE_2D, bloomTexture[1]);
+        glDrawArrays(GL_TRIANGLES, 0, 3);
+    }
+    glBindVertexArray(0);
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glViewport(0, 0, sceneWidth, sceneHeight);
+    glEnable(GL_FRAMEBUFFER_SRGB);
+    glEnable(GL_DEPTH_TEST);
+    applyViewMode();
+}
+
+// draws the resolved scene over the whole window: + bloom, then tone mapping (HDR -> screen)
 void renderScreenQuad() {
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL); // the wireframe/points view modes apply to the scene, not to this copy
     glDisable(GL_DEPTH_TEST);
@@ -313,6 +405,12 @@ void renderScreenQuad() {
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, resolveTexture);
     glUniform1i(glGetUniformLocation(screenShader.shaderProgram, "screenTexture"), 0);
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, bloomTexture[0]);
+    glUniform1i(glGetUniformLocation(screenShader.shaderProgram, "bloomTexture"), 1);
+    glActiveTexture(GL_TEXTURE0);
+    glUniform1f(glGetUniformLocation(screenShader.shaderProgram, "bloomStrength"), bloomEnabled ? BLOOM_STRENGTH : 0.0f);
+    glUniform1f(glGetUniformLocation(screenShader.shaderProgram, "exposure"), EXPOSURE);
     glBindVertexArray(screenVAO);
     glDrawArrays(GL_TRIANGLES, 0, 3);
     glBindVertexArray(0);

@@ -4,8 +4,14 @@
 // light parameters
 glm::vec3 lightDir;
 glm::vec3 lightColor;
+GLint skyLightLoc;
 
-bool nightMode = false;
+float timeOfDay = DAY_TIME;
+bool dayCycleRunning = false;
+float dayCycleSpeed = 0.1f;   // a whole day in 4 minutes
+float dayFactor = 1.0f;
+float daySkyAngle = 0.0f, nightSkyAngle = 0.0f;
+bool windowsLit = false, nightMode = false, floodlightsOn = false;
 const std::vector<glm::vec3> LAMP_POSITIONS = { // base of each lamp post (max 16, see basic.frag)
     // plaza in front of the Administrative Palace
     {-60.0f, 0.0f, 130.0f}, {-20.0f, 0.0f, 130.0f}, {20.0f, 0.0f, 130.0f}, {60.0f, 0.0f, 130.0f},
@@ -47,17 +53,10 @@ void initUniforms() {
     // send projection matrix to shader
     glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(projection));
 
-    //set the light direction (direction towards the light)
-    lightDir = glm::vec3(0.0f, 1.0f, 1.0f);
+    // the directional light (sun / moon): direction and color are set every frame by updateDayCycle()
     lightDirLoc = glGetUniformLocation(myBasicShader.shaderProgram, "lightDir");
-    // send light dir to shader
-    glUniform3fv(lightDirLoc, 1, glm::value_ptr(lightDir));
-
-    //set light color
-    lightColor = glm::vec3(1.0f, 1.0f, 1.0f); //white light
     lightColorLoc = glGetUniformLocation(myBasicShader.shaderProgram, "lightColor");
-    // send light color to shader
-    glUniform3fv(lightColorLoc, 1, glm::value_ptr(lightColor));
+    skyLightLoc = glGetUniformLocation(myBasicShader.shaderProgram, "skyLight");
 
     // street lamps: positions are fixed, so they are sent once (world space)
     std::vector<glm::vec3> lightPositions;
@@ -96,22 +95,71 @@ void initUniforms() {
     glUniform1i(flatShadingLoc, flatShading);
 
     fogDensityLoc = glGetUniformLocation(myBasicShader.shaderProgram, "fogDensity");
-    fogColorLoc = glGetUniformLocation(myBasicShader.shaderProgram, "fogColor");
     applyFog();
 
+    updateDayCycle();
     applyLighting();
+}
+
+// direction towards the sun at this hour (equinox: 12 hours of day, 12 of night)
+glm::vec3 sunDirection(float hours) {
+    float hourAngle = glm::radians((hours - 12.0f) * 15.0f);   // the sky turns 15 degrees per hour
+    float latitude = glm::radians(LATITUDE);
+    // x = south, y = up, z = west
+    return glm::vec3(sin(latitude) * cos(hourAngle), cos(latitude) * cos(hourAngle), sin(hourAngle));
+}
+
+void updateDayCycle() {
+    if (dayCycleRunning) {
+        timeOfDay = fmod(timeOfDay + dayCycleSpeed * deltaTime, 24.0f);
+    }
+    glm::vec3 sun = sunDirection(timeOfDay);
+    glm::vec3 moon = -sun;
+
+    // the sky: the sunset photo while the sun is up, fading into the night photo until it is ~9 degrees below the
+    // horizon (twilight)
+    dayFactor = glm::smoothstep(-0.15f, 0.05f, sun.y);
+
+    // the light comes from whichever of the two is above the horizon; at the switch both are dim, so it doesn't jump
+    lightDir = sun.y > 0.0f ? sun : moon;
+    // the sun weakens and turns orange towards the horizon; below it, only the moon is left
+    float sunStrength = glm::smoothstep(-0.05f, 0.25f, sun.y);
+    glm::vec3 sunColor = glm::mix(SUNSET_COLOR, SUN_COLOR, glm::smoothstep(0.0f, 0.45f, sun.y));
+    lightColor = glm::mix(MOON_COLOR, sunColor, sunStrength);
+    // dusk: the sun is (almost) gone but the sky is still bright; its light makes up for what the sun no longer gives
+    glm::vec3 skyLight = SKY_LIGHT_COLOR * glm::max(dayFactor - sunStrength, 0.0f);
+
+    // the photos have the sun / moon glow towards +Z: turn each sky so its glow follows the real light
+    daySkyAngle = atan2(sun.x, sun.z);
+    nightSkyAngle = atan2(moon.x, moon.z);
+
+    myBasicShader.useShaderProgram();
+    glUniform3fv(lightDirLoc, 1, glm::value_ptr(lightDir));
+    glUniform3fv(lightColorLoc, 1, glm::value_ptr(lightColor));
+    glUniform3fv(skyLightLoc, 1, glm::value_ptr(skyLight));
+
+    // the town's lights, one group after the other
+    bool windows = dayFactor < 0.85f, lamps = dayFactor < 0.6f, floodlights = dayFactor < 0.4f;
+    if (windows != windowsLit || lamps != nightMode || floodlights != floodlightsOn) {
+        windowsLit = windows;
+        nightMode = lamps;
+        floodlightsOn = floodlights;
+        applyLighting();
+    }
+}
+
+void toggleDayNight() {
+    timeOfDay = dayFactor > 0.5f ? NIGHT_TIME : DAY_TIME;
+    updateDayCycle();
 }
 
 void applyLighting() {
     myBasicShader.useShaderProgram();
-    lightColor = nightMode ? MOON_COLOR : SUN_COLOR;
-    glUniform3fv(lightColorLoc, 1, glm::value_ptr(lightColor));
     glUniform1i(numPointLightsLoc, nightMode ? (GLint)LAMP_POSITIONS.size() : 0);
-    glUniform1i(numSpotLightsLoc, nightMode ? (GLint)SPOT_LIGHTS.size() : 0);
-    // the fog has the same color as the sky, so far objects blend into the background
+    glUniform1i(numSpotLightsLoc, floodlightsOn ? (GLint)SPOT_LIGHTS.size() : 0);
+    // background behind the skybox (only visible if the skybox fails to load); the fog color comes from the skybox
     glm::vec3 sky = nightMode ? NIGHT_SKY : DAY_SKY;
     glClearColor(sky.r, sky.g, sky.b, 1.0f);
-    glUniform3fv(fogColorLoc, 1, glm::value_ptr(sky));
 }
 
 void applyFog() {

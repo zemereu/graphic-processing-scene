@@ -9,6 +9,14 @@ const float RAIN_AREA_SIZE = 80.0f;    // the rain box around the camera, meters
 const float RAIN_AREA_HEIGHT = 40.0f;
 const float RAIN_DROP_LENGTH = 0.8f;
 bool rainEnabled = false;
+float wetness = 0.0f;
+GLint wetnessLoc;   // in myBasicShader
+bool lightningEnabled = true;
+glm::vec3 flashDirection(0.0f, 1.0f, 0.0f);
+glm::vec3 flashColor(0.0f);
+float nextStrike = 3.0f;         // seconds until the next lightning
+float sinceStrike = 1000.0f;     // seconds since the last one
+std::mt19937 lightningRng(7);
 float windSpeed = 6.0f;        // meters per second
 float windDirection = 30.0f;   // degrees, 0 = blowing towards +X
 gps::Shader rainShader;
@@ -47,6 +55,41 @@ void initRain() {
     rainAreaHeightLoc = glGetUniformLocation(program, "areaHeight");
     rainDropLengthLoc = glGetUniformLocation(program, "dropLength");
     rainColorLoc = glGetUniformLocation(program, "rainColor");
+    wetnessLoc = glGetUniformLocation(myBasicShader.shaderProgram, "wetness");
+}
+
+// brightness of a flash t seconds after the strike: three quick flickers, each fading fast
+float flashIntensity(float t) {
+    float f = exp(-t / 0.05f);
+    if (t > 0.12f) f += 0.6f * exp(-(t - 0.12f) / 0.06f);
+    if (t > 0.30f) f += 0.8f * exp(-(t - 0.30f) / 0.10f);
+    return t < 1.5f ? f : 0.0f;
+}
+
+void updateWeather() {
+    // wet ground
+    if (rainEnabled) {
+        wetness = glm::min(wetness + deltaTime / WETTING_TIME, 1.0f);
+    } else {
+        wetness = glm::max(wetness - deltaTime / DRYING_TIME, 0.0f);
+    }
+    myBasicShader.useShaderProgram();
+    glUniform1f(wetnessLoc, wetness);
+
+    // lightning: a random delay until the next strike, then a random spot in the sky
+    std::uniform_real_distribution<float> random01(0.0f, 1.0f);
+    sinceStrike += deltaTime;
+    if (rainEnabled && lightningEnabled) {
+        nextStrike -= deltaTime;
+        if (nextStrike <= 0.0f) {
+            nextStrike = glm::mix(LIGHTNING_MIN_DELAY, LIGHTNING_MAX_DELAY, random01(lightningRng));
+            sinceStrike = 0.0f;
+            float azimuth = glm::two_pi<float>() * random01(lightningRng);
+            float elevation = glm::radians(glm::mix(25.0f, 60.0f, random01(lightningRng)));
+            flashDirection = glm::vec3(cos(elevation) * cos(azimuth), sin(elevation), cos(elevation) * sin(azimuth));
+        }
+    }
+    flashColor = LIGHTNING_COLOR * flashIntensity(sinceStrike);
 }
 
 void renderRain() {

@@ -42,7 +42,6 @@ GLint spotCutOffLoc;
 GLint spotOuterCutOffLoc;
 GLint flatShadingLoc;
 GLint fogDensityLoc;
-GLint fogColorLoc;
 GLint lightSpaceTrMatrixLoc, shadowMapLoc, shadowsEnabledLoc; // in myBasicShader
 
 GLenum glCheckError_(const char* file, int line) {

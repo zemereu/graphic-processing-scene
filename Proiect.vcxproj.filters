@@ -33,6 +33,9 @@
     <ClCompile Include="Shadows.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Skybox.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="Renderer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -90,6 +93,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Shadows.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Skybox.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Renderer.hpp">
