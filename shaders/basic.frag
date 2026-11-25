@@ -262,21 +262,24 @@ void main()
     // alpha test: the foliage (branch cards, tree billboards) is drawn on quads with transparent texture parts
     // (the smaller mipmaps average the alpha towards 0, so it is scaled up with the mip level, otherwise
     //  the distant trees would disappear)
+    // eye space: the camera is at the origin
+    fPosEye = (view * model * vec4(fPosition, 1.0f)).xyz;
+    worldPos = (model * vec4(fPosition, 1.0f)).xyz;
+    // flat: face normal from position derivatives (constant across the triangle). Before the alpha test: after a
+    // discard the derivatives are undefined (the foliage and the fallen leaves came out black)
+    // smooth: normal interpolated between vertices
+    // (and a triangle seen edge-on has no area on screen: its smooth normal then, never a NaN that the bloom and the
+    //  exposure would spread into black blocks)
+    vec3 flatNormal = cross(dFdx(fPosEye), dFdy(fPosEye));
+    normalEye = normalize(normalMatrix * fNormal);
+    if (flatShading && dot(flatNormal, flatNormal) > 1e-14f) normalEye = normalize(flatNormal);
+
     vec4 texSample = texture(diffuseTexture, fTexCoords);
     float mipLevel = max(textureQueryLod(diffuseTexture, fTexCoords).x, 0.0f);
     if (texSample.a * (1.0f + 0.25f * mipLevel) < 0.5f) {
         discard;
     }
     if (paint) texSample.rgb *= paintColor;
-
-    // eye space: the camera is at the origin
-    fPosEye = (view * model * vec4(fPosition, 1.0f)).xyz;
-    worldPos = (model * vec4(fPosition, 1.0f)).xyz;
-    // flat: face normal from position derivatives (constant across the triangle)
-    // smooth: normal interpolated between vertices
-    normalEye = flatShading
-        ? normalize(cross(dFdx(fPosEye), dFdy(fPosEye)))
-        : normalize(normalMatrix * fNormal);
     viewDir = normalize(-fPosEye);
 
     // normal map (only in smooth mode: the flat mode shows the polygons)

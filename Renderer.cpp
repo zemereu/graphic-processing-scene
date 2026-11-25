@@ -21,6 +21,28 @@ bool flatShading = false;
 // on maximize with the NVIDIA driver); our framebuffer is recreated, under our control, on every resize.
 const int MSAA_SAMPLES = 4;
 bool antialiasingEnabled = true;
+
+int graphicsQuality = QUALITY_HIGH;
+float drawDistanceScale = 1.0f;
+
+// what each preset changes; shadows, fog, weather... stay as the user set them
+void applyGraphicsQuality() {
+    bool high = graphicsQuality == QUALITY_HIGH, low = graphicsQuality == QUALITY_LOW;
+    bool msaa = !low;
+    ssaoEnabled = high;                 // ambient occlusion: the most expensive pass
+    lightBeamsEnabled = high;           // the beams of the lamps in the fog (ray marching)
+    godRaysEnabled = !low;
+    bloomEnabled = !low;
+    reflectionsEnabled = !low;          // the water: the scene drawn a second time
+    flowersEnabled = !low;
+    grassGrid = high ? 512 : (low ? 256 : 384);    // the grass around the camera: 51 / 38 / 26 m
+    tuftGrid = high ? 400 : (low ? 200 : 300);
+    drawDistanceScale = high ? 1.0f : (low ? 0.5f : 0.75f);
+    if (msaa != antialiasingEnabled) {
+        antialiasingEnabled = msaa;
+        createSceneFramebuffers(sceneWidth, sceneHeight);
+    }
+}
 GLuint msaaFBO = 0, msaaColorRBO = 0, msaaDepthRBO = 0;   // multisampled color + depth
 GLuint resolveFBO = 0, resolveTexture = 0;                // single-sampled result, read by the screen pass
 GLuint resolveDepthTexture = 0;                           // its depth (post-processing)
@@ -295,7 +317,7 @@ void renderSceneObjects() {
     // the vehicles: hundreds of them, so not drawn far away (tiny), and their shadows only near the camera
     auto drawVehicle = [&](int type, const glm::mat4& m, const glm::vec3& paint, bool lit) {
         float distance = boxDistance(modelBox(vehicleModels[type]), m, cameraPos);
-        if (distance > (depthPass ? DETAIL_SHADOW_DISTANCE : VEHICLE_DISTANCE)) return;
+        if (distance > (depthPass ? DETAIL_SHADOW_DISTANCE : VEHICLE_DISTANCE) * drawDistanceScale) return;
         drawList.push_back({ &vehicleModels[type], m, glm::vec3(0.0f), distance,
                              VEHICLES[type].painted ? paint : glm::vec3(1.0f) });
         if (!depthPass) {
@@ -306,7 +328,7 @@ void renderSceneObjects() {
     auto lod = [&](gps::Model3D& full, gps::Model3D& simple, const glm::mat4& m) -> gps::Model3D& {
         if (depthPass) return full;
         // the reflection is small and wobbly: the simplified models are enough there
-        return reflectionPass || boxDistance(modelBox(full), m, cameraPos) > LOD_DISTANCE ? simple : full;
+        return reflectionPass || boxDistance(modelBox(full), m, cameraPos) > LOD_DISTANCE * drawDistanceScale ? simple : full;
     };
     draw(terrain, identity);
     if (!depthPass && !reflectionPass) {
@@ -321,19 +343,19 @@ void renderSceneObjects() {
     draw(genexRestaurant, restaurantMatrix());
     if (windowsLit) {
         draw(genexLights, genexMatrix(), glm::vec3(1.0f));
-        draw(romanitaLights, glm::translate(identity, ROMANITA_POS), glm::vec3(1.0f));
+        draw(romanitaLights, placed(romanitaPlace), glm::vec3(1.0f));
         draw(telefoaneLights, telefoaneMatrix(), glm::vec3(1.0f));
         draw(satuMareLights, satuMareMatrix(), glm::vec3(1.0f));
         draw(cityLights, identity, glm::vec3(1.0f));
     }
     draw(panorama, panoramaMatrix());
     draw(telefoane, telefoaneMatrix());
-    draw(lod(motherland, motherlandLod, glm::translate(identity, MOTHERLAND_POS)), glm::translate(identity, MOTHERLAND_POS));
-    draw(romanita, glm::translate(identity, ROMANITA_POS));
-    draw(lod(powerPlant, powerPlantLod, glm::translate(identity, POWER_PLANT_POS)), glm::translate(identity, POWER_PLANT_POS));
-    draw(lod(duga, dugaLod, glm::translate(identity, DUGA_POS)), glm::translate(identity, DUGA_POS));
-    draw(lod(pripyatBlocks, pripyatBlocksLod, glm::translate(identity, PRIPYAT_POS)), glm::translate(identity, PRIPYAT_POS));
-    draw(ferrisSupport, glm::translate(identity, FERRIS_POS));
+    draw(lod(motherland, motherlandLod, placed(motherlandPlace)), placed(motherlandPlace));
+    draw(romanita, placed(romanitaPlace));
+    draw(lod(powerPlant, powerPlantLod, placed(powerPlantPlace)), placed(powerPlantPlace));
+    draw(lod(duga, dugaLod, placed(dugaPlace)), placed(dugaPlace));
+    draw(lod(pripyatBlocks, pripyatBlocksLod, placed(pripyatPlace)), placed(pripyatPlace));
+    draw(ferrisSupport, placed(ferrisPlace));
     draw(cityNorth, identity);
     draw(citySouth, identity);
     draw(cityProps, identity);
@@ -383,11 +405,11 @@ void renderSceneObjects() {
 
     // the town's details (the grass map needs all of them: no grass under a hedge or a bench)
     float range = grassMaskPass ? FLT_MAX
-                : depthPass ? DETAIL_SHADOW_DISTANCE
-                : reflectionPass ? 150.0f : DETAIL_DISTANCE;
+                : depthPass ? DETAIL_SHADOW_DISTANCE * drawDistanceScale
+                : reflectionPass ? 150.0f : DETAIL_DISTANCE * drawDistanceScale;
     renderDetails(detailObjects, detailObjectBounds, range);
     if (!depthPass && !reflectionPass) {   // flat on the ground: no shadows, too small for the reflection
-        renderDetails(detailDecals, detailDecalBounds, DECAL_DISTANCE);
+        renderDetails(detailDecals, detailDecalBounds, DECAL_DISTANCE * drawDistanceScale);
     }
 }
 

@@ -48,7 +48,8 @@ void main()
     float dist = length(vec3(pos.x, map.g, pos.y) - cameraPos);   // 3D: seen from high up, the blades fade out
     // shorter towards the edge of the patch (no visible border), under the snow; none where it's not grass
     float height = mix(0.25f, 0.6f, h3) * mix(0.4f, 1.0f, patchNoise(pos * 0.08f)) * (1.0f - smoothstep(0.6f * radius, radius, dist))
-                 * (1.0f - snowCover) * step(0.5f, map.r);
+                 * (1.0f - snowCover) * step(0.5f, map.r)
+                 * step(abs(pos.x), worldHalfSize) * step(abs(pos.y), worldHalfSize);   // not past the map's edge
     if (height < 0.02f) {
         gl_Position = vec4(2.0f, 2.0f, 2.0f, 1.0f);   // outside the view: nothing is drawn
         return;

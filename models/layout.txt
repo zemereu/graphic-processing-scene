@@ -1,0 +1,34 @@
+# Where the big models stand (Scene.cpp: loadLayout). Coordinates of the program: y up, meters.
+#   <name> x y z yaw                 a model (yaw: degrees around the vertical axis)
+#   lamp x y z                       a street lamp that lights the scene at night (max 16)
+#   floodlight x y z  tx ty tz       a floodlight (its head) and the point it is aimed at (max 4)
+# tools/blender_import.py shows them in Blender, tools/blender_export.py writes this file back.
+satu_mare 0 0 60 0
+genex -420 0 196 0
+panorama -100 70 -520 0
+motherland 450 35 -150 0
+romanita 200 0 280 0
+power_plant -780 0 70 0
+duga -700 0 -330 0
+pripyat -780 0 250 0
+ferris_wheel -640 0 320 0
+telefoane -170 0 140 0
+lamp -60 0 130
+lamp -20 0 130
+lamp 20 0 130
+lamp 60 0 130
+lamp -60 0 170
+lamp -20 0 170
+lamp 20 0 170
+lamp 60 0 170
+lamp -195 0 175
+lamp -145 0 175
+lamp -455 0 186
+lamp -385 0 186
+lamp 89.1 0.4 186
+lamp 110.9 0.4 206
+lamp 84 0.3 35.06
+lamp 116 0.3 39.08
+floodlight -5 15.3 86  0 60 70
+floodlight 5 15.3 86  0 60 70
+floodlight 25 15.3 86  13 40 68

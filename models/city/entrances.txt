@@ -1,0 +1,365 @@
+# tools/paths.py: the entrances of the town's buildings and the footpaths made to them (details.py)
+# door x z nx nz depth kind building   (kind: landing / canopy / porch / door / stub / front / side)
+# path width kind x z x z ...   (kind: entrance / park / playground)
+door 136.50 -87.30 0 -1 0.50 stub Auto00
+door 207.12 -86.87 0 -1 2.35 landing_canopy Auto01
+door 227.12 -86.87 0 -1 2.35 landing_canopy Auto01
+door 58.35 -130.70 0 1 0.50 stub Auto04
+door 135.75 -129.99 0 1 0.50 stub Auto05
+door 183.34 -131.45 0 1 0.50 stub Auto06
+door -37.12 -209.44 0 -1 2.35 landing_canopy Auto09
+door -17.12 -209.44 0 -1 2.35 landing_canopy Auto09
+door 31.08 -206.79 0 -1 2.35 landing_canopy Auto10
+door 51.08 -206.79 0 -1 2.35 landing_canopy Auto10
+door 139.32 -209.37 0 -1 2.35 landing_canopy Auto11
+door 159.32 -209.37 0 -1 2.35 landing_canopy Auto11
+door 179.32 -209.37 0 -1 2.35 landing_canopy Auto11
+door 222.60 -210.50 0 -1 2.35 landing_canopy Auto12
+door 242.60 -210.50 0 -1 2.35 landing_canopy Auto12
+door 262.60 -210.50 0 -1 2.35 landing_canopy Auto12
+door -9.76 -252.68 0 1 2.35 landing_canopy Auto14
+door -29.76 -252.68 0 1 2.35 landing_canopy Auto14
+door 58.87 -250.57 0 1 0.50 stub Auto15
+door 164.25 -251.70 0 1 2.35 landing_canopy Auto16
+door 144.25 -251.70 0 1 2.35 landing_canopy Auto16
+door 238.54 -250.38 0 1 2.35 landing_canopy Auto17
+door 218.54 -250.38 0 1 2.35 landing_canopy Auto17
+door -35.95 -308.42 0 -1 2.35 landing_canopy Auto19
+door -15.95 -308.42 0 -1 2.35 landing_canopy Auto19
+door 4.05 -308.42 0 -1 2.35 landing_canopy Auto19
+door 139.97 -310.15 0 -1 2.35 landing_canopy Auto20
+door 159.97 -310.15 0 -1 2.35 landing_canopy Auto20
+door 179.97 -310.15 0 -1 2.35 landing_canopy Auto20
+door -24.00 -349.70 0 1 2.35 landing_canopy Auto22
+door -44.00 -349.70 0 1 2.35 landing_canopy Auto22
+door 158.70 -349.85 0 1 2.35 landing_canopy Auto24
+door 138.70 -349.85 0 1 2.35 landing_canopy Auto24
+door -183.25 -300.00 1 0 2.35 landing_canopy Auto26
+door -183.25 -280.00 1 0 2.35 landing_canopy Auto26
+door -323.36 20.84 1 0 0.50 stub Auto28
+door -320.86 65.55 1 0 0.50 stub Auto29
+door 276.89 119.66 1 0 2.35 landing_canopy Auto46
+door 276.89 139.66 1 0 2.35 landing_canopy Auto46
+door 276.89 159.66 1 0 2.35 landing_canopy Auto46
+door 200.00 140.50 0 1 10.50 landing CultureHouse
+door -280.80 95.00 -1 0 1.00 side ShopBlockA
+door -85.41 -143.98 0 -1 0.50 canopy Auto02a
+door -116.61 -143.98 0 -1 0.50 canopy Auto02b
+door 262.31 -142.66 0 -1 0.50 canopy Auto07a
+door 231.11 -142.57 0 -1 0.50 canopy Auto07b
+door -95.41 -197.41 0 1 3.48 porch Auto08
+door -110.79 -197.40 0 1 3.48 porch Auto08
+door -80.27 -197.42 0 1 3.48 porch Auto08
+door -125.97 -197.39 0 1 3.48 porch Auto08
+door -87.45 -264.11 0 -1 0.50 canopy Auto13a
+door -118.65 -263.89 0 -1 0.50 canopy Auto13b
+door -95.45 -297.12 0 1 3.49 porch Auto18
+door -110.84 -297.20 0 1 3.49 porch Auto18
+door -80.30 -297.03 0 1 3.49 porch Auto18
+door -126.04 -297.29 0 1 3.49 porch Auto18
+door 255.05 -311.89 0 -1 0.50 canopy Auto21a
+door 223.85 -311.77 0 -1 0.50 canopy Auto21b
+door 63.79 -362.79 0 -1 0.50 canopy Auto23a
+door 32.59 -362.71 0 -1 0.50 canopy Auto23b
+door 224.26 -361.11 0 -1 3.48 porch Auto25
+door 239.64 -361.08 0 -1 3.49 porch Auto25
+door 209.12 -361.13 0 -1 3.48 porch Auto25
+door 254.83 -361.06 0 -1 3.48 porch Auto25
+door -193.23 -197.49 -1 0 0.50 canopy Auto27a
+door -193.35 -166.29 -1 0 0.50 canopy Auto27b
+door -333.06 112.07 -1 0 0.50 canopy Auto30a
+door -332.97 143.27 -1 0 0.50 canopy Auto30b
+door 135.43 118.50 1 0 0.50 canopy Auto43a
+door 135.31 149.70 1 0 0.50 canopy Auto43b
+door -323.32 231.50 1 0 2.35 landing_canopy Auto31
+door -323.32 251.50 1 0 2.35 landing_canopy Auto31
+door -320.39 304.49 1 0 2.35 landing_canopy Auto32
+door -320.39 324.49 1 0 2.35 landing_canopy Auto32
+door -320.39 390.82 1 0 0.50 stub Auto33
+door -323.65 438.07 1 0 0.50 stub Auto34
+door -139.69 294.42 1 0 2.35 landing_canopy Auto36
+door -139.69 314.42 1 0 2.35 landing_canopy Auto36
+door -97.76 461.44 -1 0 2.35 landing_canopy Auto39
+door -97.76 441.44 -1 0 2.35 landing_canopy Auto39
+door -97.05 667.13 -1 0 2.35 landing_canopy Auto40
+door -97.05 647.13 -1 0 2.35 landing_canopy Auto40
+door 75.13 399.37 1 0 0.50 stub Auto42
+door 123.43 467.00 -1 0 0.50 stub Auto44
+door 122.63 525.60 -1 0 0.50 stub Auto45
+door 280.42 453.91 1 0 2.35 landing_canopy Auto47
+door 280.42 473.91 1 0 2.35 landing_canopy Auto47
+door 280.42 493.91 1 0 2.35 landing_canopy Auto47
+door 277.88 649.95 1 0 2.35 landing_canopy Auto48
+door 277.88 669.95 1 0 2.35 landing_canopy Auto48
+door 320.73 425.66 -1 0 2.35 landing_canopy Auto49
+door 320.73 405.66 -1 0 2.35 landing_canopy Auto49
+door 322.35 472.75 -1 0 0.50 stub Auto50
+door 320.76 652.50 -1 0 2.35 landing_canopy Auto51
+door 320.76 632.50 -1 0 2.35 landing_canopy Auto51
+door 320.76 612.50 -1 0 2.35 landing_canopy Auto51
+door 212.00 340.43 0 1 2.35 landing_canopy Auto52
+door 192.00 340.43 0 1 2.35 landing_canopy Auto52
+door 338.50 782.63 0 -1 0.50 stub Auto56
+door 384.00 738.39 0 1 2.35 landing_canopy Auto57
+door 364.00 738.39 0 1 2.35 landing_canopy Auto57
+door 344.00 738.39 0 1 2.35 landing_canopy Auto57
+door 528.89 739.25 0 1 0.50 stub Auto58
+door 589.47 738.11 0 1 0.50 stub Auto59
+door 361.00 598.95 0 -1 2.35 landing_canopy BlockC1
+door 381.00 598.95 0 -1 2.35 landing_canopy BlockC1
+door 401.00 598.95 0 -1 2.35 landing_canopy BlockC1
+door 248.95 415.00 -1 0 2.35 landing_canopy BlockD
+door 248.95 395.00 -1 0 2.35 landing_canopy BlockD
+door 261.95 758.00 -1 0 2.35 landing_canopy BlockE2
+door 261.95 738.00 -1 0 2.35 landing_canopy BlockE2
+door -79.00 393.95 0 -1 2.35 landing_canopy BlockJ1
+door -59.00 393.95 0 -1 2.35 landing_canopy BlockJ1
+door -39.00 393.95 0 -1 2.35 landing_canopy BlockJ1
+door 1.00 443.95 0 -1 2.35 landing_canopy BlockJ2
+door 21.00 443.95 0 -1 2.35 landing_canopy BlockJ2
+door 41.00 443.95 0 -1 2.35 landing_canopy BlockJ2
+door 361.00 503.95 0 -1 2.35 landing_canopy BlockL
+door 381.00 503.95 0 -1 2.35 landing_canopy BlockL
+door 401.00 503.95 0 -1 2.35 landing_canopy BlockL
+door 361.00 333.95 0 -1 2.35 landing_canopy BlockN1
+door 381.00 333.95 0 -1 2.35 landing_canopy BlockN1
+door 401.00 333.95 0 -1 2.35 landing_canopy BlockN1
+door 350.40 421.25 -1 0 1.00 side Kindergarten
+door 380.00 256.57 0 -1 1.00 door Panel16_0
+door 403.99 256.57 0 -1 1.00 door Panel16_0
+door 356.01 256.56 0 -1 1.00 door Panel16_0
+door 353.30 277.59 0 1 1.00 door Panel16_0
+door 377.41 277.59 0 1 1.00 door Panel16_0
+door 401.22 277.59 0 1 1.00 door Panel16_0
+door 205.00 505.57 0 -1 1.00 door Panel16_1
+door 228.99 505.57 0 -1 1.00 door Panel16_1
+door 181.01 505.56 0 -1 1.00 door Panel16_1
+door 178.30 526.59 0 1 1.00 door Panel16_1
+door 202.41 526.59 0 1 1.00 door Panel16_1
+door 226.22 526.59 0 1 1.00 door Panel16_1
+door 125.00 869.05 0 1 0.50 landing Petrom
+door 125.00 841.00 0 -1 0.50 landing Petrom
+door 564.50 691.55 0 1 0.50 stub TowerF7
+door 138.45 420.65 -1 0 1.00 side TowerK
+door -335.27 484.68 -1 0 0.50 canopy Auto35a
+door -335.20 515.88 -1 0 0.50 canopy Auto35b
+door -153.73 626.90 -1 0 3.49 porch Auto37
+door -153.69 611.52 -1 0 3.49 porch Auto37
+door -153.78 642.05 -1 0 3.49 porch Auto37
+door -153.64 596.33 -1 0 3.49 porch Auto37
+door -86.07 233.81 1 0 0.50 canopy Auto38a
+door -86.04 265.01 1 0 0.50 canopy Auto38b
+door -235.44 593.44 0 1 3.49 porch Auto53
+door -250.82 593.38 0 1 3.49 porch Auto53
+door -220.29 593.49 0 1 3.49 porch Auto53
+door -266.02 593.33 0 1 3.49 porch Auto53
+door 208.61 853.85 0 1 0.50 canopy Auto55a
+door 177.41 853.86 0 1 0.50 canopy Auto55b
+door 119.11 733.45 -1 0 0.50 canopy Auto60a
+door 119.31 764.65 -1 0 0.50 canopy Auto60b
+door 192.37 768.44 0 -1 3.49 porch BlockE1
+door 207.76 768.36 0 -1 3.49 porch BlockE1
+door 177.22 768.51 0 -1 3.49 porch BlockE1
+door 222.95 768.28 0 -1 3.49 porch BlockE1
+door 596.92 284.36 1 0 0.50 canopy BlockF1a
+door 597.10 315.56 1 0 0.50 canopy BlockF1b
+door 596.88 384.34 1 0 0.50 canopy BlockF2a
+door 597.17 415.54 1 0 0.50 canopy BlockF2b
+door 435.61 801.98 0 1 0.50 canopy BlockF4a
+door 404.41 801.98 0 1 0.50 canopy BlockF4b
+door 435.65 856.90 0 1 0.50 canopy BlockF5a
+door 404.45 857.14 0 1 0.50 canopy BlockF5b
+door 485.64 736.92 0 1 0.50 canopy BlockF6a
+door 454.44 737.09 0 1 0.50 canopy BlockF6b
+door -52.39 505.42 0 1 3.49 porch BlockJ3
+door -67.78 505.45 0 1 3.49 porch BlockJ3
+door -37.25 505.38 0 1 3.49 porch BlockJ3
+door -82.97 505.49 0 1 3.49 porch BlockJ3
+door 476.99 284.39 1 0 0.50 canopy BlockN2a
+door 476.97 315.59 1 0 0.50 canopy BlockN2b
+door 476.89 434.35 1 0 0.50 canopy BlockN3a
+door 477.15 465.54 1 0 0.50 canopy BlockN3b
+door -37.38 750.41 0 1 3.49 porch BlockS1
+door -52.77 750.47 0 1 3.49 porch BlockS1
+door -22.23 750.35 0 1 3.49 porch BlockS1
+door -67.96 750.53 0 1 3.49 porch BlockS1
+door 208.00 696.60 0 -1 1.50 front Polyclinic
+door -25.00 351.98 0 1 1.50 front School
+path 3.0 park -290.27 370.15 -235.05 431.96
+path 3.0 park -290.27 550.35 -234.97 488.11
+path 3.0 park -129.73 370.15 -184.95 431.96
+path 3.0 park -129.73 550.35 -185.03 488.11
+path 2.4 playground 69.50 515.00 72.00 515.00
+path 2.4 playground 72.25 515.25 89.55 514.73
+path 2.4 entrance -281.80 95.00 -285.05 95.00
+path 2.4 entrance -285.25 95.25 -290.05 95.25
+path 2.4 entrance -116.61 -144.48 -116.61 -146.48
+path 2.4 entrance -85.41 -144.48 -85.41 -146.48
+path 2.4 entrance -116.61 -146.28 -85.41 -146.28
+path 2.4 entrance -116.75 -145.75 -150.05 -145.75
+path 2.4 entrance 231.11 -143.07 231.11 -145.07
+path 2.4 entrance 262.31 -143.16 262.31 -145.16
+path 2.4 entrance 231.11 -144.87 262.31 -144.96
+path 2.4 entrance 262.25 -145.25 290.55 -148.34
+path 2.4 entrance -125.97 -193.90 -125.97 -191.90
+path 2.4 entrance -125.75 -191.75 -145.25 -193.75 -147.75 -196.25 -150.05 -196.25
+path 2.4 entrance -110.79 -193.91 -110.79 -191.91
+path 2.4 entrance -110.75 -191.75 -125.55 -191.75
+path 2.4 entrance -95.41 -193.93 -95.41 -191.93
+path 2.4 entrance -95.25 -191.75 -110.55 -191.75
+path 2.4 entrance -80.27 -193.94 -80.27 -191.94
+path 2.4 entrance -80.25 -191.75 -95.05 -191.75
+path 2.4 entrance -118.65 -264.39 -118.65 -266.39
+path 2.4 entrance -87.45 -264.61 -87.45 -266.61
+path 2.4 entrance -118.65 -266.19 -87.45 -266.41
+path 2.4 entrance -118.75 -265.75 -150.05 -265.75
+path 2.4 entrance -126.04 -293.79 -126.04 -291.79
+path 2.4 entrance -110.84 -293.71 -110.84 -291.71
+path 2.4 entrance -95.45 -293.62 -95.45 -291.62
+path 2.4 entrance -80.30 -293.54 -80.30 -291.54
+path 2.4 entrance -126.04 -291.99 -80.30 -291.74
+path 2.4 entrance -126.25 -291.75 -150.05 -291.75
+path 2.4 entrance 32.59 -363.21 32.59 -365.21
+path 2.4 entrance 63.79 -363.29 63.79 -365.29
+path 2.4 entrance 32.59 -365.01 63.79 -365.09
+path 2.4 entrance 63.75 -364.75 77.25 -364.25 80.25 -361.25 80.25 -339.45
+path 2.4 entrance 209.12 -364.61 209.12 -366.61
+path 2.4 entrance 209.25 -366.75 206.25 -366.75 201.25 -364.25 200.25 -363.25 198.75 -361.25 195.64 -339.46
+path 2.4 entrance 224.26 -364.59 224.26 -366.59
+path 2.4 entrance 224.25 -366.75 208.95 -366.75
+path 2.4 entrance 239.64 -364.57 239.64 -366.57
+path 2.4 entrance 239.75 -366.75 223.95 -366.75
+path 2.4 entrance 254.83 -364.54 254.83 -366.54
+path 2.4 entrance 254.75 -366.75 239.45 -366.75
+path 2.4 entrance -193.73 -197.49 -195.73 -197.49
+path 2.4 entrance -193.85 -166.29 -195.85 -166.29
+path 2.4 entrance -195.53 -197.49 -195.65 -166.29
+path 2.4 entrance -195.25 -166.25 -194.75 -152.75 -191.75 -149.75 -169.45 -149.75
+path 2.4 entrance -333.56 112.07 -335.06 112.07
+path 2.4 entrance -335.25 112.25 -334.75 98.75 -331.25 95.25 -309.45 95.25
+path 2.4 entrance -333.47 143.27 -334.72 143.27
+path 2.4 entrance -334.75 143.25 -335.26 111.95
+path 2.4 entrance 135.93 118.50 137.93 118.50
+path 2.4 entrance 135.81 149.70 137.81 149.70
+path 2.4 entrance 137.73 118.50 137.61 149.70
+path 2.4 entrance 137.75 140.25 151.05 140.25
+path 2.4 entrance 246.60 395.00 244.60 395.00
+path 2.4 entrance 246.60 415.00 244.60 415.00
+path 2.4 entrance 244.80 395.00 244.80 415.00
+path 2.4 entrance 246.25 395.25 246.25 369.95
+path 2.4 entrance -79.00 391.60 -79.00 389.60
+path 2.4 entrance -59.00 391.60 -59.00 389.60
+path 2.4 entrance -39.00 391.60 -39.00 389.60
+path 2.4 entrance -79.00 389.80 -39.00 389.80
+path 2.4 entrance -49.75 389.75 -49.75 369.95
+path 2.4 entrance 1.25 441.75 0.75 441.75 0.25 441.75 -0.25 441.75 -0.75 441.75 -1.75 440.75 -26.75 393.75 -28.25 392.25 -39.05 391.71
+path 2.4 entrance 21.25 441.75 2.75 442.25 2.25 442.25 1.75 442.25 0.45 442.25
+path 2.4 entrance 41.25 441.75 20.45 441.75
+path 2.4 entrance 361.00 501.60 361.00 499.60
+path 2.4 entrance 381.00 501.60 381.00 499.60
+path 2.4 entrance 401.00 501.60 401.00 499.60
+path 2.4 entrance 361.00 499.80 401.00 499.80
+path 2.4 entrance 361.25 501.75 309.95 501.75
+path 2.4 entrance 361.00 331.60 361.00 329.60
+path 2.4 entrance 381.00 331.60 381.00 329.60
+path 2.4 entrance 401.00 331.60 401.00 329.60
+path 2.4 entrance 361.00 329.80 401.00 329.80
+path 2.4 entrance 399.75 329.75 399.75 327.95
+path 2.4 entrance 349.40 421.25 348.40 421.25
+path 2.4 entrance 348.25 421.25 335.25 438.25 334.25 439.25 332.25 439.75 320.25 439.75 318.75 438.25 317.04 431.98
+path 2.4 entrance 356.01 255.56 356.01 252.31
+path 2.4 entrance 356.25 252.25 356.25 206.45
+path 2.4 entrance 380.00 255.57 380.00 252.32
+path 2.4 entrance 379.75 252.25 355.95 252.25
+path 2.4 entrance 403.99 255.57 403.99 252.32
+path 2.4 entrance 403.75 252.25 379.45 252.25
+path 2.4 entrance 353.30 278.59 353.30 280.59
+path 2.4 entrance 377.41 278.59 377.41 280.59
+path 2.4 entrance 401.22 278.59 401.22 280.59
+path 2.4 entrance 353.30 280.39 401.22 280.39
+path 2.4 entrance 377.25 280.75 377.25 299.55
+path 2.4 entrance 181.01 504.56 181.01 501.31
+path 2.4 entrance 181.25 501.25 175.75 501.25 166.75 510.25 167.25 547.25 170.32 550.32
+path 2.4 entrance 205.00 504.57 205.00 501.32
+path 2.4 entrance 204.75 501.25 180.95 501.25
+path 2.4 entrance 228.99 504.57 228.99 501.32
+path 2.4 entrance 228.75 501.25 204.45 501.25
+path 2.4 entrance 178.30 527.59 178.30 529.59
+path 2.4 entrance 202.41 527.59 202.41 529.59
+path 2.4 entrance 226.22 527.59 226.22 529.59
+path 2.4 entrance 178.30 529.39 226.22 529.39
+path 2.4 entrance 178.25 529.75 167.45 529.75
+path 2.4 entrance 125.00 869.55 125.00 875.05
+path 2.4 entrance 125.25 875.25 110.95 875.25
+path 2.4 entrance 125.00 840.50 125.00 835.25
+path 2.4 entrance 125.25 835.25 125.25 829.95
+path 2.4 entrance 137.45 420.65 136.45 420.65
+path 2.4 entrance 136.25 420.75 110.96 423.85
+path 2.4 entrance -335.77 484.68 -337.77 484.68
+path 2.4 entrance -335.70 515.88 -337.70 515.88
+path 2.4 entrance -337.57 484.68 -337.50 515.88
+path 2.4 entrance -337.25 484.75 -336.75 471.25 -333.25 467.75 -309.45 467.75
+path 2.4 entrance -157.13 596.33 -159.13 596.33
+path 2.4 entrance -159.25 596.25 -156.75 573.25 -154.84 570.06
+path 2.4 entrance -157.17 611.52 -159.17 611.52
+path 2.4 entrance -159.25 611.75 -159.25 595.95
+path 2.4 entrance -157.22 626.90 -159.22 626.90
+path 2.4 entrance -159.25 626.75 -159.25 611.45
+path 2.4 entrance -157.27 642.05 -159.02 642.05
+path 2.4 entrance -159.25 642.25 -159.25 626.45
+path 2.4 entrance -85.57 233.81 -83.57 233.81
+path 2.4 entrance -85.54 265.01 -83.54 265.01
+path 2.4 entrance -83.77 233.81 -83.74 265.01
+path 2.4 entrance -83.75 233.75 -83.75 206.45
+path 2.4 entrance -266.02 596.82 -266.02 598.82
+path 2.4 entrance -250.82 596.87 -250.82 598.87
+path 2.4 entrance -235.44 596.93 -235.44 598.93
+path 2.4 entrance -220.29 596.98 -220.29 598.98
+path 2.4 entrance -266.02 598.62 -220.29 598.78
+path 2.4 entrance -266.25 598.75 -290.05 598.75
+path 2.4 entrance 177.41 854.36 177.41 856.36
+path 2.4 entrance 208.61 854.35 208.61 856.35
+path 2.4 entrance 177.41 856.16 208.61 856.15
+path 2.4 entrance 177.25 855.75 163.75 855.25 160.75 852.25 160.75 829.95
+path 2.4 entrance 597.42 284.36 598.67 284.36
+path 2.4 entrance 598.75 284.25 598.25 270.75 595.25 267.75 574.95 267.75
+path 2.4 entrance 597.38 384.34 598.63 384.34
+path 2.4 entrance 598.75 384.25 598.25 370.75 595.25 367.75 574.95 367.75
+path 2.4 entrance 597.60 315.56 599.10 315.56
+path 2.4 entrance 599.25 315.75 598.74 284.45
+path 2.4 entrance 597.67 415.54 599.17 415.54
+path 2.4 entrance 599.25 415.75 598.74 384.45
+path 2.4 entrance 404.41 802.48 404.41 804.48
+path 2.4 entrance 435.61 802.48 435.61 804.48
+path 2.4 entrance 404.41 804.28 435.61 804.28
+path 2.4 entrance 404.25 804.25 385.95 804.25
+path 2.4 entrance 435.65 857.40 435.65 858.65
+path 2.4 entrance 435.75 858.75 449.25 858.25 452.25 855.25 452.25 841.25 451.18 840.18
+path 2.4 entrance 404.45 857.64 404.45 859.14
+path 2.4 entrance 404.25 859.25 436.05 858.74
+path 2.4 entrance 485.64 737.42 485.64 738.67
+path 2.4 entrance 485.75 738.75 485.75 750.55
+path 2.4 entrance 454.44 737.59 454.44 739.09
+path 2.4 entrance 454.25 739.25 454.25 750.55
+path 2.4 entrance -82.97 508.98 -82.97 510.98
+path 2.4 entrance -67.78 508.94 -67.78 510.94
+path 2.4 entrance -52.39 508.90 -52.39 510.90
+path 2.4 entrance -37.25 508.87 -37.25 510.87
+path 2.4 entrance -82.97 510.78 -37.25 510.67
+path 2.4 entrance -82.75 510.75 -110.05 508.17
+path 2.4 entrance 477.49 284.39 479.49 284.39
+path 2.4 entrance 477.47 315.59 479.47 315.59
+path 2.4 entrance 479.29 284.39 479.27 315.59
+path 2.4 entrance 479.25 295.75 510.55 295.75
+path 2.4 entrance 477.39 434.35 478.64 434.35
+path 2.4 entrance 478.75 434.25 505.05 436.31
+path 2.4 entrance 477.65 465.54 479.15 465.54
+path 2.4 entrance 479.25 465.75 499.05 465.75
+path 2.4 entrance -67.96 754.02 -67.96 756.02
+path 2.4 entrance -67.75 756.25 -70.75 756.25 -75.75 753.75 -77.25 752.25 -78.25 748.75 -80.32 725.45
+path 2.4 entrance -52.77 753.96 -52.77 755.71
+path 2.4 entrance -52.75 755.75 -67.55 756.28
+path 2.4 entrance -37.38 753.90 -37.38 755.65
+path 2.4 entrance -37.25 755.75 -52.55 755.75
+path 2.4 entrance -22.23 753.84 -22.23 755.59
+path 2.4 entrance -22.25 755.75 -37.05 755.75

@@ -37,13 +37,13 @@ const glm::vec3 MOON_COLOR(0.10f, 0.12f, 0.20f);
 const glm::vec3 LAMP_COLOR(2.0f, 1.5f, 1.0f);   // warm; above 1 so it still lights the plaza after attenuation
 const glm::vec3 LAMP_GLOW(1.0f, 0.85f, 0.6f);   // color of the bulbs when they are on
 const float LAMP_LIGHT_HEIGHT = 7.3f;           // light source = center of the bulb
-extern const std::vector<glm::vec3> LAMP_POSITIONS;   // base of each lamp post (max 16, see basic.frag)
+extern std::vector<glm::vec3> LAMP_POSITIONS;   // base of each lamp post (max 16, see basic.frag)
 // floodlights (spot lights) on the Administrative Palace, on at night
 struct SpotLight {
     glm::vec3 position;
     glm::vec3 target;   // point the floodlight is aimed at
 };
-extern const std::vector<SpotLight> SPOT_LIGHTS;   // max 4, see basic.frag
+extern std::vector<SpotLight> SPOT_LIGHTS;   // max 4, see basic.frag
 const glm::vec3 SPOT_COLOR(5.0f, 5.0f, 5.5f);  // cool white, strong enough to reach the top of the tower
 const float SPOT_INNER_ANGLE = 10.0f;          // degrees: full intensity inside
 const float SPOT_OUTER_ANGLE = 15.0f;          // degrees: fades out between inner and outer
