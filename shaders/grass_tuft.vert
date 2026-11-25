@@ -60,7 +60,8 @@ void main()
         // the flowers and the weeds are everywhere, but sparse near the camera (they stand out among the blades)
         size = h4 < 0.4f ? 1.0f : smoothstep(0.55f * bladeRadius, 0.9f * bladeRadius, dist);
     }
-    size *= (1.0f - smoothstep(0.7f * radius, radius, dist)) * (1.0f - snowCover) * step(0.5f, map.r);
+    size *= (1.0f - smoothstep(0.7f * radius, radius, dist)) * (1.0f - snowCover) * step(0.5f, map.r)
+            * step(abs(pos.x), worldHalfSize) * step(abs(pos.y), worldHalfSize);   // not past the map's edge
     if (size < 0.02f) {
         gl_Position = vec4(2.0f, 2.0f, 2.0f, 1.0f);   // not drawn
         return;

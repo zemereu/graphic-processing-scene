@@ -19,7 +19,7 @@ float dayCycleSpeed = 0.1f;   // a whole day in 4 minutes
 float dayFactor = 1.0f;
 float daySkyAngle = 0.0f, nightSkyAngle = 0.0f;
 bool windowsLit = false, nightMode = false, floodlightsOn = false;
-const std::vector<glm::vec3> LAMP_POSITIONS = { // base of each lamp post (max 16, see basic.frag)
+std::vector<glm::vec3> LAMP_POSITIONS = { // base of each lamp post (max 16, see basic.frag)
     // plaza in front of the Administrative Palace
     {-60.0f, 0.0f, 130.0f}, {-20.0f, 0.0f, 130.0f}, {20.0f, 0.0f, 130.0f}, {60.0f, 0.0f, 130.0f},
     {-60.0f, 0.0f, 170.0f}, {-20.0f, 0.0f, 170.0f}, {20.0f, 0.0f, 170.0f}, {60.0f, 0.0f, 170.0f},
@@ -30,7 +30,7 @@ const std::vector<glm::vec3> LAMP_POSITIONS = { // base of each lamp post (max 1
     // crossing of the boulevard with the highway, both ends of the bridge (on the sidewalk / quay)
     {89.1f, 0.4f, 186.0f}, {110.9f, 0.4f, 206.0f}, {84.0f, 0.3f, 35.06f}, {116.0f, 0.3f, 39.08f},
 };
-const std::vector<SpotLight> SPOT_LIGHTS = { // max 4, see basic.frag
+std::vector<SpotLight> SPOT_LIGHTS = { // max 4, see basic.frag
     {{-5.0f, 15.3f, 86.0f}, {0.0f, 60.0f, 70.0f}},  // on the roof of the podium (y = 13), aimed at the main tower
     {{5.0f, 15.3f, 86.0f},  {0.0f, 60.0f, 70.0f}},  // (position = lamp heads; the tripod stands 2.3 m below)
     {{25.0f, 15.3f, 86.0f}, {13.0f, 40.0f, 68.0f}}, // on the podium, aimed at the east tower

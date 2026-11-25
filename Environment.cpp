@@ -171,6 +171,7 @@ void renderRain() {
 
 bool grassEnabled = true;
 bool flowersEnabled = true;
+int grassGrid = GRASS_GRID, tuftGrid = TUFT_GRID;
 bool grassMaskPass = false;
 gps::Shader grassShader, grassMaskShader, tuftShader;
 GLuint grassMapFBO = 0, grassMapTexture = 0, grassMapDepthRBO = 0;
@@ -327,15 +328,15 @@ void renderGrass() {
     glDisable(GL_CULL_FACE);   // a blade / a tuft is seen from both sides
 
     grassShader.useShaderProgram();
-    setGrassUniforms(grassShader.shaderProgram, GRASS_GRID, GRASS_SPACING);
+    setGrassUniforms(grassShader.shaderProgram, grassGrid, GRASS_SPACING);
     glBindVertexArray(grassVAO);
-    glDrawArraysInstanced(GL_TRIANGLE_STRIP, 0, 7, GRASS_GRID * GRASS_GRID);
+    glDrawArraysInstanced(GL_TRIANGLE_STRIP, 0, 7, grassGrid * grassGrid);
 
     if (tuftTexture != 0) {
         tuftShader.useShaderProgram();
         GLuint program = tuftShader.shaderProgram;
-        setGrassUniforms(program, TUFT_GRID, TUFT_SPACING);
-        glUniform1f(glGetUniformLocation(program, "bladeRadius"), 0.5f * GRASS_GRID * GRASS_SPACING);
+        setGrassUniforms(program, tuftGrid, TUFT_SPACING);
+        glUniform1f(glGetUniformLocation(program, "bladeRadius"), 0.5f * grassGrid * GRASS_SPACING);
         glUniform1i(glGetUniformLocation(program, "flowersEnabled"), flowersEnabled);
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, tuftTexture);
@@ -344,7 +345,7 @@ void renderGrass() {
         glEnable(GL_SAMPLE_ALPHA_TO_COVERAGE);
         glEnable(GL_SAMPLE_ALPHA_TO_ONE);
         glBindVertexArray(tuftVAO);
-        glDrawArraysInstanced(GL_TRIANGLES, 0, 12, TUFT_GRID * TUFT_GRID);
+        glDrawArraysInstanced(GL_TRIANGLES, 0, 12, tuftGrid * tuftGrid);
         glDisable(GL_SAMPLE_ALPHA_TO_ONE);
         glDisable(GL_SAMPLE_ALPHA_TO_COVERAGE);
     }
@@ -364,10 +365,10 @@ int smokeMaxParticles = 0;
 // positions in the power plant model (models/power_plant), moved to where the plant stands
 const std::vector<SmokeEmitter> SMOKE_EMITTERS = {
     // the ventilation stack (60 m): a thin grey plume
-    { POWER_PLANT_POS + glm::vec3(-89.0f, 60.5f, -4.0f), 1.5f, 300, 25.0f, 4.0f, 3.0f, 26.0f,
+    { glm::vec3(-89.0f, 60.5f, -4.0f), 1.5f, 300, 25.0f, 4.0f, 3.0f, 26.0f,
       glm::vec3(0.62f, 0.62f, 0.64f), 0.35f },
     // the cooling tower (72 m, 26 m wide at the top): broad white steam
-    { POWER_PLANT_POS + glm::vec3(225.0f, 72.0f, -15.0f), 18.0f, 400, 26.0f, 2.5f, 14.0f, 42.0f,
+    { glm::vec3(225.0f, 72.0f, -15.0f), 18.0f, 400, 26.0f, 2.5f, 14.0f, 42.0f,
       glm::vec3(0.95f, 0.95f, 0.97f), 0.2f },
 };
 
@@ -420,7 +421,8 @@ void renderSmoke() {
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     glBindVertexArray(smokeVAO);
     for (const SmokeEmitter& e : SMOKE_EMITTERS) {
-        glUniform3fv(glGetUniformLocation(program, "source"), 1, glm::value_ptr(e.position));
+        glm::vec3 source = glm::vec3(placed(powerPlantPlace) * glm::vec4(e.position, 1.0f));
+        glUniform3fv(glGetUniformLocation(program, "source"), 1, glm::value_ptr(source));
         glUniform1f(glGetUniformLocation(program, "sourceRadius"), e.radius);
         glUniform1f(glGetUniformLocation(program, "lifetime"), e.lifetime);
         glUniform1f(glGetUniformLocation(program, "riseSpeed"), e.riseSpeed);

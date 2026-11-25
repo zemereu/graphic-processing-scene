@@ -28,6 +28,12 @@ extern GLuint screenVAO;                             // empty: the fullscreen tr
 
 const float LOD_DISTANCE = 250.0f;   // meters from the camera to the nearest point of the model
 
+// graphics quality: presets that turn off the expensive effects and draw less far away (UI / key G)
+enum GraphicsQuality { QUALITY_LOW = 0, QUALITY_MEDIUM = 1, QUALITY_HIGH = 2 };
+extern int graphicsQuality;
+extern float drawDistanceScale;   // the vehicles, the details and the high-detail models: their distances times this
+void applyGraphicsQuality();
+
 void initOpenGLState();
 void initShaders();
 void applyViewMode();

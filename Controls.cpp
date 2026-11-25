@@ -75,6 +75,10 @@ void keyboardCallback(GLFWwindow* window, int key, int scancode, int action, int
             createSceneFramebuffers(sceneWidth, sceneHeight);
         }
         if (key == GLFW_KEY_T) { if (tourActive) stopTour(); else startTour(); }
+        if (key == GLFW_KEY_G) {
+            graphicsQuality = (graphicsQuality + 2) % 3;   // high -> medium -> low -> high
+            applyGraphicsQuality();
+        }
     }
 
     if (key >= 0 && key < 1024) {
@@ -252,12 +256,12 @@ void updateColliders() {
     addColliders(restaurantBounds, restaurantMatrix());
     addColliders(panoramaBounds, panoramaMatrix());
     addColliders(telefoaneBounds, telefoaneMatrix());
-    addColliders(motherlandBounds, glm::translate(glm::mat4(1.0f), MOTHERLAND_POS));
-    addColliders(romanitaBounds, glm::translate(glm::mat4(1.0f), ROMANITA_POS));
-    addColliders(powerPlantBounds, glm::translate(glm::mat4(1.0f), POWER_PLANT_POS));
-    addColliders(dugaBounds, glm::translate(glm::mat4(1.0f), DUGA_POS));
-    addColliders(pripyatBounds, glm::translate(glm::mat4(1.0f), PRIPYAT_POS));
-    addColliders(ferrisSupportBounds, glm::translate(glm::mat4(1.0f), FERRIS_POS));
+    addColliders(motherlandBounds, placed(motherlandPlace));
+    addColliders(romanitaBounds, placed(romanitaPlace));
+    addColliders(powerPlantBounds, placed(powerPlantPlace));
+    addColliders(dugaBounds, placed(dugaPlace));
+    addColliders(pripyatBounds, placed(pripyatPlace));
+    addColliders(ferrisSupportBounds, placed(ferrisPlace));
     addColliders(ferrisWheelBounds, ferrisWheelMatrix());
     addColliders(cityNorthBounds, glm::mat4(1.0f));
     addColliders(citySouthBounds, glm::mat4(1.0f));
@@ -453,8 +457,16 @@ void renderUI() {
         ImGui::Begin("Controls", nullptr,
             ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings);
 
-        ImGui::Text("FPS: %.0f (%.1f ms/frame)", ImGui::GetIO().Framerate, 1000.0f / ImGui::GetIO().Framerate);
-        ImGui::TextDisabled("GPU: %s", (const char*)glGetString(GL_RENDERER));
+        ImGui::Text("FPS: %.0f", ImGui::GetIO().Framerate);
+
+        ImGui::SeparatorText("Graphics");
+        bool quality = false;
+        quality |= ImGui::RadioButton("Low", &graphicsQuality, QUALITY_LOW);
+        ImGui::SameLine();
+        quality |= ImGui::RadioButton("Medium", &graphicsQuality, QUALITY_MEDIUM);
+        ImGui::SameLine();
+        quality |= ImGui::RadioButton("High", &graphicsQuality, QUALITY_HIGH);
+        if (quality) applyGraphicsQuality();
 
         ImGui::SeparatorText("View mode");
         bool changed = false;
@@ -471,97 +483,65 @@ void renderUI() {
         char clock[8];
         snprintf(clock, sizeof(clock), "%02d:%02d", hours, minutes);   // shown on the slider instead of the number
         ImGui::SliderFloat("Time", &timeOfDay, 0.0f, 23.99f, clock);
-        ImGui::Checkbox("Animate", &dayCycleRunning);
-        ImGui::SameLine();
-        ImGui::SetNextItemWidth(120.0f);
-        ImGui::SliderFloat("Speed", &dayCycleSpeed, 0.02f, 1.0f, "%.2f h/s");
-
-        ImGui::SeparatorText("Fog");
-        if (ImGui::Checkbox("Fog", &fogEnabled)) applyFog();
-        if (ImGui::SliderFloat("Density", &fogDensity, 0.0005f, 0.01f, "%.4f")) applyFog();
+        ImGui::Checkbox("Day cycle", &dayCycleRunning);
 
         ImGui::SeparatorText("Weather");
+        if (ImGui::Checkbox("Fog", &fogEnabled)) applyFog();
+        ImGui::SameLine();
         bool rain = rainEnabled, snow = snowEnabled;
         if (ImGui::Checkbox("Rain", &rain)) setRain(rain);
         ImGui::SameLine();
         if (ImGui::Checkbox("Snow", &snow)) setSnow(snow);
+        ImGui::SliderFloat("Wind", &windSpeed, 0.0f, 20.0f, "%.0f m/s");
+
+        ImGui::SeparatorText("Scene");
+        ImGui::Checkbox("Shadows", &shadowsEnabled);
         ImGui::SameLine();
-        ImGui::Checkbox("Lightning", &lightningEnabled);
-        ImGui::SliderFloat("Wind speed", &windSpeed, 0.0f, 20.0f, "%.0f m/s");
-        ImGui::SliderFloat("Wind direction", &windDirection, 0.0f, 360.0f, "%.0f deg");
-        ImGui::Checkbox("Power plant smoke", &smokeEnabled);
-        ImGui::SameLine();
-        ImGui::Checkbox("Birds", &birdsEnabled);
+        ImGui::Checkbox("Traffic", &trafficEnabled);
         ImGui::SameLine();
         ImGui::Checkbox("Grass", &grassEnabled);
         ImGui::SameLine();
-        ImGui::Checkbox("Flowers", &flowersEnabled);
-
-        ImGui::SeparatorText("Traffic");
-        ImGui::Checkbox("Traffic", &trafficEnabled);
-        ImGui::SameLine();
-        ImGui::TextDisabled("(%d cars on the roads)", (int)cars.size());
-        if (ImGui::SliderInt("Cars", &trafficCars, 0, 400)) initTraffic();
-
-        ImGui::SeparatorText("Rendering");
-        ImGui::Checkbox("Shadows", &shadowsEnabled);
-        ImGui::SameLine();
-        ImGui::Checkbox("Show shadow cascades", &showShadowMap);
-        ImGui::Checkbox("Bloom", &bloomEnabled);
-        ImGui::SameLine();
-        ImGui::Checkbox("God rays", &godRaysEnabled);
-        ImGui::SameLine();
-        ImGui::Checkbox("SSAO", &ssaoEnabled);
-        ImGui::Checkbox("Water reflections", &reflectionsEnabled);
-        ImGui::SameLine();
-        ImGui::Checkbox("Light beams", &lightBeamsEnabled);
-        ImGui::Checkbox("Auto exposure", &autoExposureEnabled);
-        if (ImGui::Checkbox("Antialiasing (MSAA 4x)", &antialiasingEnabled)) {
-            createSceneFramebuffers(sceneWidth, sceneHeight);
-        }
-
-        ImGui::SeparatorText("Camera");
         ImGui::Checkbox("Collisions", &collisionsEnabled);
 
-        ImGui::SeparatorText("Camera tour");
+        ImGui::Separator();
         if (tourActive) {
             ImGui::ProgressBar(tourTime / tourKeyTimes.back(), ImVec2(200.0f, 0.0f));
+            ImGui::SameLine();
             if (ImGui::Button("Stop tour")) stopTour();
         }
         else if (ImGui::Button("Start tour")) {
             startTour();
         }
-
-        ImGui::SeparatorText("Palatul Telefoanelor");
-        ImGui::Text("Position: %.0f, %.0f", telefoanePos.x, telefoanePos.z);
-        ImGui::Text("Rotation: %.0f deg   Scale: %.2f", fmod(telefoaneAngle + 360.0f, 360.0f), telefoaneScale);
+        ImGui::SameLine();
         if (ImGui::Button("Reset building")) resetTelefoane();
 
-        ImGui::SeparatorText("Key map");
-        if (ImGui::BeginTable("keymap", 2, ImGuiTableFlags_SizingFixedFit)) {
-            keyRow("W A S D", "Move camera");
-            keyRow("Shift", "Move faster");
-            keyRow("Mouse", "Look around");
-            keyRow("M", "Free / capture cursor");
-            keyRow("1 / 2 / 3", "Solid / wireframe / points");
-            keyRow("4", "Smooth / flat shading");
-            keyRow("Arrows", "Move building");
-            keyRow("Q / E", "Rotate building");
-            keyRow("Z / X", "Scale building down / up");
-            keyRow("R", "Reset building");
-            keyRow("N", "Jump to day / night");
-            keyRow("L", "Day cycle on / off");
-            keyRow("F", "Fog on / off");
-            keyRow("P", "Rain on / off");
-            keyRow("K", "Snow on / off");
-            keyRow("C", "Collisions on / off");
-            keyRow("O", "Shadows on / off");
-            keyRow("B", "Antialiasing on / off");
-            keyRow("V", "Traffic on / off");
-            keyRow("T", "Start / stop camera tour");
-            keyRow("H", "Hide / show this panel");
-            keyRow("Esc", "Exit");
-            ImGui::EndTable();
+        if (ImGui::CollapsingHeader("Key map")) {
+            if (ImGui::BeginTable("keymap", 2, ImGuiTableFlags_SizingFixedFit)) {
+                keyRow("W A S D", "Move camera");
+                keyRow("Shift", "Move faster");
+                keyRow("Mouse", "Look around");
+                keyRow("M", "Free / capture cursor");
+                keyRow("1 / 2 / 3", "Solid / wireframe / points");
+                keyRow("4", "Smooth / flat shading");
+                keyRow("Arrows", "Move building");
+                keyRow("Q / E", "Rotate building");
+                keyRow("Z / X", "Scale building down / up");
+                keyRow("R", "Reset building");
+                keyRow("N", "Jump to day / night");
+                keyRow("L", "Day cycle on / off");
+                keyRow("F", "Fog on / off");
+                keyRow("P", "Rain on / off");
+                keyRow("K", "Snow on / off");
+                keyRow("C", "Collisions on / off");
+                keyRow("O", "Shadows on / off");
+                keyRow("G", "Graphics: high / medium / low");
+                keyRow("B", "Antialiasing on / off");
+                keyRow("V", "Traffic on / off");
+                keyRow("T", "Start / stop camera tour");
+                keyRow("H", "Hide / show this panel");
+                keyRow("Esc", "Exit");
+                ImGui::EndTable();
+            }
         }
         ImGui::TextDisabled(cursorFree ? "Press M to control the camera" : "Press M to use the buttons");
         ImGui::End();

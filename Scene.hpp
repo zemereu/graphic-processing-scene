@@ -80,16 +80,18 @@ const float DECAL_DISTANCE = 140.0f;           // the flat ones on the ground
 // layout: the Romanian/Moldovan city center on the south bank (palace, Palatul Telefoanelor, Romanita),
 // Genex as the western gate of the city on the main road, Motherland Calls on a hill above the river,
 // Hotel Panorama in the mountains, and the Chornobyl exclusion zone in the forest beyond the gate
-// (positions must match tools/gen_world.py, which flattens the ground under each building)
-const glm::vec3 GENEX_POS(-420.0f, 0.0f, 196.0f);
+// Where they stand: models/layout.txt (read at start; tools/blender_import.py and blender_export.py edit it in
+// Blender), the values below if the file is missing. The ground is flattened under each building where it stood
+// first (tools/gen_world.py): a building moved far stands on the uneven ground.
+struct Placement {
+    glm::vec3 pos;
+    float yaw;   // degrees, around the vertical axis
+};
+extern Placement satuMarePlace, genexPlace, panoramaPlace, motherlandPlace, romanitaPlace, powerPlantPlace,
+                 dugaPlace, pripyatPlace, ferrisPlace, telefoanePlace;
+glm::mat4 placed(const Placement& p);   // T * R
+void loadLayout(const char* path);      // also the street lamps and the floodlights (Lighting)
 const glm::vec3 RESTAURANT_OFFSET(-8.23f, 107.88f, 26.86f);  // from the base of Genex (axis of the restaurant)
-const glm::vec3 PANORAMA_POS(-100.0f, 70.0f, -520.0f);
-const glm::vec3 MOTHERLAND_POS(450.0f, 35.0f, -150.0f);
-const glm::vec3 ROMANITA_POS(200.0f, 0.0f, 280.0f);
-const glm::vec3 POWER_PLANT_POS(-780.0f, 0.0f, 70.0f);
-const glm::vec3 DUGA_POS(-700.0f, 0.0f, -330.0f);
-const glm::vec3 PRIPYAT_POS(-780.0f, 0.0f, 250.0f);
-const glm::vec3 FERRIS_POS(-640.0f, 0.0f, 320.0f);
 const float FERRIS_HUB_HEIGHT = 14.63f;   // must match ferris_support.obj / ferris_wheel.obj
 const float FERRIS_RADIUS = 11.2f;
 const int FERRIS_GONDOLAS = 20;
@@ -98,8 +100,7 @@ const int FERRIS_GONDOLAS = 20;
 extern float restaurantAngle;
 extern float ferrisAngle;
 
-// keyboard-controlled object (Palatul Telefoanelor)
-const glm::vec3 TELEFOANE_START_POS(-170.0f, 0.0f, 140.0f);
+// keyboard-controlled object (Palatul Telefoanelor; it starts at telefoanePlace)
 extern glm::vec3 telefoanePos;
 extern float telefoaneAngle;   // degrees, around its own vertical axis
 extern float telefoaneScale;   // uniform scale

@@ -1,4 +1,5 @@
 #include "Scene.hpp"
+#include "Lighting.hpp"   // the street lamps and the floodlights of the layout
 
 
 #include <fstream>
@@ -75,7 +76,17 @@ const float FERRIS_SPEED = 4.0f;         // degrees per second
 float ferrisAngle = 0.0f;
 
 // keyboard-controlled object (Palatul Telefoanelor)
-glm::vec3 telefoanePos = TELEFOANE_START_POS;
+Placement satuMarePlace{ { 0.0f, 0.0f, 60.0f }, 0.0f };
+Placement genexPlace{ { -420.0f, 0.0f, 196.0f }, 0.0f };
+Placement panoramaPlace{ { -100.0f, 70.0f, -520.0f }, 0.0f };
+Placement motherlandPlace{ { 450.0f, 35.0f, -150.0f }, 0.0f };
+Placement romanitaPlace{ { 200.0f, 0.0f, 280.0f }, 0.0f };
+Placement powerPlantPlace{ { -780.0f, 0.0f, 70.0f }, 0.0f };
+Placement dugaPlace{ { -700.0f, 0.0f, -330.0f }, 0.0f };
+Placement pripyatPlace{ { -780.0f, 0.0f, 250.0f }, 0.0f };
+Placement ferrisPlace{ { -640.0f, 0.0f, 320.0f }, 0.0f };
+Placement telefoanePlace{ { -170.0f, 0.0f, 140.0f }, 0.0f };
+glm::vec3 telefoanePos = telefoanePlace.pos;
 float telefoaneAngle = 0.0f;   // degrees, around its own vertical axis
 float telefoaneScale = 1.0f;   // uniform scale
 
@@ -129,7 +140,53 @@ bool loadNearTrees(const char* path) {
     return true;
 }
 
+glm::mat4 placed(const Placement& p) {
+    glm::mat4 m = glm::translate(glm::mat4(1.0f), p.pos);
+    return glm::rotate(m, glm::radians(p.yaw), glm::vec3(0.0f, 1.0f, 0.0f));
+}
+
+// one line per object: <name> x y z yaw  |  lamp x y z  |  floodlight x y z  target_x target_y target_z
+void loadLayout(const char* path) {
+    std::ifstream in(path);
+    if (!in) {
+        std::cerr << "Could not open " << path << ", the default layout is used" << std::endl;
+        return;
+    }
+    std::pair<const char*, Placement*> places[] = {
+        { "satu_mare", &satuMarePlace }, { "genex", &genexPlace }, { "panorama", &panoramaPlace },
+        { "motherland", &motherlandPlace }, { "romanita", &romanitaPlace }, { "power_plant", &powerPlantPlace },
+        { "duga", &dugaPlace }, { "pripyat", &pripyatPlace }, { "ferris_wheel", &ferrisPlace },
+        { "telefoane", &telefoanePlace } };
+    std::vector<glm::vec3> lamps;
+    std::vector<SpotLight> spots;
+    std::string name;
+    while (in >> name) {
+        if (name[0] == '#') { std::getline(in, name); continue; }   // comment line
+        glm::vec3 p;
+        in >> p.x >> p.y >> p.z;
+        if (name == "lamp") {
+            lamps.push_back(p);
+        } else if (name == "floodlight") {
+            glm::vec3 target;
+            in >> target.x >> target.y >> target.z;
+            spots.push_back({ p, target });
+        } else {
+            float yaw;
+            in >> yaw;
+            bool known = false;
+            for (auto& place : places) {
+                if (name == place.first) { *place.second = { p, yaw }; known = true; }
+            }
+            if (!known) std::cerr << path << ": unknown object " << name << std::endl;
+        }
+    }
+    if (!lamps.empty()) LAMP_POSITIONS = lamps;
+    if (!spots.empty()) SPOT_LIGHTS = spots;
+    resetTelefoane();
+}
+
 void initModels() {
+    loadLayout("models/layout.txt");
     terrain.LoadModel("models/terrain/terrain.obj");
     water.LoadModel("models/terrain/water.obj");
     satuMare.LoadModel("models/satu_mare/satu_mare.obj");
@@ -183,33 +240,33 @@ void updateAnimations() {
 }
 
 void resetTelefoane() {
-    telefoanePos = TELEFOANE_START_POS;
-    telefoaneAngle = 0.0f;
+    telefoanePos = telefoanePlace.pos;
+    telefoaneAngle = telefoanePlace.yaw;
     telefoaneScale = 1.0f;
 }
 
 // model matrices, shared by rendering and collision detection
-glm::mat4 satuMareMatrix() { return glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, 60.0f)); }
-glm::mat4 genexMatrix() { return glm::translate(glm::mat4(1.0f), GENEX_POS); }
-glm::mat4 panoramaMatrix() { return glm::translate(glm::mat4(1.0f), PANORAMA_POS); }
+glm::mat4 satuMareMatrix() { return placed(satuMarePlace); }
+glm::mat4 genexMatrix() { return placed(genexPlace); }
+glm::mat4 panoramaMatrix() { return placed(panoramaPlace); }
 
 glm::mat4 restaurantMatrix() {
     // rotate around its own axis first, then move it on top of the tower (T * R)
-    glm::mat4 m = glm::translate(glm::mat4(1.0f), GENEX_POS + RESTAURANT_OFFSET);
+    glm::mat4 m = glm::translate(placed(genexPlace), RESTAURANT_OFFSET);
     return glm::rotate(m, glm::radians(restaurantAngle), glm::vec3(0.0f, 1.0f, 0.0f));
 }
 
 glm::mat4 ferrisWheelMatrix() {
     // the wheel turns around its horizontal axle (Z), at the height of the hub
-    glm::mat4 m = glm::translate(glm::mat4(1.0f), FERRIS_POS + glm::vec3(0.0f, FERRIS_HUB_HEIGHT, 0.0f));
+    glm::mat4 m = glm::translate(placed(ferrisPlace), glm::vec3(0.0f, FERRIS_HUB_HEIGHT, 0.0f));
     return glm::rotate(m, glm::radians(ferrisAngle), glm::vec3(0.0f, 0.0f, 1.0f));
 }
 
 // the gondolas hang from the rim: they follow the wheel, but only by translation, so they stay upright
 glm::mat4 ferrisGondolaMatrix(int i) {
     float angle = glm::radians(ferrisAngle) + glm::two_pi<float>() * i / FERRIS_GONDOLAS;
-    glm::vec3 hub = FERRIS_POS + glm::vec3(0.0f, FERRIS_HUB_HEIGHT, 0.0f);
-    return glm::translate(glm::mat4(1.0f), hub + FERRIS_RADIUS * glm::vec3(cos(angle), sin(angle), 0.0f));
+    glm::vec3 offset = glm::vec3(0.0f, FERRIS_HUB_HEIGHT, 0.0f) + FERRIS_RADIUS * glm::vec3(cos(angle), sin(angle), 0.0f);
+    return glm::translate(placed(ferrisPlace), offset);
 }
 
 glm::mat4 telefoaneMatrix() {

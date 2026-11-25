@@ -64,6 +64,7 @@ extern bool flowersEnabled;   // the flowers and the weeds among the grass
 extern bool grassMaskPass;   // true while drawing the grass map
 extern gps::Shader grassShader, grassMaskShader, tuftShader;
 
+extern int grassGrid, tuftGrid;      // how many are drawn now (graphics quality): at most GRASS_GRID / TUFT_GRID
 const int GRASS_GRID = 512;           // blades per side of the grid
 const float GRASS_SPACING = 0.2f;     // meters between blades -> a 102 m wide patch around the camera
 const int TUFT_GRID = 400;            // tufts per side of their grid
@@ -85,7 +86,7 @@ glm::mat4 grassMapMatrix();   // world -> grass map (top view)
 // ==============================================================================================================
 
 struct SmokeEmitter {
-    glm::vec3 position;    // world space, center of the opening
+    glm::vec3 position;    // in the power plant model (powerPlantPlace), center of the opening
     float radius;          // of the opening (meters)
     int particles;
     float lifetime;        // seconds a puff lives
