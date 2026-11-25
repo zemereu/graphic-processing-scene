@@ -2,6 +2,11 @@
 #include "Scene.hpp"
 #include "Lighting.hpp"
 #include "Renderer.hpp"
+#include "PostProcess.hpp"
+#include "Reflection.hpp"
+#include "Smoke.hpp"
+#include "Birds.hpp"
+#include "Grass.hpp"
 #include "Shadows.hpp"
 #include "Rain.hpp"
 #include "Collision.hpp"
@@ -77,11 +82,21 @@ void renderUI() {
         if (ImGui::SliderFloat("Density", &fogDensity, 0.0005f, 0.01f, "%.4f")) applyFog();
 
         ImGui::SeparatorText("Weather");
-        ImGui::Checkbox("Rain", &rainEnabled);
+        bool rain = rainEnabled, snow = snowEnabled;
+        if (ImGui::Checkbox("Rain", &rain)) setRain(rain);
+        ImGui::SameLine();
+        if (ImGui::Checkbox("Snow", &snow)) setSnow(snow);
         ImGui::SameLine();
         ImGui::Checkbox("Lightning", &lightningEnabled);
         ImGui::SliderFloat("Wind speed", &windSpeed, 0.0f, 20.0f, "%.0f m/s");
         ImGui::SliderFloat("Wind direction", &windDirection, 0.0f, 360.0f, "%.0f deg");
+        ImGui::Checkbox("Power plant smoke", &smokeEnabled);
+        ImGui::SameLine();
+        ImGui::Checkbox("Birds", &birdsEnabled);
+        ImGui::SameLine();
+        ImGui::Checkbox("Grass", &grassEnabled);
+        ImGui::SameLine();
+        ImGui::Checkbox("Flowers", &flowersEnabled);
 
         ImGui::SeparatorText("Traffic");
         ImGui::Checkbox("Traffic", &trafficEnabled);
@@ -92,8 +107,16 @@ void renderUI() {
         ImGui::SeparatorText("Rendering");
         ImGui::Checkbox("Shadows", &shadowsEnabled);
         ImGui::SameLine();
-        ImGui::Checkbox("Show shadow map", &showShadowMap);
+        ImGui::Checkbox("Show shadow cascades", &showShadowMap);
         ImGui::Checkbox("Bloom", &bloomEnabled);
+        ImGui::SameLine();
+        ImGui::Checkbox("God rays", &godRaysEnabled);
+        ImGui::SameLine();
+        ImGui::Checkbox("SSAO", &ssaoEnabled);
+        ImGui::Checkbox("Water reflections", &reflectionsEnabled);
+        ImGui::SameLine();
+        ImGui::Checkbox("Light beams", &lightBeamsEnabled);
+        ImGui::Checkbox("Auto exposure", &autoExposureEnabled);
         if (ImGui::Checkbox("Antialiasing (MSAA 4x)", &antialiasingEnabled)) {
             createSceneFramebuffers(sceneWidth, sceneHeight);
         }
@@ -131,6 +154,7 @@ void renderUI() {
             keyRow("L", "Day cycle on / off");
             keyRow("F", "Fog on / off");
             keyRow("P", "Rain on / off");
+            keyRow("K", "Snow on / off");
             keyRow("C", "Collisions on / off");
             keyRow("O", "Shadows on / off");
             keyRow("B", "Antialiasing on / off");
@@ -144,15 +168,21 @@ void renderUI() {
         ImGui::End();
     }
 
-    // the depth map of the shadow pass: the scene seen from the sun (dark = close to the sun)
+    // the shadow cascades: the scene seen from the sun / moon (dark = close to the light), near to far
     if (showUI && showShadowMap && shadowsEnabled) {
-        const float size = 300.0f;
+        const float size = 180.0f;
         ImGui::SetNextWindowPos(ImVec2(io.DisplaySize.x - 10.0f, io.DisplaySize.y - 10.0f), ImGuiCond_Always,
             ImVec2(1.0f, 1.0f));
-        ImGui::Begin("Shadow map (view from the sun)", &showShadowMap,
+        ImGui::Begin("Shadow cascades (view from the light)", &showShadowMap,
             ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings);
-        // flipped vertically: OpenGL textures start at the bottom, ImGui at the top
-        ImGui::Image((ImTextureID)depthMapTexture, ImVec2(size, size), ImVec2(0.0f, 1.0f), ImVec2(1.0f, 0.0f));
+        for (int i = 0; i < SHADOW_CASCADES; i++) {
+            if (i > 0) ImGui::SameLine();
+            ImGui::BeginGroup();
+            ImGui::Text("%.0f - %.0f m", CASCADE_SPLITS[i], CASCADE_SPLITS[i + 1]);
+            // flipped vertically: OpenGL textures start at the bottom, ImGui at the top
+            ImGui::Image((ImTextureID)shadowPreviewTexture[i], ImVec2(size, size), ImVec2(0.0f, 1.0f), ImVec2(1.0f, 0.0f));
+            ImGui::EndGroup();
+        }
         ImGui::End();
     }
 

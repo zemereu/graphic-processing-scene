@@ -1,14 +1,16 @@
 #include "Renderer.hpp"
 #include "Scene.hpp"
 #include "Lighting.hpp"
-#include "Shadows.hpp"
-#include "Skybox.hpp"
-#include "Rain.hpp"
-#include "Traffic.hpp"
+#include "Environment.hpp"
+#include "PostProcess.hpp"
 
 #include <algorithm>
 #include <cfloat>
 #include <map>
+
+// ==============================================================================================================
+// Renderer
+// ==============================================================================================================
 
 // view modes
 int viewMode = VIEW_SOLID;
@@ -21,12 +23,10 @@ const int MSAA_SAMPLES = 4;
 bool antialiasingEnabled = true;
 GLuint msaaFBO = 0, msaaColorRBO = 0, msaaDepthRBO = 0;   // multisampled color + depth
 GLuint resolveFBO = 0, resolveTexture = 0;                // single-sampled result, read by the screen pass
+GLuint resolveDepthTexture = 0;                           // its depth (post-processing)
 int sceneWidth = 0, sceneHeight = 0;
 gps::Shader screenShader;
 GLuint screenVAO = 0;                                      // empty: the fullscreen triangle comes from gl_VertexID
-bool bloomEnabled = true;
-gps::Shader bloomShader;
-GLuint bloomFBO[2] = { 0, 0 }, bloomTexture[2] = { 0, 0 };
 
 void initOpenGLState() {
     glClearColor(0.7f, 0.7f, 0.7f, 1.0f);
@@ -44,9 +44,7 @@ void initShaders() {
     screenShader.loadShader(
         "shaders/screen.vert",
         "shaders/screen.frag");
-    bloomShader.loadShader(
-        "shaders/screen.vert",
-        "shaders/bloom.frag");
+
     myBasicShader.loadShader(
         "shaders/basic.vert",
         "shaders/basic.frag");
@@ -77,11 +75,10 @@ void deleteSceneFramebuffers() {
     if (resolveFBO) glDeleteFramebuffers(1, &resolveFBO);
     if (resolveTexture) glDeleteTextures(1, &resolveTexture);
     msaaFBO = msaaColorRBO = msaaDepthRBO = resolveFBO = resolveTexture = 0;
-    for (int i = 0; i < 2; i++) {
-        if (bloomFBO[i]) glDeleteFramebuffers(1, &bloomFBO[i]);
-        if (bloomTexture[i]) glDeleteTextures(1, &bloomTexture[i]);
-        bloomFBO[i] = bloomTexture[i] = 0;
-    }
+    if (resolveDepthTexture) glDeleteTextures(1, &resolveDepthTexture);
+    resolveDepthTexture = 0;
+    deletePostProcessBuffers();
+    deleteReflectionBuffers();
 }
 
 // (re)creates the framebuffers at the window size; samples = 0 means no antialiasing
@@ -121,29 +118,26 @@ void createSceneFramebuffers(int width, int height) {
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
     glBindTexture(GL_TEXTURE_2D, 0);
 
+    // the depth is resolved too (copied from the first sample): the post-processing reads it
+    glGenTextures(1, &resolveDepthTexture);
+    glBindTexture(GL_TEXTURE_2D, resolveDepthTexture);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT24, width, height, 0, GL_DEPTH_COMPONENT, GL_FLOAT, nullptr);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glBindTexture(GL_TEXTURE_2D, 0);
+
     glGenFramebuffers(1, &resolveFBO);
     glBindFramebuffer(GL_FRAMEBUFFER, resolveFBO);
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, resolveTexture, 0);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, resolveDepthTexture, 0);
     if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
         std::cerr << "The resolve framebuffer is incomplete" << std::endl;
     }
 
-    // bloom: two half-resolution HDR textures (the blur reads one and writes the other)
-    for (int i = 0; i < 2; i++) {
-        glGenTextures(1, &bloomTexture[i]);
-        glBindTexture(GL_TEXTURE_2D, bloomTexture[i]);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, glm::max(width / 2, 1), glm::max(height / 2, 1), 0, GL_RGBA, GL_FLOAT, nullptr);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-        glGenFramebuffers(1, &bloomFBO[i]);
-        glBindFramebuffer(GL_FRAMEBUFFER, bloomFBO[i]);
-        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, bloomTexture[i], 0);
-        if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
-            std::cerr << "The bloom framebuffer is incomplete" << std::endl;
-        }
-    }
+    createPostProcessBuffers(width, height);
+    createReflectionBuffers(width, height);
     glBindTexture(GL_TEXTURE_2D, 0);
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
@@ -222,20 +216,25 @@ void setWindSway(GLuint program, gps::Model3D& object, const glm::mat4& objectMo
     glUniform1f(glGetUniformLocation(program, "time"), (float)glfwGetTime());
 }
 
+// meshes: if given, only those meshes of the model are drawn (the town's details)
 void renderObject(gps::Model3D& object, const glm::mat4& objectModel, gps::Shader shader,
-    const glm::vec3& emissive = glm::vec3(0.0f)) {
+    const glm::vec3& emissive = glm::vec3(0.0f), const std::vector<bool>* meshes = nullptr,
+    const glm::vec3& paint = glm::vec3(1.0f)) {
     // skip the objects that are not in the shadow map area / not in front of the camera
     glm::mat4 clipMatrix = depthPass ? depthPassMatrix : projection * view;
     if (!boxVisible(modelBox(object), clipMatrix * objectModel)) return;
-    if (depthPass) { // shadow map: only the geometry matters
-        depthMapShader.useShaderProgram();
-        glUniformMatrix4fv(depthModelLoc, 1, GL_FALSE, glm::value_ptr(objectModel));
-        setWindSway(depthMapShader.shaderProgram, object, objectModel);
-        object.Draw(depthMapShader);
+    if (depthPass) { // shadow map (or the grass map): only the geometry matters
+        gps::Shader& passShader = grassMaskPass ? grassMaskShader : depthMapShader;
+        passShader.useShaderProgram();
+        glUniformMatrix4fv(glGetUniformLocation(passShader.shaderProgram, "model"), 1, GL_FALSE,
+            glm::value_ptr(objectModel));
+        setWindSway(passShader.shaderProgram, object, objectModel);
+        if (meshes) object.DrawMeshes(passShader, *meshes); else object.Draw(passShader);
         return;
     }
     shader.useShaderProgram();
     glUniform3fv(emissiveColorLoc, 1, glm::value_ptr(emissive));
+    glUniform3fv(paintColorLoc, 1, glm::value_ptr(paint));
     // 1 = terrain (texture repetition hidden), 2 = water (animated waves + sky reflection), 0 = everything else
     glUniform1i(surfaceModeLoc, &object == &terrain ? 1 : (&object == &water ? 2 : 0));
     glUniform1f(timeLoc, (float)glfwGetTime());
@@ -243,7 +242,7 @@ void renderObject(gps::Model3D& object, const glm::mat4& objectModel, gps::Shade
     setWindSway(shader.shaderProgram, object, objectModel);
     glm::mat3 nm = glm::mat3(glm::inverseTranspose(view * objectModel));
     glUniformMatrix3fv(normalMatrixLoc, 1, GL_FALSE, glm::value_ptr(nm));
-    object.Draw(shader);
+    if (meshes) object.DrawMeshes(shader, *meshes); else object.Draw(shader);
 }
 
 void renderScene() {
@@ -264,7 +263,23 @@ struct DrawItem {
     glm::mat4 model;
     glm::vec3 emissive;
     float distance;   // from the camera, to the nearest point of the object
+    glm::vec3 paint;  // body color of a vehicle
 };
+
+// the town's details: thousands of small things, so each mesh (one material in one tile) is culled on its own,
+// by distance (beyond maxDistance they are too small to matter) and by the view volume of this pass
+void renderDetails(gps::Model3D& model, const std::vector<gps::BoundingBox>& bounds, float maxDistance) {
+    glm::mat4 identity(1.0f);
+    glm::vec3 cameraPos = glm::vec3(glm::inverse(view)[3]);
+    glm::mat4 clipMatrix = depthPass ? depthPassMatrix : projection * view;
+    std::vector<bool> visible(bounds.size(), false);
+    bool any = false;
+    for (size_t i = 0; i < bounds.size(); i++) {
+        visible[i] = boxDistance(bounds[i], identity, cameraPos) <= maxDistance && boxVisible(bounds[i], clipMatrix);
+        any = any || visible[i];
+    }
+    if (any) renderObject(model, identity, myBasicShader, glm::vec3(0.0f), &visible);
+}
 
 void renderSceneObjects() {
     std::vector<DrawItem> drawList;
@@ -273,15 +288,29 @@ void renderSceneObjects() {
     glm::vec3 cameraPos = glm::vec3(glm::inverse(view)[3]);
     // collects the objects; far from the camera the heavy models are replaced by their simplified copies
     // (only in the camera pass: the shadow map always uses the full models, so the shadows keep all their detail)
-    auto draw = [&](gps::Model3D& object, const glm::mat4& m, const glm::vec3& emissive = glm::vec3(0.0f)) {
-        drawList.push_back({ &object, m, emissive, boxDistance(modelBox(object), m, cameraPos) });
+    auto draw = [&](gps::Model3D& object, const glm::mat4& m, const glm::vec3& emissive = glm::vec3(0.0f),
+                    const glm::vec3& paint = glm::vec3(1.0f)) {
+        drawList.push_back({ &object, m, emissive, boxDistance(modelBox(object), m, cameraPos), paint });
+    };
+    // the vehicles: hundreds of them, so not drawn far away (tiny), and their shadows only near the camera
+    auto drawVehicle = [&](int type, const glm::mat4& m, const glm::vec3& paint, bool lit) {
+        float distance = boxDistance(modelBox(vehicleModels[type]), m, cameraPos);
+        if (distance > (depthPass ? DETAIL_SHADOW_DISTANCE : VEHICLE_DISTANCE)) return;
+        drawList.push_back({ &vehicleModels[type], m, glm::vec3(0.0f), distance,
+                             VEHICLES[type].painted ? paint : glm::vec3(1.0f) });
+        if (!depthPass) {
+            drawList.push_back({ &vehicleLights[type], m, lit ? glm::vec3(1.0f) : glm::vec3(0.0f), distance,
+                                 glm::vec3(1.0f) });
+        }
     };
     auto lod = [&](gps::Model3D& full, gps::Model3D& simple, const glm::mat4& m) -> gps::Model3D& {
-        return !depthPass && boxDistance(modelBox(full), m, cameraPos) > LOD_DISTANCE ? simple : full;
+        if (depthPass) return full;
+        // the reflection is small and wobbly: the simplified models are enough there
+        return reflectionPass || boxDistance(modelBox(full), m, cameraPos) > LOD_DISTANCE ? simple : full;
     };
     draw(terrain, identity);
-    if (!depthPass) {
-        draw(water, identity);   // flat, under the terrain: it doesn't cast shadows
+    if (!depthPass && !reflectionPass) {
+        draw(water, identity);   // flat, under the terrain: it doesn't cast shadows (nor is it in its own reflection)
     }
     draw(trees, identity);   // no colliders: the camera can pass through the foliage
     for (const NearTree& tree : nearTrees) {
@@ -313,7 +342,7 @@ void renderSceneObjects() {
             draw(lampPost, prop.model);
             draw(lampBulb, prop.model, nightMode ? LAMP_GLOW : glm::vec3(0.0f));
         } else {
-            draw(carModels[prop.car], prop.model);
+            drawVehicle(prop.car, prop.model, prop.paint, false);
         }
     }
     draw(ferrisWheel, ferrisWheelMatrix());
@@ -336,12 +365,10 @@ void renderSceneObjects() {
     }
 
     // traffic
-    glm::vec3 carLightGlow = nightMode ? glm::vec3(1.0f) : glm::vec3(0.0f);
     if (trafficEnabled) {
         for (const Car& car : cars) {
             glm::mat4 carModel = carMatrix(car);
-            draw(carModels[car.model], carModel);
-            draw(carLights, carModel, carLightGlow);
+            drawVehicle(car.model, carModel, car.paint, nightMode);
         }
     }
     // z-buffer (course 07 - Fragment processing): drawn from near to far, the hidden fragments of the objects behind
@@ -351,69 +378,135 @@ void renderSceneObjects() {
             [](const DrawItem& a, const DrawItem& b) { return a.distance < b.distance; });
     }
     for (const DrawItem& item : drawList) {
-        renderObject(*item.object, item.model, myBasicShader, item.emissive);
+        renderObject(*item.object, item.model, myBasicShader, item.emissive, nullptr, item.paint);
+    }
+
+    // the town's details (the grass map needs all of them: no grass under a hedge or a bench)
+    float range = grassMaskPass ? FLT_MAX
+                : depthPass ? DETAIL_SHADOW_DISTANCE
+                : reflectionPass ? 150.0f : DETAIL_DISTANCE;
+    renderDetails(detailObjects, detailObjectBounds, range);
+    if (!depthPass && !reflectionPass) {   // flat on the ground: no shadows, too small for the reflection
+        renderDetails(detailDecals, detailDecalBounds, DECAL_DISTANCE);
     }
 }
 
-// bloom: the parts brighter than the threshold, blurred at half resolution, end up in bloomTexture[0]
-void renderBloom() {
-    if (!bloomEnabled) return;
-    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-    glDisable(GL_DEPTH_TEST);
-    glDisable(GL_FRAMEBUFFER_SRGB);   // linear HDR values, not colors for the screen
-    glViewport(0, 0, glm::max(sceneWidth / 2, 1), glm::max(sceneHeight / 2, 1));
-    bloomShader.useShaderProgram();
-    glUniform1i(glGetUniformLocation(bloomShader.shaderProgram, "image"), 0);
-    glUniform1f(glGetUniformLocation(bloomShader.shaderProgram, "threshold"), BLOOM_THRESHOLD);
-    GLint modeLoc = glGetUniformLocation(bloomShader.shaderProgram, "mode");
-    GLint directionLoc = glGetUniformLocation(bloomShader.shaderProgram, "direction");
-    glActiveTexture(GL_TEXTURE0);
-    glBindVertexArray(screenVAO);
-
-    // bright pass (the half-size target also averages 2x2 pixels)
-    glBindFramebuffer(GL_FRAMEBUFFER, bloomFBO[0]);
-    glUniform1i(modeLoc, 0);
-    glBindTexture(GL_TEXTURE_2D, resolveTexture);
-    glDrawArrays(GL_TRIANGLES, 0, 3);
-
-    // Gaussian blur, separable: horizontal into [1], vertical back into [0], repeated (each repeat widens the glow)
-    glUniform1i(modeLoc, 1);
-    glm::vec2 texel(1.0f / glm::max(sceneWidth / 2, 1), 1.0f / glm::max(sceneHeight / 2, 1));
-    for (int i = 0; i < BLOOM_BLUR_PASSES; i++) {
-        glBindFramebuffer(GL_FRAMEBUFFER, bloomFBO[1]);
-        glUniform2f(directionLoc, texel.x, 0.0f);
-        glBindTexture(GL_TEXTURE_2D, bloomTexture[0]);
-        glDrawArrays(GL_TRIANGLES, 0, 3);
-        glBindFramebuffer(GL_FRAMEBUFFER, bloomFBO[0]);
-        glUniform2f(directionLoc, 0.0f, texel.y);
-        glBindTexture(GL_TEXTURE_2D, bloomTexture[1]);
-        glDrawArrays(GL_TRIANGLES, 0, 3);
-    }
-    glBindVertexArray(0);
+// one frame, pass after pass
+void renderFrame() {
+    // 0. shadow maps: the scene from the sun / moon (and from the floodlights at night)
+    renderShadowMap();
+    renderSpotShadowMaps();
+    renderShadowPreview();   // only while the UI shows it
+    // 0b. the scene mirrored in the water
+    renderReflection();
+    // 1. the scene, the sky, the birds, the smoke and the rain into the multisampled framebuffer
+    bindReflection();
+    glBindFramebuffer(GL_FRAMEBUFFER, msaaFBO);
+    renderScene();
+    renderGrass();
+    renderSkybox();   // after the objects: only fills the pixels they left empty
+    renderBirds();
+    renderSmoke();    // blended: after everything opaque
+    renderRain();
+    // 2. resolve: average the samples of each pixel into the texture (and copy the depth)
+    glBindFramebuffer(GL_READ_FRAMEBUFFER, msaaFBO);
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, resolveFBO);
+    glBlitFramebuffer(0, 0, sceneWidth, sceneHeight, 0, 0, sceneWidth, sceneHeight, GL_COLOR_BUFFER_BIT, GL_NEAREST);
+    glBlitFramebuffer(0, 0, sceneWidth, sceneHeight, 0, 0, sceneWidth, sceneHeight, GL_DEPTH_BUFFER_BIT, GL_NEAREST);
+    // 3. post-processing: ambient occlusion, god rays, bloom
+    renderPostProcess();
+    // 4. the image to the window (tone mapped); the UI is drawn on top after this
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
-    glViewport(0, 0, sceneWidth, sceneHeight);
-    glEnable(GL_FRAMEBUFFER_SRGB);
-    glEnable(GL_DEPTH_TEST);
-    applyViewMode();
+    renderScreenQuad();
 }
 
-// draws the resolved scene over the whole window: + bloom, then tone mapping (HDR -> screen)
-void renderScreenQuad() {
-    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL); // the wireframe/points view modes apply to the scene, not to this copy
-    glDisable(GL_DEPTH_TEST);
-    screenShader.useShaderProgram();
+// ==============================================================================================================
+// Reflection
+// ==============================================================================================================
+
+bool reflectionsEnabled = true;
+bool reflectionPass = false;
+GLuint reflectionFBO = 0, reflectionTexture = 0, reflectionDepthRBO = 0;
+int reflectionWidth = 0, reflectionHeight = 0;
+GLint clipPlaneLoc, reflectionTextureLoc, reflectionsEnabledLoc, screenSizeLoc;   // in myBasicShader
+
+void initReflection() {
+    myBasicShader.useShaderProgram();
+    clipPlaneLoc = glGetUniformLocation(myBasicShader.shaderProgram, "clipPlane");
+    reflectionTextureLoc = glGetUniformLocation(myBasicShader.shaderProgram, "reflectionTexture");
+    reflectionsEnabledLoc = glGetUniformLocation(myBasicShader.shaderProgram, "reflectionsEnabled");
+    screenSizeLoc = glGetUniformLocation(myBasicShader.shaderProgram, "screenSize");
+    glUniform4f(clipPlaneLoc, 0.0f, 0.0f, 0.0f, 1.0f);   // nothing clipped (only used in the reflection pass anyway)
+}
+
+void createReflectionBuffers(int width, int height) {
+    reflectionWidth = glm::max(width / 2, 1);
+    reflectionHeight = glm::max(height / 2, 1);
+    glGenTextures(1, &reflectionTexture);
+    glBindTexture(GL_TEXTURE_2D, reflectionTexture);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, reflectionWidth, reflectionHeight, 0, GL_RGBA, GL_FLOAT, nullptr);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glBindTexture(GL_TEXTURE_2D, 0);
+    glGenRenderbuffers(1, &reflectionDepthRBO);
+    glBindRenderbuffer(GL_RENDERBUFFER, reflectionDepthRBO);
+    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, reflectionWidth, reflectionHeight);
+    glBindRenderbuffer(GL_RENDERBUFFER, 0);
+    glGenFramebuffers(1, &reflectionFBO);
+    glBindFramebuffer(GL_FRAMEBUFFER, reflectionFBO);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, reflectionTexture, 0);
+    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, reflectionDepthRBO);
+    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
+        std::cerr << "The reflection framebuffer is incomplete" << std::endl;
+    }
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
+
+void deleteReflectionBuffers() {
+    if (reflectionFBO) glDeleteFramebuffers(1, &reflectionFBO);
+    if (reflectionTexture) glDeleteTextures(1, &reflectionTexture);
+    if (reflectionDepthRBO) glDeleteRenderbuffers(1, &reflectionDepthRBO);
+    reflectionFBO = reflectionTexture = reflectionDepthRBO = 0;
+}
+
+void renderReflection() {
+    if (!reflectionsEnabled) return;
+    // mirror across the water plane: y -> 2 * WATER_LEVEL - y (the camera goes under the water, looking up)
+    glm::mat4 mirror = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, WATER_LEVEL, 0.0f))
+        * glm::scale(glm::mat4(1.0f), glm::vec3(1.0f, -1.0f, 1.0f))
+        * glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, -WATER_LEVEL, 0.0f));
+    glm::mat4 cameraView = view;
+    view = cameraView * mirror;
+    myBasicShader.useShaderProgram();
+    glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
+    // keep only what is above the water (a little margin hides the seam at the shore)
+    glUniform4f(clipPlaneLoc, 0.0f, 1.0f, 0.0f, -(WATER_LEVEL - 0.05f));
+    glEnable(GL_CLIP_DISTANCE0);
+    glFrontFace(GL_CW);   // a mirror flips the order of the vertices: the front faces are now clockwise
+
+    glBindFramebuffer(GL_FRAMEBUFFER, reflectionFBO);
+    glViewport(0, 0, reflectionWidth, reflectionHeight);
+    reflectionPass = true;
+    renderScene();
+    renderSkybox();
+    reflectionPass = false;
+
+    glFrontFace(GL_CCW);
+    glDisable(GL_CLIP_DISTANCE0);
+    view = cameraView;
+    myBasicShader.useShaderProgram();
+    glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
+    glViewport(0, 0, sceneWidth, sceneHeight);
+}
+
+void bindReflection() {
+    myBasicShader.useShaderProgram();
+    glUniform1i(reflectionsEnabledLoc, reflectionsEnabled);
+    glUniform2f(screenSizeLoc, (float)sceneWidth, (float)sceneHeight);
+    glActiveTexture(GL_TEXTURE0 + REFLECTION_TEXTURE_UNIT);
+    glBindTexture(GL_TEXTURE_2D, reflectionTexture);
+    glUniform1i(reflectionTextureLoc, REFLECTION_TEXTURE_UNIT);
     glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, resolveTexture);
-    glUniform1i(glGetUniformLocation(screenShader.shaderProgram, "screenTexture"), 0);
-    glActiveTexture(GL_TEXTURE1);
-    glBindTexture(GL_TEXTURE_2D, bloomTexture[0]);
-    glUniform1i(glGetUniformLocation(screenShader.shaderProgram, "bloomTexture"), 1);
-    glActiveTexture(GL_TEXTURE0);
-    glUniform1f(glGetUniformLocation(screenShader.shaderProgram, "bloomStrength"), bloomEnabled ? BLOOM_STRENGTH : 0.0f);
-    glUniform1f(glGetUniformLocation(screenShader.shaderProgram, "exposure"), EXPOSURE);
-    glBindVertexArray(screenVAO);
-    glDrawArrays(GL_TRIANGLES, 0, 3);
-    glBindVertexArray(0);
-    glEnable(GL_DEPTH_TEST);
-    applyViewMode();
 }

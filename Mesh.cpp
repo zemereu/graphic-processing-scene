@@ -24,6 +24,8 @@ namespace gps {
 			glBindTexture(GL_TEXTURE_2D, this->textures[i].id);
 		}
 
+		glUniform1i(glGetUniformLocation(shader.shaderProgram, "glass"), glass);
+		glUniform1i(glGetUniformLocation(shader.shaderProgram, "grass"), grass);
 		glBindVertexArray(this->buffers.VAO);
 		glDrawElements(GL_TRIANGLES, (GLsizei)this->indices.size(), GL_UNSIGNED_INT, 0);
 		glBindVertexArray(0);

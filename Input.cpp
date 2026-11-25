@@ -58,7 +58,8 @@ void keyboardCallback(GLFWwindow* window, int key, int scancode, int action, int
         if (key == GLFW_KEY_N) toggleDayNight();
         if (key == GLFW_KEY_L) dayCycleRunning = !dayCycleRunning;
         if (key == GLFW_KEY_F) { fogEnabled = !fogEnabled; applyFog(); }
-        if (key == GLFW_KEY_P) rainEnabled = !rainEnabled;
+        if (key == GLFW_KEY_P) setRain(!rainEnabled);
+        if (key == GLFW_KEY_K) setSnow(!snowEnabled);
         if (key == GLFW_KEY_C) collisionsEnabled = !collisionsEnabled;
         if (key == GLFW_KEY_V) trafficEnabled = !trafficEnabled;
         if (key == GLFW_KEY_O) shadowsEnabled = !shadowsEnabled;

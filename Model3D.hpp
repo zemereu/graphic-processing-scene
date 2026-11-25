@@ -28,6 +28,8 @@ namespace gps {
 		void LoadModel(std::string fileName, std::string basePath);
 
 		void Draw(gps::Shader shaderProgram);
+		// draws only the meshes marked visible (the town's details are culled mesh by mesh)
+		void DrawMeshes(gps::Shader shaderProgram, const std::vector<bool>& visible);
 
 		// one box per mesh (in model coordinates), used for collision detection
 		std::vector<BoundingBox> GetMeshBounds();

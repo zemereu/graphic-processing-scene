@@ -1,0 +1,208 @@
+# materials of the procedural details (tools/details.py)
+newmtl BenchConcrete
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd ../city/concrete_sm.jpg
+map_Ks ../city/spec_low.jpg
+
+newmtl BenchWood
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd ../city/wood_slats.jpg
+map_Ks ../city/spec_low.jpg
+
+newmtl Steel
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd ../city/steel.jpg
+map_Ks ../city/spec_low.jpg
+
+newmtl SteelDark
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd ../city/steel_dark.jpg
+map_Ks ../city/spec_low.jpg
+
+newmtl SteelGreen
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd ../city/steel_green.jpg
+map_Ks ../city/spec_low.jpg
+
+newmtl PaintRed
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd ../city/paint_red.jpg
+map_Ks ../city/spec_low.jpg
+
+newmtl PaintBlue
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd ../city/paint_blue.jpg
+map_Ks ../city/spec_low.jpg
+
+newmtl PaintGreen
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd ../city/paint_green.jpg
+map_Ks ../city/spec_low.jpg
+
+newmtl PaintYellow
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd ../city/paint_yellow.jpg
+map_Ks ../city/spec_low.jpg
+
+newmtl Flowers
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd ../city/flowers.jpg
+map_Ks ../city/spec_low.jpg
+
+newmtl Roofing
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd ../city/roofing.jpg
+map_Ks ../city/spec_low.jpg
+
+newmtl BusGlass
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd ../city/glass.jpg
+map_Ks ../city/spec_low.jpg
+
+newmtl Bush
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd bush.png
+map_Ks ../city/spec_low.jpg
+
+newmtl FlowerClump
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd flower_clump.png
+map_Ks ../city/spec_low.jpg
+
+newmtl Hedge
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd hedge.jpg
+map_Ks ../city/spec_low.jpg
+
+newmtl Ivy
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd ivy.png
+map_Ks ../city/spec_low.jpg
+
+newmtl Soil
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd soil.jpg
+map_Ks ../city/spec_low.jpg
+
+newmtl Cracks
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd cracks.png
+map_Ks ../city/spec_low.jpg
+
+newmtl Leaves
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd fallen_leaves.png
+map_Ks ../city/spec_low.jpg
+
+newmtl Manhole
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd manhole.png
+map_Ks ../city/spec_low.jpg
+
+newmtl Oil
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd oil.png
+map_Ks ../city/spec_low.jpg
+
+newmtl BusSign
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd bus_sign.jpg
+map_Ks ../city/spec_low.jpg
+
+newmtl KioskSign
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd kiosk_sign.jpg
+map_Ks ../city/spec_low.jpg
+

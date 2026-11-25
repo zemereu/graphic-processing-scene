@@ -1,9 +1,16 @@
-// The objects of the scene: the models and where they stand, the parts that move (the revolving restaurant of
-// Genex, the Ferris wheel, Palatul Telefoanelor moved from the keyboard), the trees near the tour path and the
-// street lamps / parked cars of the town.
+// The scene: the models and where they stand, the moving objects, the trees and the town's props, and the
+// traffic on the roads.
 #pragma once
 
 #include "App.hpp"
+
+// ==============================================================================================================
+// Scene
+//
+// The objects of the scene: the models and where they stand, the parts that move (the revolving restaurant of
+// Genex, the Ferris wheel, Palatul Telefoanelor moved from the keyboard), the trees near the tour path and the
+// street lamps / parked cars of the town.
+// ==============================================================================================================
 
 // models
 extern gps::Model3D terrain;
@@ -22,9 +29,23 @@ extern gps::Model3D lampBulb;
 // the town around the landmarks (tools/city_layout.py): ordinary buildings north / south of the highway, and the street
 // furniture, bridges, fences (no colliders); street lamps that only glow and parked cars (models/city/props.txt)
 extern gps::Model3D cityNorth, citySouth, cityProps, cityLights;
-const int CAR_COLORS = 4;
-extern gps::Model3D carModels[CAR_COLORS];
-extern gps::Model3D carLights;   // head- and taillights, separate so they can glow at night
+// the vehicles of the traffic and the parked ones: the Dacia 1300 (models/cars, 4 colors) and the downloaded ones
+// (models/vehicles/<name>, tools/vehicles.py). Each has a separate model with its head- and taillights (they glow at
+// night); the "painted" ones get a body color per vehicle (materials named "...Paint", Mesh.paint)
+struct VehicleType {
+    const char* model;
+    const char* lights;
+    float length;        // meters (the traffic keeps its distances with it)
+    bool painted;
+    int trafficWeight;   // how often it appears on the roads, relative to the others
+    bool parks;          // may be one of the parked cars of the town
+};
+const int VEHICLE_TYPES = 16;
+extern const VehicleType VEHICLES[VEHICLE_TYPES];
+extern gps::Model3D vehicleModels[VEHICLE_TYPES];
+extern gps::Model3D vehicleLights[VEHICLE_TYPES];
+glm::vec3 vehiclePaint(unsigned int seed);   // one of the usual car colors of the '70s-'80s (linear RGB)
+const float VEHICLE_DISTANCE = 600.0f;          // meters: further away the vehicles are not drawn
 
 // more landmarks: Motherland Calls (Volgograd), Romanita (Chisinau), Chornobyl (power plant, Duga radar,
 // Pripyat apartment blocks and the Ferris wheel from the Pripyat amusement park)
@@ -43,10 +64,18 @@ struct NearTree {
 };
 extern std::vector<NearTree> nearTrees;
 struct CityProp {
-    int car;          // -1 = street lamp, otherwise index in carModels
+    int car;          // -1 = street lamp, otherwise index in VEHICLES
     glm::mat4 model;
+    glm::vec3 paint;  // body color of a painted vehicle
 };
 extern std::vector<CityProp> cityProps_;
+// procedural details of the town (tools/details.py): street furniture, vegetation, details on the roofs and walls, on
+// the ground; one mesh per material and 150 m tile, culled mesh by mesh (Renderer: renderDetails)
+extern gps::Model3D detailObjects, detailDecals;
+extern std::vector<gps::BoundingBox> detailObjectBounds, detailDecalBounds;   // per mesh, computed once
+const float DETAIL_DISTANCE = 350.0f;          // meters: small things further away are not drawn
+const float DETAIL_SHADOW_DISTANCE = 160.0f;   // ... nor cast shadows
+const float DECAL_DISTANCE = 140.0f;           // the flat ones on the ground
 
 // layout: the Romanian/Moldovan city center on the south bank (palace, Palatul Telefoanelor, Romanita),
 // Genex as the western gate of the city on the main road, Motherland Calls on a hill above the river,
@@ -87,3 +116,43 @@ glm::mat4 restaurantMatrix();
 glm::mat4 ferrisWheelMatrix();
 glm::mat4 ferrisGondolaMatrix(int i);   // the gondolas stay upright
 glm::mat4 telefoaneMatrix();
+
+// ==============================================================================================================
+// Traffic
+//
+// Traffic on all the roads (models/city/traffic.txt, written by tools/traffic_net.py): every road is split into
+// lanes (right-hand traffic) and the lanes are joined through the junctions, the roundabout, the bridge and the
+// turning places by short curves. A car follows its lane, keeps its distance to the car in front and at the end of
+// the lane goes on into one of the next lanes, chosen at random; it waits in front of a junction while another car
+// is on a curve that crosses its own.
+// ==============================================================================================================
+
+struct TrafficLane {
+    std::vector<glm::vec3> points;
+    std::vector<float> distance;    // distance along the lane at each point
+    float length = 0.0f;
+    float speed = 10.0f;            // speed limit, m/s
+    int junction = -1;              // >= 0: a curve through a junction
+    std::vector<int> next;          // the lanes a car can go on into
+    std::vector<int> conflicts;     // the curves of the same junction that cross this one
+    int occupants = 0;              // cars on this lane now
+};
+struct Car {
+    int lane;          // the lane the car is on
+    float s;           // distance along the lane
+    float speed;       // m/s
+    float eagerness;   // multiplies the speed limit
+    int next;          // the lane after this one (chosen when the car enters the lane)
+    int model;         // index in VEHICLES
+    glm::vec3 paint;   // body color (of the painted vehicles)
+    float waited;      // seconds spent waiting in front of a junction
+};
+extern bool trafficEnabled;
+extern int trafficCars;                            // how many cars drive on the roads
+extern std::vector<TrafficLane> trafficLanes;
+extern std::vector<Car> cars;
+
+bool loadTraffic(const char* path);
+void initTraffic();     // spreads the cars over the lanes (again, when their number changes)
+void updateTraffic();   // every frame
+glm::mat4 carMatrix(const Car& car);

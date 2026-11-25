@@ -9,8 +9,11 @@ const float RAIN_AREA_SIZE = 80.0f;    // the rain box around the camera, meters
 const float RAIN_AREA_HEIGHT = 40.0f;
 const float RAIN_DROP_LENGTH = 0.8f;
 bool rainEnabled = false;
+bool snowEnabled = false;
 float wetness = 0.0f;
-GLint wetnessLoc;   // in myBasicShader
+float snowCover = 0.0f;
+GLint wetnessLoc, snowCoverLoc;   // in myBasicShader
+GLint rainSnowLoc, rainFragSnowLoc;
 bool lightningEnabled = true;
 glm::vec3 flashDirection(0.0f, 1.0f, 0.0f);
 glm::vec3 flashColor(0.0f);
@@ -55,7 +58,9 @@ void initRain() {
     rainAreaHeightLoc = glGetUniformLocation(program, "areaHeight");
     rainDropLengthLoc = glGetUniformLocation(program, "dropLength");
     rainColorLoc = glGetUniformLocation(program, "rainColor");
+    rainSnowLoc = glGetUniformLocation(program, "snow");
     wetnessLoc = glGetUniformLocation(myBasicShader.shaderProgram, "wetness");
+    snowCoverLoc = glGetUniformLocation(myBasicShader.shaderProgram, "snowCover");
 }
 
 // brightness of a flash t seconds after the strike: three quick flickers, each fading fast
@@ -73,8 +78,15 @@ void updateWeather() {
     } else {
         wetness = glm::max(wetness - deltaTime / DRYING_TIME, 0.0f);
     }
+    // snow cover
+    if (snowEnabled) {
+        snowCover = glm::min(snowCover + deltaTime / SNOW_COVER_TIME, 1.0f);
+    } else {
+        snowCover = glm::max(snowCover - deltaTime / SNOW_MELT_TIME, 0.0f);
+    }
     myBasicShader.useShaderProgram();
     glUniform1f(wetnessLoc, wetness);
+    glUniform1f(snowCoverLoc, snowCover);
 
     // lightning: a random delay until the next strike, then a random spot in the sky
     std::uniform_real_distribution<float> random01(0.0f, 1.0f);
@@ -92,20 +104,35 @@ void updateWeather() {
     flashColor = LIGHTNING_COLOR * flashIntensity(sinceStrike);
 }
 
+void setRain(bool on) {
+    rainEnabled = on;
+    if (on) snowEnabled = false;
+}
+
+void setSnow(bool on) {
+    snowEnabled = on;
+    if (on) rainEnabled = false;
+}
+
 void renderRain() {
-    if (!rainEnabled) return;
+    if (!rainEnabled && !snowEnabled) return;
+    bool snow = snowEnabled;
 
     rainShader.useShaderProgram();
     glm::vec3 cameraPos = glm::vec3(glm::inverse(view)[3]); // camera position = translation of the inverse view
     glm::vec2 wind = windSpeed * glm::vec2(cos(glm::radians(windDirection)), sin(glm::radians(windDirection)));
     // drops reflect the sky: lighter by day, dim at night
     glm::vec4 color = nightMode ? glm::vec4(0.45f, 0.5f, 0.6f, 0.35f) : glm::vec4(0.8f, 0.85f, 0.9f, 0.45f);
+    if (snow) {   // white flakes, lit by the day / the street lamps at night
+        color = nightMode ? glm::vec4(0.55f, 0.57f, 0.62f, 0.8f) : glm::vec4(0.95f, 0.96f, 1.0f, 0.9f);
+    }
 
     glUniformMatrix4fv(rainViewLoc, 1, GL_FALSE, glm::value_ptr(view));
     glUniformMatrix4fv(rainProjectionLoc, 1, GL_FALSE, glm::value_ptr(projection));
     glUniform3fv(rainCameraPosLoc, 1, glm::value_ptr(cameraPos));
     glUniform1f(rainTimeLoc, (float)glfwGetTime());
-    glUniform1f(rainFallSpeedLoc, RAIN_FALL_SPEED);
+    glUniform1f(rainFallSpeedLoc, snow ? SNOW_FALL_SPEED : RAIN_FALL_SPEED);
+    glUniform1i(rainSnowLoc, snow);
     glUniform2fv(rainWindLoc, 1, glm::value_ptr(wind));
     glUniform1f(rainAreaSizeLoc, RAIN_AREA_SIZE);
     glUniform1f(rainAreaHeightLoc, RAIN_AREA_HEIGHT);
@@ -118,7 +145,13 @@ void renderRain() {
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glDepthMask(GL_FALSE);
     glBindVertexArray(rainVAO);
-    glDrawArrays(GL_LINES, 0, RAIN_DROPS * 2);
+    if (snow) {
+        glEnable(GL_PROGRAM_POINT_SIZE);   // the vertex shader sets the size of each flake
+        glDrawArrays(GL_POINTS, 0, RAIN_DROPS * 2);
+        glDisable(GL_PROGRAM_POINT_SIZE);
+    } else {
+        glDrawArrays(GL_LINES, 0, RAIN_DROPS * 2);
+    }
     glBindVertexArray(0);
     glDepthMask(GL_TRUE);
     glDisable(GL_BLEND);
