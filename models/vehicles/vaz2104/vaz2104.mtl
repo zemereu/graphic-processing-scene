@@ -1,0 +1,162 @@
+# made by tools/vehicles.py
+newmtl vaz2104_jigrubber
+Ns 32
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd vaz2104_jigrubber.png
+map_Ks spec_low.jpg
+
+newmtl vaz2104_jigplastic
+Ns 32
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd vaz2104_jigplastic.png
+map_Ks spec_low.jpg
+
+newmtl vaz2104_jigmirrorGlass
+Ns 32
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd vaz2104_jigmirrorGlass.png
+map_Ks spec_high.jpg
+
+newmtl vaz2104_jigchrome
+Ns 32
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd vaz2104_jigchrome.png
+map_Ks spec_high.jpg
+
+newmtl vaz2104_hlsignallightR
+Ns 32
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd vaz2104_hlsignallightR.png
+map_Ks spec_high.jpg
+
+newmtl vaz2104_hlsignallightL
+Ns 32
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd vaz2104_hlsignallightL.png
+map_Ks spec_high.jpg
+
+newmtl vaz2104_hlsignalglass
+Ns 32
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd vaz2104_hlsignalglass.png
+map_Ks spec_high.jpg
+
+newmtl vaz2104_hlchrome
+Ns 32
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd vaz2104_hlchrome.png
+map_Ks spec_high.jpg
+
+newmtl vaz2104_hlplastic
+Ns 32
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd vaz2104_hlplastic.png
+map_Ks spec_low.jpg
+
+newmtl vaz2104_jigmetallic
+Ns 32
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd vaz2104_jigmetallic.png
+map_Ks spec_high.jpg
+
+newmtl vaz2104_winglassGlass
+Ns 32
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd vaz2104_winglassGlass.png
+map_Ks spec_high.jpg
+
+newmtl vaz2104_04paintPaint
+Ns 32
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd vaz2104_04paintPaint.png
+map_Ks spec_high.jpg
+
+newmtl vaz2104_wheelchrome
+Ns 32
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd vaz2104_wheelchrome.png
+map_Ks spec_mid.jpg
+
+newmtl vaz2104_wheelrim
+Ns 32
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd vaz2104_wheelrim.png
+map_Ks spec_mid.jpg
+
+newmtl vaz2104_wheelfocus
+Ns 32
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd vaz2104_wheelfocus.png
+map_Ks spec_low.jpg
+
+newmtl vaz2104_wheeltire
+Ns 32
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd vaz2104_wheeltire.png
+map_Ks spec_low.jpg
+
+newmtl vaz2104_Headlight
+Ns 32
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd vaz2104_Headlight.png
+map_Ks spec_high.jpg
+
+newmtl vaz2104_Taillight
+Ns 32
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd vaz2104_Taillight.png
+map_Ks spec_high.jpg

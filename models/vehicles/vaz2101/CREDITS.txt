@@ -1,0 +1,13 @@
+Model Information:
+* title:	VAZ-2101 1970-1980
+* source:	https://sketchfab.com/3d-models/vaz-2101-1970-1980-0118711b3925493a9ed2f07beb79b0f0
+* author:	zhe_kan (https://sketchfab.com/zhe_kan)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "VAZ-2101 1970-1980" (https://sketchfab.com/3d-models/vaz-2101-1970-1980-0118711b3925493a9ed2f07beb79b0f0) by zhe_kan (https://sketchfab.com/zhe_kan) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+
+Changes for this project (tools/vehicles.py): converted from glTF to OBJ, interior removed, simplified, rescaled to the real length, body paint made grey (colored by the program), lights split into a separate model that glows at night, smaller textures

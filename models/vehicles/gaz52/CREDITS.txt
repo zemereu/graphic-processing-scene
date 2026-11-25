@@ -1,0 +1,13 @@
+Model Information:
+* title:	Gaz-52 Base
+* source:	https://sketchfab.com/3d-models/gaz-52-base-67e1d6c4ebb64c25ab8f34cf17697a49
+* author:	Vebis_V_stolb_GT (https://sketchfab.com/Vebis_V_stolb_GT)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Gaz-52 Base" (https://sketchfab.com/3d-models/gaz-52-base-67e1d6c4ebb64c25ab8f34cf17697a49) by Vebis_V_stolb_GT (https://sketchfab.com/Vebis_V_stolb_GT) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+
+Changes for this project (tools/vehicles.py): converted from glTF to OBJ, interior removed, simplified, rescaled to the real length, body paint made grey (colored by the program), lights split into a separate model that glows at night, smaller textures

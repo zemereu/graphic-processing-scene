@@ -50,6 +50,7 @@ extern GLint numPointLightsLoc;
 extern GLint pointLightPosLoc;
 extern GLint pointLightColorLoc;
 extern GLint emissiveColorLoc;
+extern GLint paintColorLoc;
 extern GLint surfaceModeLoc, timeLoc;  // terrain / water shading modes (basic.frag), time for the waves
 extern GLint numSpotLightsLoc;
 extern GLint spotLightPosLoc;

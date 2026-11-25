@@ -210,6 +210,7 @@ namespace gps {
 				for (char& c : name) c = (char)tolower(c);
 				mesh.glass = name.find("glass") != std::string::npos;
 				mesh.grass = name.find("grass") != std::string::npos;
+				mesh.paint = name.size() >= 5 && name.compare(name.size() - 5, 5, "paint") == 0;   // "...Paint"
 			}
 			meshes.push_back(mesh);
 		}

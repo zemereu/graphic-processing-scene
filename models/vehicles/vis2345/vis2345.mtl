@@ -1,0 +1,180 @@
+# made by tools/vehicles.py
+newmtl vis2345_wheelchrome
+Ns 32
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd vis2345_wheelchrome.png
+map_Ks spec_mid.jpg
+
+newmtl vis2345_wheelrim
+Ns 32
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd vis2345_wheelrim.png
+map_Ks spec_mid.jpg
+
+newmtl vis2345_wheelfocus
+Ns 32
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd vis2345_wheelfocus.png
+map_Ks spec_low.jpg
+
+newmtl vis2345_wheeltire
+Ns 32
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd vis2345_wheeltire.png
+map_Ks spec_low.jpg
+
+newmtl vis2345_jigchrome
+Ns 32
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd vis2345_jigchrome.png
+map_Ks spec_high.jpg
+
+newmtl vis2345_jigplastic
+Ns 32
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd vis2345_jigplastic.png
+map_Ks spec_low.jpg
+
+newmtl vis2345_jigrubber
+Ns 32
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd vis2345_jigrubber.png
+map_Ks spec_low.jpg
+
+newmtl vis2345_jigmetallic
+Ns 32
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd vis2345_jigmetallic.png
+map_Ks spec_high.jpg
+
+newmtl vis2345_jigmetalblack
+Ns 32
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd vis2345_jigmetalblack.png
+map_Ks spec_low.jpg
+
+newmtl vis2345_hlsignallightR
+Ns 32
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd vis2345_hlsignallightR.png
+map_Ks spec_high.jpg
+
+newmtl vis2345_hlsignalglass
+Ns 32
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd vis2345_hlsignalglass.png
+map_Ks spec_high.jpg
+
+newmtl vis2345_hlsignallightL
+Ns 32
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd vis2345_hlsignallightL.png
+map_Ks spec_high.jpg
+
+newmtl vis2345_hlchrome
+Ns 32
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd vis2345_hlchrome.png
+map_Ks spec_high.jpg
+
+newmtl vis2345_hlplastic
+Ns 32
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd vis2345_hlplastic.png
+map_Ks spec_low.jpg
+
+newmtl vis2345_material
+Ns 32
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd vis2345_material.png
+map_Ks spec_mid.jpg
+
+newmtl vis2345_jigmirrorGlass
+Ns 32
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd vis2345_jigmirrorGlass.png
+map_Ks spec_high.jpg
+
+newmtl vis2345_winglassGlass
+Ns 32
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd vis2345_winglassGlass.png
+map_Ks spec_high.jpg
+
+newmtl vis2345_2345paintPaint
+Ns 32
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd vis2345_2345paintPaint.png
+map_Ks spec_high.jpg
+
+newmtl vis2345_Headlight
+Ns 32
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd vis2345_Headlight.png
+map_Ks spec_high.jpg
+
+newmtl vis2345_Taillight
+Ns 32
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd vis2345_Taillight.png
+map_Ks spec_high.jpg

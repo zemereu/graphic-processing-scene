@@ -1,0 +1,180 @@
+# made by tools/vehicles.py
+newmtl ural4320_014
+Ns 32
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd ural4320_014.png
+map_Ks spec_low.jpg
+
+newmtl ural4320_016
+Ns 32
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd ural4320_016.png
+map_Ks spec_low.jpg
+
+newmtl ural4320_material
+Ns 32
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd ural4320_material.png
+map_Ks spec_mid.jpg
+
+newmtl ural4320_001
+Ns 32
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd ural4320_001.png
+map_Ks spec_low.jpg
+
+newmtl ural4320_019
+Ns 32
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd ural4320_019.png
+map_Ks spec_low.jpg
+
+newmtl ural4320_018
+Ns 32
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd ural4320_018.png
+map_Ks spec_mid.jpg
+
+newmtl ural4320_009
+Ns 32
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd ural4320_009.png
+map_Ks spec_high.jpg
+
+newmtl ural4320_008Glass
+Ns 32
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd ural4320_008Glass.png
+map_Ks spec_high.jpg
+
+newmtl ural4320_015
+Ns 32
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd ural4320_015.png
+map_Ks spec_low.jpg
+
+newmtl ural4320_017
+Ns 32
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd ural4320_017.png
+map_Ks spec_mid.jpg
+
+newmtl ural4320_013
+Ns 32
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd ural4320_013.png
+map_Ks spec_high.jpg
+
+newmtl ural4320_012
+Ns 32
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd ural4320_012.png
+map_Ks spec_high.jpg
+
+newmtl ural4320_007
+Ns 32
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd ural4320_007.png
+map_Ks spec_low.jpg
+
+newmtl ural4320_005Glass
+Ns 32
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd ural4320_005Glass.png
+map_Ks spec_high.jpg
+
+newmtl ural4320_006
+Ns 32
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd ural4320_006.png
+map_Ks spec_mid.jpg
+
+newmtl ural4320_004
+Ns 32
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd ural4320_004.png
+map_Ks spec_mid.jpg
+
+newmtl ural4320_003
+Ns 32
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd ural4320_003.png
+map_Ks spec_low.jpg
+
+newmtl ural4320_002
+Ns 32
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd ural4320_002.png
+map_Ks spec_low.jpg
+
+newmtl ural4320_Headlight
+Ns 32
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd ural4320_Headlight.png
+map_Ks spec_high.jpg
+
+newmtl ural4320_Taillight
+Ns 32
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd ural4320_Taillight.png
+map_Ks spec_high.jpg

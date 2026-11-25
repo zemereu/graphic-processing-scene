@@ -1,0 +1,54 @@
+# made by tools/vehicles.py
+newmtl vaz2107_taxi_CarBody
+Ns 32
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd vaz2107_taxi_CarBody.jpg
+map_Ks spec_mid.jpg
+
+newmtl vaz2107_taxi_Details
+Ns 32
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd vaz2107_taxi_Details.jpg
+map_Ks spec_mid.jpg
+
+newmtl vaz2107_taxi_WindowsGlass
+Ns 32
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd vaz2107_taxi_WindowsGlass.png
+map_Ks spec_high.jpg
+
+newmtl vaz2107_taxi_Bottom
+Ns 32
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd vaz2107_taxi_Bottom.jpg
+map_Ks spec_mid.jpg
+
+newmtl vaz2107_taxi_Headlight
+Ns 32
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd vaz2107_taxi_Headlight.png
+map_Ks spec_high.jpg
+
+newmtl vaz2107_taxi_Taillight
+Ns 32
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd vaz2107_taxi_Taillight.png
+map_Ks spec_high.jpg
