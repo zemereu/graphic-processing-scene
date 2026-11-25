@@ -1,0 +1,13 @@
+Model Information:
+* title:	Soviet Panelki — Voxel Style Apartment Buildings
+* source:	https://sketchfab.com/3d-models/soviet-panelki-voxel-style-apartment-buildings-632517fa9977439895f8953f2e541ee5
+* author:	My Name Is This (https://sketchfab.com/profileFromHere)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Soviet Panelki — Voxel Style Apartment Buildings" (https://sketchfab.com/3d-models/soviet-panelki-voxel-style-apartment-buildings-632517fa9977439895f8953f2e541ee5) by My Name Is This (https://sketchfab.com/profileFromHere) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+
+Changes for this project (tools/buildings.py): converted to OBJ, rescaled, turned and placed in the town; textures resized; lit windows made from the window panes.

@@ -143,3 +143,768 @@ illum 2
 map_Kd steel_dark.jpg
 map_Ks spec_high.jpg
 
+# --- tools/buildings.py ---
+newmtl Pnl90
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.3 0.3 0.3
+illum 2
+map_Kd panel9/pnl90.jpg
+map_Ks spec_low.jpg
+
+newmtl Vox0
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.3 0.3 0.3
+illum 2
+map_Kd panelki/vox0.png
+map_Ks spec_low.jpg
+
+newmtl Vox1
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.3 0.3 0.3
+illum 2
+map_Kd panelki/vox1.png
+map_Ks spec_low.jpg
+
+newmtl Vox2
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.3 0.3 0.3
+illum 2
+map_Kd panelki/vox2.png
+map_Ks spec_low.jpg
+
+newmtl Vox3
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.3 0.3 0.3
+illum 2
+map_Kd panelki/vox3.png
+map_Ks spec_low.jpg
+
+newmtl Vox4
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.3 0.3 0.3
+illum 2
+map_Kd panelki/vox4.png
+map_Ks spec_low.jpg
+
+newmtl Vox5
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.3 0.3 0.3
+illum 2
+map_Kd panelki/vox5.png
+map_Ks spec_low.jpg
+
+newmtl Vox6
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.3 0.3 0.3
+illum 2
+map_Kd panelki/vox6.png
+map_Ks spec_low.jpg
+
+newmtl Vox7
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.3 0.3 0.3
+illum 2
+map_Kd panelki/vox7.png
+map_Ks spec_low.jpg
+
+newmtl Vox8
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.3 0.3 0.3
+illum 2
+map_Kd panelki/vox8.png
+map_Ks spec_low.jpg
+
+newmtl Vox9
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.3 0.3 0.3
+illum 2
+map_Kd panelki/vox9.png
+map_Ks spec_low.jpg
+
+newmtl Vox10
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.3 0.3 0.3
+illum 2
+map_Kd panelki/vox10.png
+map_Ks spec_low.jpg
+
+newmtl Vox11
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.3 0.3 0.3
+illum 2
+map_Kd panelki/vox11.png
+map_Ks spec_low.jpg
+
+newmtl Vox12
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.3 0.3 0.3
+illum 2
+map_Kd panelki/vox12.jpg
+map_Ks spec_low.jpg
+
+newmtl Vox13
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.3 0.3 0.3
+illum 2
+map_Kd panelki/vox13.png
+map_Ks spec_low.jpg
+
+newmtl Vox14
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.3 0.3 0.3
+illum 2
+map_Kd panelki/vox14.png
+map_Ks spec_low.jpg
+
+newmtl Vox15
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.3 0.3 0.3
+illum 2
+map_Kd panelki/vox15.png
+map_Ks spec_low.jpg
+
+newmtl Vox16
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.3 0.3 0.3
+illum 2
+map_Kd panelki/vox16.png
+map_Ks spec_low.jpg
+
+newmtl Vox17
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.3 0.3 0.3
+illum 2
+map_Kd panelki/vox17.png
+map_Ks spec_low.jpg
+
+newmtl Vox18
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.3 0.3 0.3
+illum 2
+map_Kd panelki/vox18.png
+map_Ks spec_low.jpg
+
+newmtl Vox19
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.3 0.3 0.3
+illum 2
+map_Kd panelki/vox19.png
+map_Ks spec_low.jpg
+
+newmtl Vox20
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.3 0.3 0.3
+illum 2
+map_Kd panelki/vox20.png
+map_Ks spec_low.jpg
+
+newmtl Vox21
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.3 0.3 0.3
+illum 2
+map_Kd panelki/vox21.png
+map_Ks spec_low.jpg
+
+newmtl Vox22
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.3 0.3 0.3
+illum 2
+map_Kd panelki/vox22.png
+map_Ks spec_low.jpg
+
+newmtl Vox23
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.3 0.3 0.3
+illum 2
+map_Kd panelki/vox23.png
+map_Ks spec_low.jpg
+
+newmtl Gar0
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.3 0.3 0.3
+illum 2
+map_Kd garages/gar0.jpg
+map_Ks spec_low.jpg
+
+newmtl Med0
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.3 0.3 0.3
+illum 2
+map_Kd medical/med0.jpg
+map_Ks spec_low.jpg
+
+newmtl Med1
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.3 0.3 0.3
+illum 2
+map_Kd medical/med1.jpg
+map_Ks spec_low.jpg
+
+newmtl Med2
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.3 0.3 0.3
+illum 2
+map_Kd medical/med2.jpg
+map_Ks spec_low.jpg
+
+newmtl Med3
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.3 0.3 0.3
+illum 2
+map_Kd medical/med3.jpg
+map_Ks spec_low.jpg
+
+newmtl Med4
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.3 0.3 0.3
+illum 2
+map_Kd medical/med4.jpg
+map_Ks spec_low.jpg
+
+newmtl Med5
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.3 0.3 0.3
+illum 2
+map_Kd medical/med5.jpg
+map_Ks spec_low.jpg
+
+newmtl Med6
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.3 0.3 0.3
+illum 2
+map_Kd medical/med6.jpg
+map_Ks spec_low.jpg
+
+newmtl Med7
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.3 0.3 0.3
+illum 2
+map_Kd medical/med7.jpg
+map_Ks spec_low.jpg
+
+newmtl Med8
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.3 0.3 0.3
+illum 2
+map_Kd medical/med8.jpg
+map_Ks spec_low.jpg
+
+newmtl Med9
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.3 0.3 0.3
+illum 2
+map_Kd medical/med9.jpg
+map_Ks spec_low.jpg
+
+newmtl Med10
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.3 0.3 0.3
+illum 2
+map_Kd medical/med10.jpg
+map_Ks spec_low.jpg
+
+newmtl Med11
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.3 0.3 0.3
+illum 2
+map_Kd medical/med11.jpg
+map_Ks spec_low.jpg
+
+newmtl Med12
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.3 0.3 0.3
+illum 2
+map_Kd medical/med12.jpg
+map_Ks spec_low.jpg
+
+newmtl Med13
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.3 0.3 0.3
+illum 2
+map_Kd medical/med13.jpg
+map_Ks spec_low.jpg
+
+newmtl Med14
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.3 0.3 0.3
+illum 2
+map_Kd medical/med14.jpg
+map_Ks spec_low.jpg
+
+newmtl Med15
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.3 0.3 0.3
+illum 2
+map_Kd medical/med15.jpg
+map_Ks spec_low.jpg
+
+newmtl Med16
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.3 0.3 0.3
+illum 2
+map_Kd medical/med16.jpg
+map_Ks spec_low.jpg
+
+newmtl Med17
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.3 0.3 0.3
+illum 2
+map_Kd medical/med17.jpg
+map_Ks spec_low.jpg
+
+newmtl Med18
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.3 0.3 0.3
+illum 2
+map_Kd medical/med18.jpg
+map_Ks spec_low.jpg
+
+newmtl Med19
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.3 0.3 0.3
+illum 2
+map_Kd medical/med19.jpg
+map_Ks spec_low.jpg
+
+newmtl Sch0
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.3 0.3 0.3
+illum 2
+map_Kd school/sch0.jpg
+map_Ks spec_low.jpg
+
+newmtl Sch1
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.3 0.3 0.3
+illum 2
+map_Kd school/sch1.jpg
+map_Ks spec_low.jpg
+
+newmtl Sch2
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.3 0.3 0.3
+illum 2
+map_Kd school/sch2.jpg
+map_Ks spec_low.jpg
+
+newmtl Sch3
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.3 0.3 0.3
+illum 2
+map_Kd school/sch3.jpg
+map_Ks spec_low.jpg
+
+newmtl Sch4
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.3 0.3 0.3
+illum 2
+map_Kd school/sch4.jpg
+map_Ks spec_low.jpg
+
+newmtl Sch5
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.3 0.3 0.3
+illum 2
+map_Kd school/sch5.jpg
+map_Ks spec_low.jpg
+
+newmtl Sch6
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.3 0.3 0.3
+illum 2
+map_Kd school/sch6.jpg
+map_Ks spec_low.jpg
+
+newmtl Sch7
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.3 0.3 0.3
+illum 2
+map_Kd school/sch7.jpg
+map_Ks spec_low.jpg
+
+newmtl Sch8
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.3 0.3 0.3
+illum 2
+map_Kd school/sch8.jpg
+map_Ks spec_low.jpg
+
+newmtl Sch9
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.3 0.3 0.3
+illum 2
+map_Kd school/sch9.jpg
+map_Ks spec_low.jpg
+
+newmtl Sch10
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.3 0.3 0.3
+illum 2
+map_Kd school/sch10.jpg
+map_Ks spec_low.jpg
+
+newmtl Sch11
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.3 0.3 0.3
+illum 2
+map_Kd school/sch11.jpg
+map_Ks spec_low.jpg
+
+newmtl Sch12
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.3 0.3 0.3
+illum 2
+map_Kd school/sch12.jpg
+map_Ks spec_low.jpg
+
+newmtl Sch13
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.3 0.3 0.3
+illum 2
+map_Kd school/sch13.jpg
+map_Ks spec_low.jpg
+
+newmtl Sch14
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.3 0.3 0.3
+illum 2
+map_Kd school/sch14.jpg
+map_Ks spec_low.jpg
+
+newmtl Sch15
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.3 0.3 0.3
+illum 2
+map_Kd school/sch15.jpg
+map_Ks spec_low.jpg
+
+newmtl Sch16
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.3 0.3 0.3
+illum 2
+map_Kd school/sch16.jpg
+map_Ks spec_low.jpg
+
+newmtl Sch17
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.3 0.3 0.3
+illum 2
+map_Kd school/sch17.jpg
+map_Ks spec_low.jpg
+
+newmtl Sch18
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.3 0.3 0.3
+illum 2
+map_Kd school/sch18.jpg
+map_Ks spec_low.jpg
+
+newmtl Sch19
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.3 0.3 0.3
+illum 2
+map_Kd school/sch19.jpg
+map_Ks spec_low.jpg
+
+newmtl Sch20
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.3 0.3 0.3
+illum 2
+map_Kd school/sch20.jpg
+map_Ks spec_low.jpg
+
+newmtl Sch21
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.3 0.3 0.3
+illum 2
+map_Kd school/sch21.jpg
+map_Ks spec_low.jpg
+
+newmtl Sch22
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.3 0.3 0.3
+illum 2
+map_Kd school/sch22.jpg
+map_Ks spec_low.jpg
+
+newmtl Sch23
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.3 0.3 0.3
+illum 2
+map_Kd school/sch23.jpg
+map_Ks spec_low.jpg
+
+newmtl Sch24
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.3 0.3 0.3
+illum 2
+map_Kd school/sch24.jpg
+map_Ks spec_low.jpg
+
+newmtl Sch25
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.3 0.3 0.3
+illum 2
+map_Kd school/sch25.jpg
+map_Ks spec_low.jpg
+
+newmtl Sch26
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.3 0.3 0.3
+illum 2
+map_Kd school/sch26.jpg
+map_Ks spec_low.jpg
+
+newmtl Sch27
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.3 0.3 0.3
+illum 2
+map_Kd school/sch27.jpg
+map_Ks spec_low.jpg
+
+newmtl Sch28
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.3 0.3 0.3
+illum 2
+map_Kd school/sch28.jpg
+map_Ks spec_low.jpg
+
+newmtl Sch29
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.3 0.3 0.3
+illum 2
+map_Kd school/sch29.jpg
+map_Ks spec_low.jpg
+
+newmtl Sch30
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.3 0.3 0.3
+illum 2
+map_Kd school/sch30.jpg
+map_Ks spec_low.jpg
+
+newmtl Sch31
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.3 0.3 0.3
+illum 2
+map_Kd school/sch31.jpg
+map_Ks spec_low.jpg
+
+newmtl Sch32
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.3 0.3 0.3
+illum 2
+map_Kd school/sch32.jpg
+map_Ks spec_low.jpg
+
+newmtl Sch33
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.3 0.3 0.3
+illum 2
+map_Kd school/sch33.jpg
+map_Ks spec_low.jpg
+
+newmtl Sch34
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.3 0.3 0.3
+illum 2
+map_Kd school/sch34.jpg
+map_Ks spec_low.jpg
+
+newmtl Sch35
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.3 0.3 0.3
+illum 2
+map_Kd school/sch35.jpg
+map_Ks spec_low.jpg
+
+newmtl Sch36
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.3 0.3 0.3
+illum 2
+map_Kd school/sch36.jpg
+map_Ks spec_low.jpg
+
+newmtl Sch37
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.3 0.3 0.3
+illum 2
+map_Kd school/sch37.jpg
+map_Ks spec_low.jpg
+
+# --- signs' backs ---
+newmtl SignsBack
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.3 0.3 0.3
+illum 2
+map_Kd city_signs_back.png

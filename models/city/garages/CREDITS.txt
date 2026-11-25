@@ -1,0 +1,10 @@
+Model Information:
+* title:	Soviet Garages Block (PSX)
+* source:	https://sketchfab.com/3d-models/soviet-garages-block-psx-8024c5db4efa4410964cb1516789408e
+* author:	edmar_shppts (https://sketchfab.com/edmar_shppts)
+
+Model License:
+* license type:	SKETCHFAB Standard (https://sketchfab.com/licenses)
+* requirements:	Under basic restrictions, use worldwide, on all types of media, commercially or not, and in all types of derivative works
+
+Changes for this project (tools/buildings.py): converted to OBJ, rescaled, turned and placed in the town; textures resized; lit windows made from the window panes.

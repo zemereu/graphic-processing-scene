@@ -206,3 +206,30 @@ illum 2
 map_Kd kiosk_sign.jpg
 map_Ks ../city/spec_low.jpg
 
+newmtl BalconyModel0
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd balcony/./balconymodel0.jpg
+map_Ks ../city/spec_low.jpg
+
+newmtl MetalGarage0
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd metal_garage/./metalgarage0.jpg
+map_Ks ../city/spec_low.jpg
+
+newmtl BusStopModel0
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd busstop/./busstopmodel0.jpg
+map_Ks ../city/spec_low.jpg
+

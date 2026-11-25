@@ -173,3 +173,21 @@ illum 2
 map_Kd wood_slats.jpg
 map_Ks spec_low.jpg
 
+# --- tools/buildings.py ---
+newmtl BusStopModel0
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.3 0.3 0.3
+illum 2
+map_Kd ../details/busstop/busstopmodel0.jpg
+map_Ks spec_low.jpg
+
+# --- signs' backs ---
+newmtl SignsBack
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.3 0.3 0.3
+illum 2
+map_Kd city_signs_back.png

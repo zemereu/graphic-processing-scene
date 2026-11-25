@@ -116,3 +116,27 @@ illum 2
 map_Kd steel.jpg
 map_Ks spec_high.jpg
 
+# --- signs' backs ---
+newmtl SignBankaBack
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.3 0.3 0.3
+illum 2
+map_Kd sign_banka_back.png
+
+newmtl SignGenexBack
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.3 0.3 0.3
+illum 2
+map_Kd sign_genex_back.png
+
+newmtl SignZepterBack
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.3 0.3 0.3
+illum 2
+map_Kd sign_zepter_back.png

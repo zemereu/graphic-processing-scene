@@ -1,0 +1,13 @@
+Model Information:
+* title:	Ussr balcony (Low poly)
+* source:	https://sketchfab.com/3d-models/ussr-balcony-low-poly-4d72909a62d34779801ca2adcc30691c
+* author:	DOMNIN (https://sketchfab.com/DOMNIN)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Ussr balcony (Low poly)" (https://sketchfab.com/3d-models/ussr-balcony-low-poly-4d72909a62d34779801ca2adcc30691c) by DOMNIN (https://sketchfab.com/DOMNIN) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+
+Changes for this project (tools/buildings.py): converted to OBJ, rescaled, turned and placed in the town; textures resized; lit windows made from the window panes.
