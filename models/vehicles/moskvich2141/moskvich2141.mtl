@@ -1,0 +1,171 @@
+# made by tools/vehicles.py
+newmtl moskvich2141_015
+Ns 32
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd moskvich2141_015.png
+map_Ks spec_low.jpg
+
+newmtl moskvich2141_014
+Ns 32
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd moskvich2141_014.png
+map_Ks spec_low.jpg
+
+newmtl moskvich2141_013
+Ns 32
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd moskvich2141_013.png
+map_Ks spec_low.jpg
+
+newmtl moskvich2141_012
+Ns 32
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd moskvich2141_012.jpg
+map_Ks spec_mid.jpg
+
+newmtl moskvich2141_011
+Ns 32
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd moskvich2141_011.jpg
+map_Ks spec_mid.jpg
+
+newmtl moskvich2141_010
+Ns 32
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd moskvich2141_010.png
+map_Ks spec_mid.jpg
+
+newmtl moskvich2141_018
+Ns 32
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd moskvich2141_018.png
+map_Ks spec_low.jpg
+
+newmtl moskvich2141_016
+Ns 32
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd moskvich2141_016.png
+map_Ks spec_high.jpg
+
+newmtl moskvich2141_008
+Ns 32
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd moskvich2141_008.png
+map_Ks spec_low.jpg
+
+newmtl moskvich2141_007
+Ns 32
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd moskvich2141_007.png
+map_Ks spec_low.jpg
+
+newmtl moskvich2141_006
+Ns 32
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd moskvich2141_006.png
+map_Ks spec_high.jpg
+
+newmtl moskvich2141_005Glass
+Ns 32
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd moskvich2141_005Glass.png
+map_Ks spec_high.jpg
+
+newmtl moskvich2141_004
+Ns 32
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd moskvich2141_004.png
+map_Ks spec_mid.jpg
+
+newmtl moskvich2141_003
+Ns 32
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd moskvich2141_003.png
+map_Ks spec_low.jpg
+
+newmtl moskvich2141_002
+Ns 32
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd moskvich2141_002.png
+map_Ks spec_low.jpg
+
+newmtl moskvich2141_001
+Ns 32
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd moskvich2141_001.png
+map_Ks spec_low.jpg
+
+newmtl moskvich2141_materialPaint
+Ns 32
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd moskvich2141_materialPaint.png
+map_Ks spec_high.jpg
+
+newmtl moskvich2141_Headlight
+Ns 32
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd moskvich2141_Headlight.png
+map_Ks spec_high.jpg
+
+newmtl moskvich2141_Taillight
+Ns 32
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd moskvich2141_Taillight.png
+map_Ks spec_high.jpg

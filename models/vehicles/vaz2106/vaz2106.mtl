@@ -1,0 +1,162 @@
+# made by tools/vehicles.py
+newmtl vaz2106_wheelchrome
+Ns 32
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd vaz2106_wheelchrome.png
+map_Ks spec_mid.jpg
+
+newmtl vaz2106_wheelrim
+Ns 32
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd vaz2106_wheelrim.png
+map_Ks spec_mid.jpg
+
+newmtl vaz2106_wheelfocus
+Ns 32
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd vaz2106_wheelfocus.png
+map_Ks spec_low.jpg
+
+newmtl vaz2106_wheeltire
+Ns 32
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd vaz2106_wheeltire.png
+map_Ks spec_low.jpg
+
+newmtl vaz2106_jigchrome
+Ns 32
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd vaz2106_jigchrome.png
+map_Ks spec_high.jpg
+
+newmtl vaz2106_jigplastic
+Ns 32
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd vaz2106_jigplastic.png
+map_Ks spec_low.jpg
+
+newmtl vaz2106_jigmetallic
+Ns 32
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd vaz2106_jigmetallic.png
+map_Ks spec_high.jpg
+
+newmtl vaz2106_jigmirrorGlass
+Ns 32
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd vaz2106_jigmirrorGlass.png
+map_Ks spec_high.jpg
+
+newmtl vaz2106_hlsignallightR
+Ns 32
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd vaz2106_hlsignallightR.png
+map_Ks spec_high.jpg
+
+newmtl vaz2106_hlplastic
+Ns 32
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd vaz2106_hlplastic.png
+map_Ks spec_low.jpg
+
+newmtl vaz2106_hlsignallightL
+Ns 32
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd vaz2106_hlsignallightL.png
+map_Ks spec_high.jpg
+
+newmtl vaz2106_hlchrome
+Ns 32
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd vaz2106_hlchrome.png
+map_Ks spec_high.jpg
+
+newmtl vaz2106_hlsignalglass
+Ns 32
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd vaz2106_hlsignalglass.png
+map_Ks spec_high.jpg
+
+newmtl vaz2106_jigrubber
+Ns 32
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd vaz2106_jigrubber.png
+map_Ks spec_low.jpg
+
+newmtl vaz2106_winglassGlass
+Ns 32
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd vaz2106_winglassGlass.png
+map_Ks spec_high.jpg
+
+newmtl vaz2106_06paintPaint
+Ns 32
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd vaz2106_06paintPaint.png
+map_Ks spec_high.jpg
+
+newmtl vaz2106_Headlight
+Ns 32
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd vaz2106_Headlight.png
+map_Ks spec_high.jpg
+
+newmtl vaz2106_Taillight
+Ns 32
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd vaz2106_Taillight.png
+map_Ks spec_high.jpg

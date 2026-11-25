@@ -7,12 +7,12 @@ layout(location=2) in vec2 vTexCoords;
 out vec3 fPosition;
 out vec3 fNormal;
 out vec2 fTexCoords;
-out vec4 fragPosLightSpace;   // position seen from the sun, for the shadow map
 
 uniform mat4 model;
 uniform mat4 view;
 uniform mat4 projection;
-uniform mat4 lightSpaceTrMatrix;
+// water reflections: the mirrored scene keeps only what is above the water (clip distance < 0 = cut off)
+uniform vec4 clipPlane;
 
 // wind in the trees (swayHeight = 0 for every other object): the tree bends away from the wind, more and more towards
 // the top (the trunk stays planted), in gusts; the branches also flutter faster, more at their tips
@@ -37,5 +37,5 @@ void main()
 	fPosition = position;
 	fNormal = vNormal;
 	fTexCoords = vTexCoords;
-	fragPosLightSpace = lightSpaceTrMatrix * model * vec4(position, 1.0f);
+	gl_ClipDistance[0] = dot(model * vec4(position, 1.0f), clipPlane);
 }

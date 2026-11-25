@@ -1,0 +1,13 @@
+Model Information:
+* title:	Lada Zhiguli (Riva)
+* source:	https://sketchfab.com/3d-models/lada-zhiguli-riva-1058625a0f8940c9871e3f252140422e
+* author:	rtrule (https://sketchfab.com/rtrl)
+
+Model License:
+* license type:	CC-BY-NC-4.0 (http://creativecommons.org/licenses/by-nc/4.0/)
+* requirements:	Author must be credited. No commercial use.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Lada Zhiguli (Riva)" (https://sketchfab.com/3d-models/lada-zhiguli-riva-1058625a0f8940c9871e3f252140422e) by rtrule (https://sketchfab.com/rtrl) licensed under CC-BY-NC-4.0 (http://creativecommons.org/licenses/by-nc/4.0/)
+
+Changes for this project (tools/vehicles.py): converted from glTF to OBJ, interior removed, simplified, rescaled to the real length, body paint made grey (colored by the program), lights split into a separate model that glows at night, smaller textures

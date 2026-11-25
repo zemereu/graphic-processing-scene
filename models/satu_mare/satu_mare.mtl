@@ -161,3 +161,35 @@ illum 2
 map_Kd water_sm.jpg
 map_Ks spec_high.jpg
 
+# --- signs' backs ---
+newmtl ClockSMBack
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.3 0.3 0.3
+illum 2
+map_Kd clock_sm_back.png
+
+newmtl EmblemSMBack
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.3 0.3 0.3
+illum 2
+map_Kd emblem_sm_back.png
+
+newmtl FlagEUBack
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.3 0.3 0.3
+illum 2
+map_Kd flag_eu.jpg
+
+newmtl FlagROBack
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.3 0.3 0.3
+illum 2
+map_Kd flag_ro.jpg

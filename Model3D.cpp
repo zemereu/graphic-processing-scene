@@ -203,7 +203,16 @@ namespace gps {
 			if (!hasNormalMap) {
 				textures.push_back(flatNormalTexture());
 			}
-			meshes.push_back(gps::Mesh(vertices, indices, textures));
+			gps::Mesh mesh(vertices, indices, textures);
+			// windows, shop windows, windscreens: every model names its glass material "Glass" / "glass"
+			if (materialId >= 0 && materialId < (int)materials.size()) {
+				std::string name = materials[materialId].name;
+				for (char& c : name) c = (char)tolower(c);
+				mesh.glass = name.find("glass") != std::string::npos;
+				mesh.grass = name.find("grass") != std::string::npos;
+				mesh.paint = name.size() >= 5 && name.compare(name.size() - 5, 5, "paint") == 0;   // "...Paint"
+			}
+			meshes.push_back(mesh);
 		}
 	}
 
@@ -248,6 +257,12 @@ namespace gps {
 			bounds.push_back(box);
 		}
 		return bounds;
+	}
+
+	void Model3D::DrawMeshes(gps::Shader shaderProgram, const std::vector<bool>& visible) {
+		for (size_t i = 0; i < meshes.size() && i < visible.size(); i++) {
+			if (visible[i]) meshes[i].Draw(shaderProgram);
+		}
 	}
 
 	Model3D::~Model3D() {

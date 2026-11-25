@@ -125,3 +125,19 @@ illum 2
 map_Kd travertine.jpg
 map_Ks spec_low.jpg
 
+# --- signs' backs ---
+newmtl GraffitiBack
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.3 0.3 0.3
+illum 2
+map_Kd graffiti_back.png
+
+newmtl SignTelefoaneBack
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.3 0.3 0.3
+illum 2
+map_Kd sign_telefoane_back.png

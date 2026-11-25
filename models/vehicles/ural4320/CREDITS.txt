@@ -1,0 +1,13 @@
+Model Information:
+* title:	Ural 4320 Cargo truck
+* source:	https://sketchfab.com/3d-models/ural-4320-cargo-truck-7b8e849ea0c945e09a2d34faef643a61
+* author:	kuwalol93 (https://sketchfab.com/kuwalol93)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Ural 4320 Cargo truck" (https://sketchfab.com/3d-models/ural-4320-cargo-truck-7b8e849ea0c945e09a2d34faef643a61) by kuwalol93 (https://sketchfab.com/kuwalol93) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+
+Changes for this project (tools/vehicles.py): converted from glTF to OBJ, interior removed, simplified, rescaled to the real length, body paint made grey (colored by the program), lights split into a separate model that glows at night, smaller textures

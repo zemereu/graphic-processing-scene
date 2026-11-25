@@ -7,3 +7,445 @@ illum 2
 map_Kd window_lit.jpg
 map_Ks spec_low.jpg
 
+# --- tools/buildings.py ---
+newmtl Litpnl90litpng
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.3 0.3 0.3
+illum 2
+map_Kd panel9/pnl90_lit.png
+map_Ks spec_low.jpg
+
+newmtl Litvox16litpng
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.3 0.3 0.3
+illum 2
+map_Kd panelki/vox16_lit.png
+map_Ks spec_low.jpg
+
+newmtl Litvox20litpng
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.3 0.3 0.3
+illum 2
+map_Kd panelki/vox20_lit.png
+map_Ks spec_low.jpg
+
+newmtl Litvox22litpng
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.3 0.3 0.3
+illum 2
+map_Kd panelki/vox22_lit.png
+map_Ks spec_low.jpg
+
+newmtl Litvox23litpng
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.3 0.3 0.3
+illum 2
+map_Kd panelki/vox23_lit.png
+map_Ks spec_low.jpg
+
+newmtl Litvox8litpng
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.3 0.3 0.3
+illum 2
+map_Kd panelki/vox8_lit.png
+map_Ks spec_low.jpg
+
+newmtl Litvox9litpng
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.3 0.3 0.3
+illum 2
+map_Kd panelki/vox9_lit.png
+map_Ks spec_low.jpg
+
+newmtl Litvox19litpng
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.3 0.3 0.3
+illum 2
+map_Kd panelki/vox19_lit.png
+map_Ks spec_low.jpg
+
+newmtl Litvox4litpng
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.3 0.3 0.3
+illum 2
+map_Kd panelki/vox4_lit.png
+map_Ks spec_low.jpg
+
+newmtl Litvox18litpng
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.3 0.3 0.3
+illum 2
+map_Kd panelki/vox18_lit.png
+map_Ks spec_low.jpg
+
+newmtl Litvox21litpng
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.3 0.3 0.3
+illum 2
+map_Kd panelki/vox21_lit.png
+map_Ks spec_low.jpg
+
+newmtl Litsch24litpng
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.3 0.3 0.3
+illum 2
+map_Kd school/sch24_lit.png
+map_Ks spec_low.jpg
+
+newmtl Litsch30litpng
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.3 0.3 0.3
+illum 2
+map_Kd school/sch30_lit.png
+map_Ks spec_low.jpg
+
+newmtl Litsch27litpng
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.3 0.3 0.3
+illum 2
+map_Kd school/sch27_lit.png
+map_Ks spec_low.jpg
+
+newmtl Litsch12litpng
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.3 0.3 0.3
+illum 2
+map_Kd school/sch12_lit.png
+map_Ks spec_low.jpg
+
+newmtl Litsch35litpng
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.3 0.3 0.3
+illum 2
+map_Kd school/sch35_lit.png
+map_Ks spec_low.jpg
+
+newmtl Litsch3litpng
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.3 0.3 0.3
+illum 2
+map_Kd school/sch3_lit.png
+map_Ks spec_low.jpg
+
+newmtl Litsch17litpng
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.3 0.3 0.3
+illum 2
+map_Kd school/sch17_lit.png
+map_Ks spec_low.jpg
+
+newmtl Litsch4litpng
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.3 0.3 0.3
+illum 2
+map_Kd school/sch4_lit.png
+map_Ks spec_low.jpg
+
+newmtl Litsch6litpng
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.3 0.3 0.3
+illum 2
+map_Kd school/sch6_lit.png
+map_Ks spec_low.jpg
+
+newmtl Litsch13litpng
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.3 0.3 0.3
+illum 2
+map_Kd school/sch13_lit.png
+map_Ks spec_low.jpg
+
+newmtl Litsch32litpng
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.3 0.3 0.3
+illum 2
+map_Kd school/sch32_lit.png
+map_Ks spec_low.jpg
+
+newmtl Litsch31litpng
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.3 0.3 0.3
+illum 2
+map_Kd school/sch31_lit.png
+map_Ks spec_low.jpg
+
+newmtl Litsch33litpng
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.3 0.3 0.3
+illum 2
+map_Kd school/sch33_lit.png
+map_Ks spec_low.jpg
+
+newmtl Litsch16litpng
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.3 0.3 0.3
+illum 2
+map_Kd school/sch16_lit.png
+map_Ks spec_low.jpg
+
+newmtl Litsch36litpng
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.3 0.3 0.3
+illum 2
+map_Kd school/sch36_lit.png
+map_Ks spec_low.jpg
+
+newmtl Litsch21litpng
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.3 0.3 0.3
+illum 2
+map_Kd school/sch21_lit.png
+map_Ks spec_low.jpg
+
+newmtl Litsch11litpng
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.3 0.3 0.3
+illum 2
+map_Kd school/sch11_lit.png
+map_Ks spec_low.jpg
+
+newmtl Litsch1litpng
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.3 0.3 0.3
+illum 2
+map_Kd school/sch1_lit.png
+map_Ks spec_low.jpg
+
+newmtl Litsch23litpng
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.3 0.3 0.3
+illum 2
+map_Kd school/sch23_lit.png
+map_Ks spec_low.jpg
+
+newmtl Litsch29litpng
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.3 0.3 0.3
+illum 2
+map_Kd school/sch29_lit.png
+map_Ks spec_low.jpg
+
+newmtl Litsch26litpng
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.3 0.3 0.3
+illum 2
+map_Kd school/sch26_lit.png
+map_Ks spec_low.jpg
+
+newmtl Litsch9litpng
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.3 0.3 0.3
+illum 2
+map_Kd school/sch9_lit.png
+map_Ks spec_low.jpg
+
+newmtl Litsch22litpng
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.3 0.3 0.3
+illum 2
+map_Kd school/sch22_lit.png
+map_Ks spec_low.jpg
+
+newmtl Litsch8litpng
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.3 0.3 0.3
+illum 2
+map_Kd school/sch8_lit.png
+map_Ks spec_low.jpg
+
+newmtl Litsch20litpng
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.3 0.3 0.3
+illum 2
+map_Kd school/sch20_lit.png
+map_Ks spec_low.jpg
+
+newmtl Litsch19litpng
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.3 0.3 0.3
+illum 2
+map_Kd school/sch19_lit.png
+map_Ks spec_low.jpg
+
+newmtl Litsch15litpng
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.3 0.3 0.3
+illum 2
+map_Kd school/sch15_lit.png
+map_Ks spec_low.jpg
+
+newmtl Litsch28litpng
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.3 0.3 0.3
+illum 2
+map_Kd school/sch28_lit.png
+map_Ks spec_low.jpg
+
+newmtl Litsch2litpng
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.3 0.3 0.3
+illum 2
+map_Kd school/sch2_lit.png
+map_Ks spec_low.jpg
+
+newmtl Litsch10litpng
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.3 0.3 0.3
+illum 2
+map_Kd school/sch10_lit.png
+map_Ks spec_low.jpg
+
+newmtl Litsch18litpng
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.3 0.3 0.3
+illum 2
+map_Kd school/sch18_lit.png
+map_Ks spec_low.jpg
+
+newmtl Litsch37litpng
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.3 0.3 0.3
+illum 2
+map_Kd school/sch37_lit.png
+map_Ks spec_low.jpg
+
+newmtl Litsch7litpng
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.3 0.3 0.3
+illum 2
+map_Kd school/sch7_lit.png
+map_Ks spec_low.jpg
+
+newmtl Litsch34litpng
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.3 0.3 0.3
+illum 2
+map_Kd school/sch34_lit.png
+map_Ks spec_low.jpg
+
+newmtl Litsch0litpng
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.3 0.3 0.3
+illum 2
+map_Kd school/sch0_lit.png
+map_Ks spec_low.jpg
+
+newmtl Litsch5litpng
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.3 0.3 0.3
+illum 2
+map_Kd school/sch5_lit.png
+map_Ks spec_low.jpg
+
+newmtl Litsch25litpng
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.3 0.3 0.3
+illum 2
+map_Kd school/sch25_lit.png
+map_Ks spec_low.jpg
+
+newmtl Litsch14litpng
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.3 0.3 0.3
+illum 2
+map_Kd school/sch14_lit.png
+map_Ks spec_low.jpg
+

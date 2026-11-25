@@ -1,8 +1,15 @@
-// Drawing the scene: the view modes, the multisampled framebuffer (antialiasing), frustum culling and level of detail,
-// the list of objects drawn every frame (sorted near to far) and the final copy of the image to the window.
+// Drawing a frame: view modes, the antialiased framebuffer, culling, the draw list, the order of the
+// passes, and the water reflections.
 #pragma once
 
 #include "App.hpp"
+
+// ==============================================================================================================
+// Renderer
+//
+// Drawing the scene: the view modes, the multisampled framebuffer (antialiasing), frustum culling and level of detail,
+// the list of objects drawn every frame (sorted near to far) and the order of the passes of a frame.
+// ==============================================================================================================
 
 // view modes
 enum ViewMode { VIEW_SOLID = 0, VIEW_WIREFRAME = 1, VIEW_POINTS = 2 };
@@ -14,19 +21,10 @@ extern bool flatShading;
 extern bool antialiasingEnabled;
 extern GLuint msaaFBO, msaaColorRBO, msaaDepthRBO;   // multisampled color + depth
 extern GLuint resolveFBO, resolveTexture;            // single-sampled result, read by the screen pass
+extern GLuint resolveDepthTexture;                   // its depth, for the post-processing (SSAO, god rays)
 extern int sceneWidth, sceneHeight;
 extern gps::Shader screenShader;
 extern GLuint screenVAO;                             // empty: the fullscreen triangle comes from gl_VertexID
-
-// HDR: the scene keeps colors above 1 (lamps, the sun); the screen pass adds the bloom (glow around the brightest
-// parts: bright pass + Gaussian blur at half resolution) and maps everything to the screen with a filmic curve
-extern bool bloomEnabled;
-extern gps::Shader bloomShader;
-extern GLuint bloomFBO[2], bloomTexture[2];          // half resolution, ping-pong for the blur
-const float BLOOM_THRESHOLD = 1.0f;
-const float BLOOM_STRENGTH = 0.6f;
-const int BLOOM_BLUR_PASSES = 5;                     // each = one horizontal + one vertical blur
-const float EXPOSURE = 0.8f;
 
 const float LOD_DISTANCE = 250.0f;   // meters from the camera to the nearest point of the model
 
@@ -38,5 +36,24 @@ void createSceneFramebuffers(int width, int height);   // at the window size; re
 void deleteSceneFramebuffers();
 void renderSceneObjects();   // all the objects, used by both passes (shadow map and camera)
 void renderScene();          // the camera pass
-void renderBloom();          // after the resolve: the glow of the bright parts, into bloomTexture[0]
-void renderScreenQuad();     // the resolved image (+ bloom, tone mapped) over the whole window
+void renderFrame();          // the whole frame: shadow maps, scene, resolve, post-processing, to the window
+
+// ==============================================================================================================
+// Reflection
+//
+// Water reflections (planar reflection): before the normal pass, the scene is drawn a second time as seen in a mirror
+// laid on the water surface (the view is mirrored across the plane y = WATER_LEVEL; whatever is under the water is
+// cut off with a clip plane) into a half-resolution texture. The water shader reads it at its own pixel on the
+// screen, shifted a little by the waves.
+// ==============================================================================================================
+
+extern bool reflectionsEnabled;
+extern bool reflectionPass;   // true while drawing the mirrored scene
+const float WATER_LEVEL = -2.0f;
+const int REFLECTION_TEXTURE_UNIT = 9;
+
+void initReflection();                                // after initShaders()
+void createReflectionBuffers(int width, int height);  // with the scene framebuffers
+void deleteReflectionBuffers();
+void renderReflection();   // the mirrored scene, into the reflection texture
+void bindReflection();     // the reflection texture, for the main shader (water)

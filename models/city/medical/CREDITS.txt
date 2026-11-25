@@ -1,0 +1,3 @@
+Hospital (Medical Center) from Moscow by Mixazzz (M. Khludeev), CC0, https://opengameart.org/user/135363
+
+Changes for this project (tools/buildings.py): converted to OBJ, rescaled, turned and placed in the town; textures resized; lit windows made from the window panes.

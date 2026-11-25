@@ -33,6 +33,7 @@ GLint numPointLightsLoc;
 GLint pointLightPosLoc;
 GLint pointLightColorLoc;
 GLint emissiveColorLoc;
+GLint paintColorLoc;
 GLint surfaceModeLoc, timeLoc;  // terrain / water shading modes (basic.frag), time for the waves
 GLint numSpotLightsLoc;
 GLint spotLightPosLoc;

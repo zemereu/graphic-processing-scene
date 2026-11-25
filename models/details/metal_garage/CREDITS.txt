@@ -1,0 +1,3 @@
+Soviet Metal Garage 3D by GGBotNet, CC0, https://opengameart.org/content/soviet-metal-garage-3d
+
+Changes for this project (tools/buildings.py): converted to OBJ, rescaled, turned and placed in the town; textures resized; lit windows made from the window panes.

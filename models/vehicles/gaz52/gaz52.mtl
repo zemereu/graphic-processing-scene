@@ -1,0 +1,18 @@
+# made by tools/vehicles.py
+newmtl gaz52_Gaz52
+Ns 32
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd gaz52_Gaz52.jpg
+map_Ks spec_mid.jpg
+
+newmtl gaz52_Headlight
+Ns 32
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd gaz52_Headlight.png
+map_Ks spec_high.jpg

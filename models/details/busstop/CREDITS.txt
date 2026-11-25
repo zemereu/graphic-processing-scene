@@ -1,0 +1,3 @@
+Old Soviet Bus Stop 3D Model by Loginovsky Denis (denlog), free model, https://www.renderhub.com/denlog/bus-stop15
+
+Changes for this project (tools/buildings.py): converted to OBJ, rescaled, turned and placed in the town; textures resized; lit windows made from the window panes.

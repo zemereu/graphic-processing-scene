@@ -1,0 +1,135 @@
+# made by tools/vehicles.py
+newmtl vaz2101_Plastic
+Ns 32
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd vaz2101_Plastic.jpg
+map_Ks spec_mid.jpg
+
+newmtl vaz2101_WindowsglassGlass
+Ns 32
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd vaz2101_WindowsglassGlass.png
+map_Ks spec_high.jpg
+
+newmtl vaz2101_Tire
+Ns 32
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd vaz2101_Tire.jpg
+map_Ks spec_mid.jpg
+
+newmtl vaz2101_Chrom
+Ns 32
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd vaz2101_Chrom.jpg
+map_Ks spec_mid.jpg
+
+newmtl vaz2101_PaintbodyPaint
+Ns 32
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd vaz2101_PaintbodyPaint.jpg
+map_Ks spec_high.jpg
+
+newmtl vaz2101_Blackback
+Ns 32
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd vaz2101_Blackback.png
+map_Ks spec_low.jpg
+
+newmtl vaz2101_Registr
+Ns 32
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd vaz2101_Registr.jpg
+map_Ks spec_mid.jpg
+
+newmtl vaz2101_Number
+Ns 32
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd vaz2101_Number.jpg
+map_Ks spec_mid.jpg
+
+newmtl vaz2101_Mirror
+Ns 32
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd vaz2101_Mirror.png
+map_Ks spec_high.jpg
+
+newmtl vaz2101_Zhiguli
+Ns 32
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd vaz2101_Zhiguli.jpg
+map_Ks spec_mid.jpg
+
+newmtl vaz2101_Panel
+Ns 32
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd vaz2101_Panel.jpg
+map_Ks spec_mid.jpg
+
+newmtl vaz2101_Radiator
+Ns 32
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd vaz2101_Radiator.jpg
+map_Ks spec_mid.jpg
+
+newmtl vaz2101_Bump
+Ns 32
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd vaz2101_Bump.jpg
+map_Ks spec_mid.jpg
+
+newmtl vaz2101_Headlight
+Ns 32
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd vaz2101_Headlight.png
+map_Ks spec_high.jpg
+
+newmtl vaz2101_Taillight
+Ns 32
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd vaz2101_Taillight.png
+map_Ks spec_high.jpg
