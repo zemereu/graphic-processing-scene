@@ -1,0 +1,13 @@
+newmtl FlagpolePole
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.4 0.4 0.4
+Ns 64
+map_Kd pole_white.png
+
+newmtl FlagpoleBall
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.9 0.9 0.9
+Ns 128
+map_Kd pole_gold.png

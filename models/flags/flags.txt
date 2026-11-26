@@ -1,0 +1,9 @@
+# tools/flags.py: flag <name> <on: a model of layout.txt, or world> <x y z: the top of the flag at the pole> <pole: 1 = draw a pole there>
+flag mssr satu_mare -72.00 8.50 39.00 0
+flag ussr satu_mare -68.00 8.50 39.00 0
+flag mssr satu_mare -64.00 8.50 39.00 0
+flag ussr world 188.00 9.60 157.00 1
+flag mssr world 200.00 9.60 157.00 1
+flag ussr world 212.00 9.60 157.00 1
+flag ussr motherland -9.00 9.60 50.00 1
+flag ussr motherland 9.00 9.60 50.00 1

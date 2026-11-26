@@ -33,6 +33,19 @@ uniform float spotCutOff;       // cosine of the inner cone angle (full intensit
 uniform float spotOuterCutOff;  // cosine of the outer cone angle (no light outside)
 // light emitted by the object itself (lamp bulbs at night)
 uniform vec3 emissiveColor;
+
+// the lit windows (the *_lights models): each window belongs to one of 16 groups, written in its u coordinate
+// (tools/window_groups.py: u + 128 * group; the texture repeats); each group has its own hours
+uniform bool windowLights;
+
+// fading out instead of popping (Renderer: renderObject): between fadeRange.x and .y meters from the camera the object
+// dissolves (a 4x4 ordered dither: some pixels drawn, some not, more and more left out); ditherKeep: the level of
+// detail crossfade, the part of the pixels drawn (the full model the ones below, the simplified one, ditherInvert,
+// the others)
+uniform vec2 fadeRange;
+uniform float ditherKeep;
+uniform bool ditherInvert;
+uniform float hour;   // time of day, 0..24
 // textures
 uniform sampler2D diffuseTexture;
 uniform sampler2D specularTexture;
@@ -64,6 +77,7 @@ uniform vec2 screenSize;
 uniform float wetness;
 // snow: 0 = none, 1 = everything facing the sky is white (grows while it snows, melts after; Environment.cpp)
 uniform float snowCover;
+uniform int groundUse;   // 1: a road (the traffic clears the snow: slush), 2: a sidewalk / path (trodden snow)
 // fog
 uniform float fogDensity;   // 0 = no fog
 // the skies (see skybox.frag): give the fog its color and are what the water reflects
@@ -257,6 +271,26 @@ float computeSpotShadow(int i, vec3 worldPos, vec3 lightDirEye)
     return shadow / 9.0f;
 }
 
+// the 4x4 ordered dither (Bayer matrix): a threshold in (0, 1) for each pixel of a 4x4 block
+float bayer4(vec2 fragCoord)
+{
+    ivec2 p = ivec2(fragCoord) & 3;
+    int m[16] = int[16](0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5);
+    return (float(m[p.y * 4 + p.x]) + 0.5f) / 16.0f;
+}
+
+// is a group of windows lit at this hour? lights on between 17:00 and 20:30, off between 21:30 and 02:30 (a few
+// stay on all night), and about a third come on again early in the morning, from 05:30
+bool windowGroupOn(float group) {
+    float r1 = fract(sin(group * 12.9898f + 1.0f) * 43758.5453f);
+    float r2 = fract(sin(group * 78.233f + 2.0f) * 43758.5453f);
+    float h = hour < 12.0f ? hour + 24.0f : hour;   // evening -> morning without the jump at midnight: 12..36
+    float on = 17.0f + 3.5f * r1;
+    float off = r2 > 0.85f ? 36.0f : 21.5f + 5.0f * r2;
+    float morning = 29.5f + 1.5f * r2;              // 05:30 - 07:00
+    return (h >= on && h < off) || (r1 < 0.35f && h >= morning);
+}
+
 void main()
 {
     // alpha test: the foliage (branch cards, tree billboards) is drawn on quads with transparent texture parts
@@ -264,6 +298,14 @@ void main()
     //  the distant trees would disappear)
     // eye space: the camera is at the origin
     fPosEye = (view * model * vec4(fPosition, 1.0f)).xyz;
+    float threshold = bayer4(gl_FragCoord.xy);
+    if (fadeRange.y > 0.0f) {
+        float keep = 1.0f - clamp((length(fPosEye) - fadeRange.x) / (fadeRange.y - fadeRange.x), 0.0f, 1.0f);
+        if (threshold >= keep) discard;
+    }
+    if (ditherKeep < 1.0f && (ditherInvert ? 1.0f - threshold : threshold) >= ditherKeep) {
+        discard;
+    }
     worldPos = (model * vec4(fPosition, 1.0f)).xyz;
     // flat: face normal from position derivatives (constant across the triangle). Before the alpha test: after a
     // discard the derivatives are undefined (the foliage and the fallen leaves came out black)
@@ -274,6 +316,9 @@ void main()
     normalEye = normalize(normalMatrix * fNormal);
     if (flatShading && dot(flatNormal, flatNormal) > 1e-14f) normalEye = normalize(flatNormal);
 
+    if (windowLights && !windowGroupOn(floor(fTexCoords.x / 128.0f))) {
+        discard;   // that window is dark now: the window itself (behind) shows through
+    }
     vec4 texSample = texture(diffuseTexture, fTexCoords);
     float mipLevel = max(textureQueryLod(diffuseTexture, fTexCoords).x, 0.0f);
     if (texSample.a * (1.0f + 0.25f * mipLevel) < 0.5f) {
@@ -318,12 +363,24 @@ void main()
     }
 
     // snow settles on what faces the sky: first in patches (value noise), then everywhere; it smooths the surface
+    // on the mountains the snow stays all year: above a snow line (150 - 190 m, wavy), on what is not too steep
     float snow = 0.0f;
-    if (snowCover > 0.0f && surfaceMode != 2) {
+    float mountain = smoothstep(130.0f, 190.0f, worldPos.y + 40.0f * (valueNoise(worldPos.xz * 0.015f) - 0.5f)
+                                                + 12.0f * (valueNoise(worldPos.xz * 0.12f) - 0.5f));
+    if (max(snowCover, mountain) > 0.0f && surfaceMode != 2) {
         vec3 normalWorld = transpose(mat3(view)) * normalEye;
-        float up = smoothstep(0.45f, 0.85f, normalWorld.y);
+        float up = smoothstep(mix(0.45f, 0.2f, mountain), mix(0.85f, 0.6f, mountain), normalWorld.y);   // high up, on steeper slopes too
         float n = 0.5f * valueNoise(worldPos.xz * 0.6f) + 0.5f * valueNoise(worldPos.xz * 3.0f);
-        snow = up * smoothstep(n - 0.08f, n + 0.08f, snowCover * 1.25f - 0.15f);
+        snow = up * smoothstep(n - 0.08f, n + 0.08f, max(snowCover, mountain) * 1.25f - 0.15f);
+        if (groundUse == 1) {
+            // the roads: the traffic keeps them mostly clear, a little slush left in patches, the asphalt wet
+            float slush = valueNoise(worldPos.xz * 0.35f) * 0.6f + valueNoise(worldPos.xz * 2.2f) * 0.4f;
+            snow *= 0.55f * smoothstep(0.55f, 0.8f, slush);
+            wet = max(wet, 0.75f * snowCover);
+        }
+        else if (groundUse == 2) {
+            snow *= mix(0.65f, 0.95f, valueNoise(worldPos.xz * 1.3f));   // trodden: thinner, uneven
+        }
         normalEye = normalize(mix(normalEye, normalize((view * vec4(0.0f, 1.0f, 0.0f, 0.0f)).xyz), 0.6f * snow));
         matShininess = mix(matShininess, 8.0f, snow);    // matte, a broad soft sheen
         matSpecular = mix(matSpecular, 0.15f, snow);
@@ -387,7 +444,10 @@ void main()
         texColor = mix(texColor, macro, w);
     }
     vec3 specColor = texture(specularTexture, fTexCoords).rgb;
-    texColor = mix(texColor, vec3(0.86f, 0.89f, 0.93f), snow);
+    // the snow: white (the slush on the roads greyer, the trodden snow a little grey)
+    vec3 snowColor = groundUse == 1 ? vec3(0.55f, 0.55f, 0.56f) : (groundUse == 2 ? vec3(0.78f, 0.8f, 0.83f)
+                                                                                 : vec3(0.86f, 0.89f, 0.93f));
+    texColor = mix(texColor, snowColor, snow);
     specColor = mix(specColor, vec3(0.3f), snow);
     if (wet > 0.0f) {
         texColor *= mix(1.0f, 0.55f, wet) * mix(1.0f, 0.6f, puddle);   // water fills the pores: darker
@@ -428,6 +488,15 @@ void main()
     // no clamping to 1: the scene is HDR, the tone mapping (screen.frag) brings it to the screen; the glowing parts
     // (lit windows, lamp bulbs) are brighter than white, so the bloom makes them shine
     vec3 color = lit + specular * specColor + EMISSIVE_INTENSITY * emissiveColor * texColor;
+    if (snow > 0.5f && groundUse != 1) {
+        // the snow glitters: tiny ice crystals turned just right reflect the sun; which ones depends on the
+        // point of view, so the glints twinkle as the camera moves
+        vec3 cell = floor(worldPos * 40.0f);
+        vec3 viewWorld = transpose(mat3(view)) * viewDir;
+        float h = fract(sin(dot(cell, vec3(12.9898f, 78.233f, 37.719f)) + dot(floor(viewWorld * 6.0f), vec3(3.1f, 7.7f, 1.3f))) * 43758.5453f);
+        float glint = step(0.996f, h) * (snow - 0.5f) * 2.0f * max(dot(normalEye, normalize((view * vec4(lightDir, 0.0f)).xyz)), 0.0f);
+        color += glint * lightColor * 3.0f * smoothstep(20.0f, 2.0f, length(fPosEye));
+    }
 
     // exponential squared fog: almost clear nearby, then thickens quickly with distance
     float fragmentDistance = length(fPosEye);

@@ -55,6 +55,7 @@ namespace gps {
         std::vector<Texture> textures;
         bool glass = false;   // material "Glass": the shader gives it reflections of the sky
         bool grass = false;   // grass ground ("GGrass..."): the 3D grass grows on it (Environment.cpp)
+        int ground = 0;       // 1: a road (in the snow: cleared by the traffic, slush), 2: a sidewalk / path (trodden)
         bool paint = false;   // car body ("...Paint"): its color is given per vehicle (uniform paintColor)
 
 	    Mesh(std::vector<Vertex> vertices, std::vector<GLuint> indices, std::vector<Texture> textures);

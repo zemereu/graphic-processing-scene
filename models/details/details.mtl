@@ -206,15 +206,6 @@ illum 2
 map_Kd kiosk_sign.jpg
 map_Ks ../city/spec_low.jpg
 
-newmtl BalconyModel0
-Ns 16
-Ka 1 1 1
-Kd 1 1 1
-Ks 0.5 0.5 0.5
-illum 2
-map_Kd balcony/./balconymodel0.jpg
-map_Ks ../city/spec_low.jpg
-
 newmtl MetalGarage0
 Ns 16
 Ka 1 1 1
@@ -231,5 +222,113 @@ Kd 1 1 1
 Ks 0.5 0.5 0.5
 illum 2
 map_Kd busstop/./busstopmodel0.jpg
+map_Ks ../city/spec_low.jpg
+
+newmtl Bark
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd ../trees/bark.jpg
+map_Ks ../city/spec_low.jpg
+
+newmtl Bronze
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd ../city/bronze.jpg
+map_Ks ../city/spec_low.jpg
+
+newmtl Flame
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd flame.png
+map_Ks ../city/spec_low.jpg
+
+newmtl FenceMesh
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd ../city/fence_mesh.png
+map_Ks ../city/spec_low.jpg
+
+newmtl RadSign
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd rad_sign.png
+map_Ks ../city/spec_low.jpg
+
+newmtl ZoneSign
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd zone_sign.jpg
+map_Ks ../city/spec_low.jpg
+
+newmtl RoadSign
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd road_sign.jpg
+map_Ks ../city/spec_low.jpg
+
+newmtl Concrete
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd ../city/concrete.jpg
+map_Ks ../city/spec_low.jpg
+
+newmtl Rust
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd rust.jpg
+map_Ks ../city/spec_low.jpg
+
+newmtl Sand
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd sand.png
+map_Ks ../city/spec_low.jpg
+
+newmtl Wreath
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd wreath.png
+map_Ks ../city/spec_low.jpg
+
+newmtl Insulator
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd ../city/glass.jpg
 map_Ks ../city/spec_low.jpg
 

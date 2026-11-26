@@ -54,15 +54,15 @@ void main()
     if (flowersEnabled) type = h3 < 0.85f ? 0.0f : (h3 < 0.91f ? 1.0f : (h3 < 0.97f ? 2.0f : 3.0f));
     float size;
     if (type == 0.0f) {
-        // the tufts of grass come in where the blades go away (grass.vert: from 0.6 to 1 of their radius)
-        size = smoothstep(0.55f * bladeRadius, 0.9f * bladeRadius, dist);
+        // the tufts of grass come in where the blades go away (grass.vert: from 0.45 to 1 of their radius)
+        size = smoothstep(0.4f * bladeRadius, 0.9f * bladeRadius, dist);
     } else {
         // the flowers and the weeds are everywhere, but sparse near the camera (they stand out among the blades)
-        size = h4 < 0.4f ? 1.0f : smoothstep(0.55f * bladeRadius, 0.9f * bladeRadius, dist);
+        size = h4 < 0.4f ? 1.0f : smoothstep(0.4f * bladeRadius, 0.9f * bladeRadius, dist);
     }
-    size *= (1.0f - smoothstep(0.7f * radius, radius, dist)) * (1.0f - snowCover) * step(0.5f, map.r)
+    size *= (1.0f - smoothstep(0.55f * radius, radius, dist)) * (1.0f - snowCover) * (1.0f - smoothstep(120.0f, 160.0f, map.g)) * step(0.5f, map.r)
             * step(abs(pos.x), worldHalfSize) * step(abs(pos.y), worldHalfSize);   // not past the map's edge
-    if (size < 0.02f) {
+    if (size < 0.005f) {
         gl_Position = vec4(2.0f, 2.0f, 2.0f, 1.0f);   // not drawn
         return;
     }

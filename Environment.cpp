@@ -4,6 +4,7 @@
 #include "stb_image.h"
 #include "Scene.hpp"
 #include "Controls.hpp"
+#include "miniaudio.h"   // the sounds
 
 #include <random>
 
@@ -622,4 +623,84 @@ void renderBirds() {
     glEnable(GL_CULL_FACE);
     glDisable(GL_BLEND);
     applyViewMode();
+}
+
+// ==============================================================================================================
+// Sound
+// ==============================================================================================================
+
+bool soundEnabled = true;
+static ma_engine audioEngine;
+static bool audioReady = false;
+enum { SOUND_WIND, SOUND_RAIN, SOUND_TRAFFIC, SOUND_BIRDS, SOUND_CRICKETS, SOUND_LOOPS };
+static const char* SOUND_FILES[SOUND_LOOPS] = { "sounds/wind.wav", "sounds/rain.wav", "sounds/traffic.wav",
+                                                "sounds/birds.wav", "sounds/crickets.wav" };
+static ma_sound loops[SOUND_LOOPS];
+static bool loopReady[SOUND_LOOPS] = {};
+static float loopVolume[SOUND_LOOPS] = {};
+static ma_sound thunderSound;
+static bool thunderReady = false;
+static float thunderDelay = -1.0f;    // seconds after the flash; < 0: no thunder coming
+static float lastSinceStrike = 1000.0f;
+static std::mt19937 soundRng(3);
+
+void initSound() {
+    if (ma_engine_init(NULL, &audioEngine) != MA_SUCCESS) {
+        std::cerr << "No audio device: no sound" << std::endl;
+        return;
+    }
+    audioReady = true;
+    for (int i = 0; i < SOUND_LOOPS; i++) {
+        loopReady[i] = ma_sound_init_from_file(&audioEngine, SOUND_FILES[i], MA_SOUND_FLAG_DECODE, NULL, NULL,
+                                               &loops[i]) == MA_SUCCESS;
+        if (!loopReady[i]) {
+            std::cerr << "Could not load " << SOUND_FILES[i] << std::endl;
+            continue;
+        }
+        ma_sound_set_looping(&loops[i], MA_TRUE);
+        ma_sound_set_volume(&loops[i], 0.0f);
+        // each loop starts at another point, so they don't line up the same way every time
+        ma_sound_seek_to_pcm_frame(&loops[i], (ma_uint64)(soundRng() % 100000));
+        ma_sound_start(&loops[i]);
+    }
+    thunderReady = ma_sound_init_from_file(&audioEngine, "sounds/thunder.wav", MA_SOUND_FLAG_DECODE, NULL, NULL,
+                                           &thunderSound) == MA_SUCCESS;
+}
+
+void updateSound() {
+    if (!audioReady) return;
+    ma_engine_set_volume(&audioEngine, soundEnabled ? 1.0f : 0.0f);
+    bool falling = rainEnabled || snowEnabled;
+    float target[SOUND_LOOPS];
+    target[SOUND_WIND] = glm::clamp(0.12f + windSpeed / 18.0f, 0.0f, 1.0f) * 0.7f;
+    target[SOUND_RAIN] = rainEnabled ? 0.8f : 0.0f;
+    target[SOUND_TRAFFIC] = trafficEnabled ? 0.2f + 0.3f * dayFactor : 0.0f;
+    target[SOUND_BIRDS] = (birdsEnabled && !falling) ? 0.5f * glm::smoothstep(0.4f, 0.9f, dayFactor) : 0.0f;
+    target[SOUND_CRICKETS] = (!falling && snowCover < 0.1f) ? 0.35f * (1.0f - glm::smoothstep(0.1f, 0.5f, dayFactor)) : 0.0f;
+    float k = 1.0f - exp(-1.5f * glm::min(deltaTime, 0.1f));   // they fade in / out in about a second
+    for (int i = 0; i < SOUND_LOOPS; i++) {
+        if (!loopReady[i]) continue;
+        loopVolume[i] += (target[i] - loopVolume[i]) * k;
+        ma_sound_set_volume(&loops[i], loopVolume[i]);
+    }
+    if (loopReady[SOUND_WIND]) ma_sound_set_pitch(&loops[SOUND_WIND], 0.85f + windSpeed / 50.0f);
+    // the thunder: a new flash (sinceStrike went back to 0) -> its sound 0.5 - 3 s later (farther: later, quieter)
+    if (sinceStrike < lastSinceStrike) {
+        thunderDelay = std::uniform_real_distribution<float>(0.5f, 3.0f)(soundRng);
+    }
+    lastSinceStrike = sinceStrike;
+    if (thunderReady && thunderDelay >= 0.0f && sinceStrike >= thunderDelay) {
+        ma_sound_seek_to_pcm_frame(&thunderSound, 0);
+        ma_sound_set_volume(&thunderSound, 1.1f - 0.25f * thunderDelay);
+        ma_sound_start(&thunderSound);
+        thunderDelay = -1.0f;
+    }
+}
+
+void shutdownSound() {
+    if (!audioReady) return;
+    for (int i = 0; i < SOUND_LOOPS; i++) if (loopReady[i]) ma_sound_uninit(&loops[i]);
+    if (thunderReady) ma_sound_uninit(&thunderSound);
+    ma_engine_uninit(&audioEngine);
+    audioReady = false;
 }

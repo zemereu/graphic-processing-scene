@@ -57,7 +57,9 @@ void updateTour();
 // ==============================================================================================================
 
 extern bool showUI;
+extern bool sceneReady;   // false while loading: the callbacks only remember the window size, ignore the keys
 
 void initUI();       // after setWindowCallbacks(): ImGui chains to our callbacks
 void renderUI();
 void shutdownUI();
+void showLoading(float progress, const char* what);   // the loading screen: one frame with a progress bar

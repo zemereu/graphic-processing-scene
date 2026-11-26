@@ -27,6 +27,7 @@ namespace gps {
 		glUniform1i(glGetUniformLocation(shader.shaderProgram, "glass"), glass);
 		glUniform1i(glGetUniformLocation(shader.shaderProgram, "grass"), grass);
 		glUniform1i(glGetUniformLocation(shader.shaderProgram, "paint"), paint);
+		glUniform1i(glGetUniformLocation(shader.shaderProgram, "groundUse"), ground);
 		glBindVertexArray(this->buffers.VAO);
 		glDrawElements(GL_TRIANGLES, (GLsizei)this->indices.size(), GL_UNSIGNED_INT, 0);
 		glBindVertexArray(0);
