@@ -1,0 +1,14 @@
+newmtl Shoes
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.05 0.05 0.05
+Ns 8
+map_Kd shoes.png
+
+newmtl TrousersPaint
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.05 0.05 0.05
+Ns 8
+map_Kd white.png
+

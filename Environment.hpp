@@ -135,3 +135,17 @@ const float BIRD_SEPARATION_RADIUS = 3.0f;
 void initBirds();
 void updateBirds();   // every frame: one step of the simulation
 void renderBirds();   // after the opaque objects and the sky
+
+// ==============================================================================================================
+// Sound
+//
+// The sounds of the scene (sounds/*.wav, made by tools/sounds.py; played with miniaudio): loops of wind, rain, the
+// town's traffic, birds by day and crickets at night, their volumes following the weather, the time of day and the
+// traffic (each fades in and out); a thunder a moment after each lightning (the sound comes later than the flash).
+// No audio device: no sound, the rest runs as usual.
+// ==============================================================================================================
+
+extern bool soundEnabled;
+void initSound();
+void updateSound();   // every frame
+void shutdownSound();

@@ -41,6 +41,8 @@ float fogDensity = 0.0012f;   // the world is 2 km wide: lighter fog than before
 
 void initUniforms() {
     myBasicShader.useShaderProgram();
+    // nothing dithered out until an object asks for it (Renderer: renderObject)
+    glUniform1f(glGetUniformLocation(myBasicShader.shaderProgram, "ditherKeep"), 1.0f);
 
     modelLoc = glGetUniformLocation(myBasicShader.shaderProgram, "model");
 

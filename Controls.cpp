@@ -29,6 +29,8 @@ const float OBJECT_MOVE_SPEED = 20.0f;    // meters per second
 const float OBJECT_ROTATE_SPEED = 45.0f;  // degrees per second
 const float OBJECT_SCALE_SPEED = 0.5f;    // +50% per second
 
+bool sceneReady = false;
+
 void windowResizeCallback(GLFWwindow* window, int width, int height) {
     fprintf(stdout, "Window resized! New width: %d , and height: %d\n", width, height);
     if (width == 0 || height == 0) return; // window minimized
@@ -38,6 +40,7 @@ void windowResizeCallback(GLFWwindow* window, int width, int height) {
     glfwGetFramebufferSize(window, &fbWidth, &fbHeight);
     myWindow.setWindowDimensions(WindowDimensions{ fbWidth, fbHeight });
     glViewport(0, 0, fbWidth, fbHeight);
+    if (!sceneReady) return;   // still loading: the framebuffers are made at the end, at this size
     createSceneFramebuffers(fbWidth, fbHeight);
 
     projection = glm::perspective(glm::radians(45.0f), (float)fbWidth / (float)fbHeight, 0.5f, 3000.0f);
@@ -47,6 +50,7 @@ void windowResizeCallback(GLFWwindow* window, int width, int height) {
 
 void keyboardCallback(GLFWwindow* window, int key, int scancode, int action, int mode) {
     if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) { glfwSetWindowShouldClose(window, GL_TRUE); }
+    if (!sceneReady) return;
 
     if (key == GLFW_KEY_M && action == GLFW_PRESS) {
         if (glfwGetInputMode(window, GLFW_CURSOR) == GLFW_CURSOR_DISABLED)
@@ -492,16 +496,43 @@ void renderUI() {
         if (ImGui::Checkbox("Rain", &rain)) setRain(rain);
         ImGui::SameLine();
         if (ImGui::Checkbox("Snow", &snow)) setSnow(snow);
+        ImGui::SameLine();
+        ImGui::Checkbox("Lightning", &lightningEnabled);
         ImGui::SliderFloat("Wind", &windSpeed, 0.0f, 20.0f, "%.0f m/s");
 
         ImGui::SeparatorText("Scene");
-        ImGui::Checkbox("Shadows", &shadowsEnabled);
-        ImGui::SameLine();
         ImGui::Checkbox("Traffic", &trafficEnabled);
         ImGui::SameLine();
+        ImGui::Checkbox("People", &pedestriansEnabled);
+        ImGui::SameLine();
+        ImGui::Checkbox("Birds", &birdsEnabled);
+        ImGui::SameLine();
+        ImGui::Checkbox("Smoke", &smokeEnabled);
         ImGui::Checkbox("Grass", &grassEnabled);
         ImGui::SameLine();
+        ImGui::Checkbox("Flowers", &flowersEnabled);
+        ImGui::SameLine();
         ImGui::Checkbox("Collisions", &collisionsEnabled);
+        ImGui::SameLine();
+        ImGui::Checkbox("Sound", &soundEnabled);
+
+        ImGui::SeparatorText("Effects");
+        ImGui::Checkbox("Shadows", &shadowsEnabled);
+        ImGui::SameLine();
+        ImGui::Checkbox("Shadow cascades", &showShadowMap);
+        ImGui::SameLine();
+        ImGui::Checkbox("SSAO", &ssaoEnabled);
+        ImGui::Checkbox("Bloom", &bloomEnabled);
+        ImGui::SameLine();
+        ImGui::Checkbox("God rays", &godRaysEnabled);
+        ImGui::SameLine();
+        ImGui::Checkbox("Light beams", &lightBeamsEnabled);
+        ImGui::Checkbox("Water reflections", &reflectionsEnabled);
+        ImGui::SameLine();
+        ImGui::Checkbox("Auto exposure", &autoExposureEnabled);
+        if (ImGui::Checkbox("Antialiasing (MSAA 4x)", &antialiasingEnabled)) {
+            createSceneFramebuffers(sceneWidth, sceneHeight);
+        }
 
         ImGui::Separator();
         if (tourActive) {
@@ -570,6 +601,36 @@ void renderUI() {
     glDisable(GL_FRAMEBUFFER_SRGB);
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
     glEnable(GL_FRAMEBUFFER_SRGB);
+}
+
+void showLoading(float progress, const char* what) {
+    int width, height;
+    glfwGetFramebufferSize(myWindow.getWindow(), &width, &height);
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glViewport(0, 0, width, height);
+    glClearColor(0.008f, 0.008f, 0.01f, 1.0f);   // (the window is sRGB: this is a dark grey)
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    ImGui_ImplOpenGL3_NewFrame();
+    ImGui_ImplGlfw_NewFrame();
+    ImGui::NewFrame();
+    ImGuiIO& io = ImGui::GetIO();
+    ImGui::SetNextWindowPos(ImVec2(io.DisplaySize.x * 0.5f, io.DisplaySize.y * 0.5f), ImGuiCond_Always,
+        ImVec2(0.5f, 0.5f));
+    ImGui::SetNextWindowSize(ImVec2(460.0f, 0.0f));
+    ImGui::Begin("Loading", nullptr, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove |
+        ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoInputs);
+    ImGui::SetWindowFontScale(1.4f);
+    ImGui::Text("Loading the scene...");
+    ImGui::SetWindowFontScale(1.0f);
+    ImGui::ProgressBar(progress, ImVec2(-1.0f, 0.0f));
+    ImGui::TextDisabled("%s", what);
+    ImGui::End();
+    ImGui::Render();
+    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
+    glfwSwapBuffers(myWindow.getWindow());
+    glfwPollEvents();   // the window stays responsive (it can be moved, closed)
 }
 
 void shutdownUI() {

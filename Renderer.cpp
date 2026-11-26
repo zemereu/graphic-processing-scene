@@ -222,6 +222,13 @@ float boxDistance(const gps::BoundingBox& box, const glm::mat4& objectModel, con
 const float TREE_LEAN = 0.004f;   // how far the top of a tree leans: this fraction of its height per m/s of wind
 
 void setWindSway(GLuint program, gps::Model3D& object, const glm::mat4& objectModel) {
+    // a flag: the vertex shader bends its cloth (flagCloth), 0 = not a flag
+    bool flag = &object >= &flagModels[0] && &object < &flagModels[0] + FLAG_KINDS;
+    glUniform1f(glGetUniformLocation(program, "flagWave"), flag ? windSpeed + 0.3f : 0.0f);
+    if (flag) {
+        glUniform1f(glGetUniformLocation(program, "flagLength"), modelBox(object).max.x);
+        glUniform1f(glGetUniformLocation(program, "time"), (float)glfwGetTime());
+    }
     bool tree = &object >= &treeModels[0] && &object < &treeModels[0] + TREE_SPECIES_COUNT;
     float height = tree ? modelBox(object).max.y : 0.0f;
     glUniform1f(glGetUniformLocation(program, "swayHeight"), height);
@@ -239,9 +246,13 @@ void setWindSway(GLuint program, gps::Model3D& object, const glm::mat4& objectMo
 }
 
 // meshes: if given, only those meshes of the model are drawn (the town's details)
+// fade: (start, end) meters from the camera: the object dissolves (dithered) between them, instead of popping out
+// at a distance limit; (0, 0) = no fade. dither < 1: only that part of its pixels is drawn (the level of detail
+// crossfade: the full and the simplified model each draw the pixels the other doesn't, invert tells which)
 void renderObject(gps::Model3D& object, const glm::mat4& objectModel, gps::Shader shader,
     const glm::vec3& emissive = glm::vec3(0.0f), const std::vector<bool>* meshes = nullptr,
-    const glm::vec3& paint = glm::vec3(1.0f)) {
+    const glm::vec3& paint = glm::vec3(1.0f), const glm::vec2& fade = glm::vec2(0.0f), float dither = 1.0f,
+    bool invert = false) {
     // skip the objects that are not in the shadow map area / not in front of the camera
     glm::mat4 clipMatrix = depthPass ? depthPassMatrix : projection * view;
     if (!boxVisible(modelBox(object), clipMatrix * objectModel)) return;
@@ -250,13 +261,33 @@ void renderObject(gps::Model3D& object, const glm::mat4& objectModel, gps::Shade
         passShader.useShaderProgram();
         glUniformMatrix4fv(glGetUniformLocation(passShader.shaderProgram, "model"), 1, GL_FALSE,
             glm::value_ptr(objectModel));
+        if (!grassMaskPass) {
+            // the shadow of a thing far from the camera fades out in the same way (a dithered shadow map is smoothed
+            // by the filtering of the shadows: a lighter shadow, not a hole)
+            glUniform2fv(glGetUniformLocation(passShader.shaderProgram, "fadeRange"), 1,
+                glm::value_ptr(spotShadowPass ? glm::vec2(0.0f) : fade));
+            glUniform3fv(glGetUniformLocation(passShader.shaderProgram, "fadeCenter"), 1,
+                glm::value_ptr(glm::vec3(glm::inverse(view)[3])));
+        }
         setWindSway(passShader.shaderProgram, object, objectModel);
         if (meshes) object.DrawMeshes(passShader, *meshes); else object.Draw(passShader);
         return;
     }
     shader.useShaderProgram();
+    static GLint windowLightsLoc = glGetUniformLocation(shader.shaderProgram, "windowLights");
+    static GLint hourLoc = glGetUniformLocation(shader.shaderProgram, "hour");
+    bool windows = &object == &cityLights || &object == &genexLights || &object == &romanitaLights ||
+                   &object == &telefoaneLights || &object == &satuMareLights;
+    glUniform1i(windowLightsLoc, windows);
+    glUniform1f(hourLoc, timeOfDay);
     glUniform3fv(emissiveColorLoc, 1, glm::value_ptr(emissive));
     glUniform3fv(paintColorLoc, 1, glm::value_ptr(paint));
+    static GLint fadeLoc = glGetUniformLocation(shader.shaderProgram, "fadeRange");
+    static GLint ditherLoc = glGetUniformLocation(shader.shaderProgram, "ditherKeep");
+    static GLint invertLoc = glGetUniformLocation(shader.shaderProgram, "ditherInvert");
+    glUniform2fv(fadeLoc, 1, glm::value_ptr(fade));
+    glUniform1f(ditherLoc, dither);
+    glUniform1i(invertLoc, invert);
     // 1 = terrain (texture repetition hidden), 2 = water (animated waves + sky reflection), 0 = everything else
     glUniform1i(surfaceModeLoc, &object == &terrain ? 1 : (&object == &water ? 2 : 0));
     glUniform1f(timeLoc, (float)glfwGetTime());
@@ -286,11 +317,15 @@ struct DrawItem {
     glm::vec3 emissive;
     float distance;   // from the camera, to the nearest point of the object
     glm::vec3 paint;  // body color of a vehicle
+    glm::vec2 fade = glm::vec2(0.0f);   // see renderObject
+    float dither = 1.0f;
+    bool invert = false;
 };
 
 // the town's details: thousands of small things, so each mesh (one material in one tile) is culled on its own,
 // by distance (beyond maxDistance they are too small to matter) and by the view volume of this pass
-void renderDetails(gps::Model3D& model, const std::vector<gps::BoundingBox>& bounds, float maxDistance) {
+void renderDetails(gps::Model3D& model, const std::vector<gps::BoundingBox>& bounds, float maxDistance,
+    bool fadeOut = true) {
     glm::mat4 identity(1.0f);
     glm::vec3 cameraPos = glm::vec3(glm::inverse(view)[3]);
     glm::mat4 clipMatrix = depthPass ? depthPassMatrix : projection * view;
@@ -300,7 +335,9 @@ void renderDetails(gps::Model3D& model, const std::vector<gps::BoundingBox>& bou
         visible[i] = boxDistance(bounds[i], identity, cameraPos) <= maxDistance && boxVisible(bounds[i], clipMatrix);
         any = any || visible[i];
     }
-    if (any) renderObject(model, identity, myBasicShader, glm::vec3(0.0f), &visible);
+    // they dissolve over the last 20% of their distance instead of popping
+    glm::vec2 fade = fadeOut ? glm::vec2(0.8f * maxDistance, maxDistance) : glm::vec2(0.0f);
+    if (any) renderObject(model, identity, myBasicShader, glm::vec3(0.0f), &visible, glm::vec3(1.0f), fade);
 }
 
 void renderSceneObjects() {
@@ -314,21 +351,45 @@ void renderSceneObjects() {
                     const glm::vec3& paint = glm::vec3(1.0f)) {
         drawList.push_back({ &object, m, emissive, boxDistance(modelBox(object), m, cameraPos), paint });
     };
+    // the same, dissolving between fade.x and fade.y meters from the camera
+    auto drawFaded = [&](gps::Model3D& object, const glm::mat4& m, const glm::vec2& fade,
+                         const glm::vec3& emissive, const glm::vec3& paint) {
+        DrawItem item{ &object, m, emissive, boxDistance(modelBox(object), m, cameraPos), paint };
+        item.fade = fade;
+        drawList.push_back(item);
+    };
     // the vehicles: hundreds of them, so not drawn far away (tiny), and their shadows only near the camera
     auto drawVehicle = [&](int type, const glm::mat4& m, const glm::vec3& paint, bool lit) {
         float distance = boxDistance(modelBox(vehicleModels[type]), m, cameraPos);
-        if (distance > (depthPass ? DETAIL_SHADOW_DISTANCE : VEHICLE_DISTANCE) * drawDistanceScale) return;
-        drawList.push_back({ &vehicleModels[type], m, glm::vec3(0.0f), distance,
-                             VEHICLES[type].painted ? paint : glm::vec3(1.0f) });
+        float range = (depthPass ? DETAIL_SHADOW_DISTANCE : VEHICLE_DISTANCE) * drawDistanceScale;
+        if (distance > range) return;
+        DrawItem body{ &vehicleModels[type], m, glm::vec3(0.0f), distance,
+                       VEHICLES[type].painted ? paint : glm::vec3(1.0f) };
+        body.fade = glm::vec2(0.8f * range, range);
+        drawList.push_back(body);
         if (!depthPass) {
             drawList.push_back({ &vehicleLights[type], m, lit ? glm::vec3(1.0f) : glm::vec3(0.0f), distance,
                                  glm::vec3(1.0f) });
         }
     };
-    auto lod = [&](gps::Model3D& full, gps::Model3D& simple, const glm::mat4& m) -> gps::Model3D& {
-        if (depthPass) return full;
+    // the level of detail: near, the full model; far, the simplified one; in between (a band around LOD_DISTANCE)
+    // both, dithered into each other (each draws the pixels the other leaves out), so the switch doesn't pop
+    auto drawLod = [&](gps::Model3D& full, gps::Model3D& simple, const glm::mat4& m) {
+        if (depthPass) { draw(full, m); return; }
         // the reflection is small and wobbly: the simplified models are enough there
-        return reflectionPass || boxDistance(modelBox(full), m, cameraPos) > LOD_DISTANCE * drawDistanceScale ? simple : full;
+        if (reflectionPass) { draw(simple, m); return; }
+        float d = boxDistance(modelBox(full), m, cameraPos);
+        float L = LOD_DISTANCE * drawDistanceScale, band = 0.15f * L;
+        if (d < L - band) { draw(full, m); return; }
+        if (d > L + band) { draw(simple, m); return; }
+        float t = (d - (L - band)) / (2.0f * band);
+        DrawItem a{ &full, m, glm::vec3(0.0f), d, glm::vec3(1.0f) };
+        a.dither = 1.0f - t;
+        DrawItem b{ &simple, m, glm::vec3(0.0f), d, glm::vec3(1.0f) };
+        b.dither = t;
+        b.invert = true;
+        drawList.push_back(a);
+        drawList.push_back(b);
     };
     draw(terrain, identity);
     if (!depthPass && !reflectionPass) {
@@ -350,12 +411,16 @@ void renderSceneObjects() {
     }
     draw(panorama, panoramaMatrix());
     draw(telefoane, telefoaneMatrix());
-    draw(lod(motherland, motherlandLod, placed(motherlandPlace)), placed(motherlandPlace));
+    drawLod(motherland, motherlandLod, placed(motherlandPlace));
     draw(romanita, placed(romanitaPlace));
-    draw(lod(powerPlant, powerPlantLod, placed(powerPlantPlace)), placed(powerPlantPlace));
-    draw(lod(duga, dugaLod, placed(dugaPlace)), placed(dugaPlace));
-    draw(lod(pripyatBlocks, pripyatBlocksLod, placed(pripyatPlace)), placed(pripyatPlace));
+    drawLod(powerPlant, powerPlantLod, placed(powerPlantPlace));
+    drawLod(duga, dugaLod, placed(dugaPlace));
+    drawLod(pripyatBlocks, pripyatBlocksLod, placed(pripyatPlace));
     draw(ferrisSupport, placed(ferrisPlace));
+    for (const Flag& f : flags) {
+        draw(flagModels[f.kind], flagMatrix(f));
+        if (f.pole) draw(flagpole, flagpoleMatrix(f));
+    }
     draw(cityNorth, identity);
     draw(citySouth, identity);
     draw(cityProps, identity);
@@ -391,6 +456,24 @@ void renderSceneObjects() {
         for (const Car& car : cars) {
             glm::mat4 carModel = carMatrix(car);
             drawVehicle(car.model, carModel, car.paint, nightMode);
+            if (car.model == TROLLEYBUS) draw(trolleyPoles, carModel);
+        }
+    }
+    draw(trolleyWires, identity);
+    // the pedestrians: in parts, only near the camera (their shadows nearer still)
+    if (pedestriansEnabled) {
+        float range = (depthPass ? 60.0f : PEDESTRIAN_DISTANCE) * drawDistanceScale;
+        for (const Pedestrian& p : pedestrians) {
+            const Walk& w = walks[p.walk];
+            if (glm::distance(cameraPos, w.points[0]) > range + w.length) continue;   // the whole way is far
+            PedestrianPose pose = pedestrianPose(p);
+            if (glm::distance(cameraPos, glm::vec3(pose.body[3])) > range) continue;
+            glm::vec2 fade(0.75f * range, range);
+            drawFaded(pedestrianBody, pose.body, fade, glm::vec3(0.0f), p.coat);
+            for (int k = 0; k < 2; k++) {
+                drawFaded(pedestrianLeg, pose.legs[k], fade, glm::vec3(0.0f), p.trousers);
+                drawFaded(pedestrianArm, pose.arms[k], fade, glm::vec3(0.0f), p.coat);
+            }
         }
     }
     // z-buffer (course 07 - Fragment processing): drawn from near to far, the hidden fragments of the objects behind
@@ -400,14 +483,15 @@ void renderSceneObjects() {
             [](const DrawItem& a, const DrawItem& b) { return a.distance < b.distance; });
     }
     for (const DrawItem& item : drawList) {
-        renderObject(*item.object, item.model, myBasicShader, item.emissive, nullptr, item.paint);
+        renderObject(*item.object, item.model, myBasicShader, item.emissive, nullptr, item.paint, item.fade,
+                     item.dither, item.invert);
     }
 
     // the town's details (the grass map needs all of them: no grass under a hedge or a bench)
     float range = grassMaskPass ? FLT_MAX
                 : depthPass ? DETAIL_SHADOW_DISTANCE * drawDistanceScale
                 : reflectionPass ? 150.0f : DETAIL_DISTANCE * drawDistanceScale;
-    renderDetails(detailObjects, detailObjectBounds, range);
+    renderDetails(detailObjects, detailObjectBounds, range, !grassMaskPass && !reflectionPass);
     if (!depthPass && !reflectionPass) {   // flat on the ground: no shadows, too small for the reflection
         renderDetails(detailDecals, detailDecalBounds, DECAL_DISTANCE * drawDistanceScale);
     }

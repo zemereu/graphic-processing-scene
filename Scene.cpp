@@ -1,5 +1,7 @@
 #include "Scene.hpp"
 #include "Lighting.hpp"   // the street lamps and the floodlights of the layout
+#include "Controls.hpp"   // the loading screen
+#include "Environment.hpp"   // the wind (flags)
 
 
 #include <fstream>
@@ -45,6 +47,8 @@ const VehicleType VEHICLES[VEHICLE_TYPES] = {
     { "models/vehicles/gaz52/gaz52.obj", "models/vehicles/gaz52/gaz52_lights.obj", 6.4f, false, 3, false },
     { "models/vehicles/ural4320/ural4320.obj", "models/vehicles/ural4320/ural4320_lights.obj", 7.37f, false, 2, false },
     { "models/vehicles/laz699/laz699.obj", "models/vehicles/laz699/laz699_lights.obj", 10.2f, false, 3, false },
+    // the trolleybus: the bus body, the poles on the roof drawn with it (trolleyPoles)
+    { "models/vehicles/laz699/laz699.obj", "models/vehicles/laz699/laz699_lights.obj", 10.2f, false, 0, false },
 };
 gps::Model3D vehicleModels[VEHICLE_TYPES];
 gps::Model3D vehicleLights[VEHICLE_TYPES];
@@ -101,18 +105,25 @@ bool loadCityProps(const char* path) {
     while (in >> kind) {
         if (kind[0] == '#') { std::getline(in, kind); continue; }   // comment line
         int car = -1;
-        if (kind == "car") in >> car;
+        bool wreck = kind == "wreck";   // an abandoned vehicle (the zone): that very type, rusty, sunk on one side
+        if (kind == "car" || wreck) in >> car;
         float x, y, z, yaw;
         in >> x >> y >> z >> yaw;
-        glm::mat4 m = glm::translate(glm::mat4(1.0f), glm::vec3(x, y, z));
+        glm::mat4 m = glm::translate(glm::mat4(1.0f), glm::vec3(x, y - (wreck ? 0.08f : 0.0f), z));
+        m = glm::rotate(m, glm::radians(yaw), glm::vec3(0.0f, 1.0f, 0.0f));
         // a parked car: one of the vehicles that park, chosen from its place (always the same)
         unsigned int seed = (unsigned int)(fabs(x) * 7.0f) * 73856093u ^ (unsigned int)(fabs(z) * 7.0f) * 19349663u;
-        if (car >= 0) {
+        glm::vec3 paint = vehiclePaint(seed);
+        if (wreck) {
+            car = std::min(std::max(car, 0), VEHICLE_TYPES - 2);
+            m = glm::rotate(m, glm::radians(3.0f), glm::normalize(glm::vec3(1.0f, 0.0f, 0.4f)));
+            paint = glm::mix(paint * 0.5f, glm::vec3(0.33f, 0.2f, 0.12f), 0.7f);
+        } else if (car >= 0) {
             std::vector<int> parking;
             for (int i = 0; i < VEHICLE_TYPES; i++) if (VEHICLES[i].parks) parking.push_back(i);
             car = parking[(seed >> 3) % parking.size()];
         }
-        cityProps_.push_back({ car, glm::rotate(m, glm::radians(yaw), glm::vec3(0.0f, 1.0f, 0.0f)), vehiclePaint(seed) });
+        cityProps_.push_back({ car, m, paint });
     }
     return true;
 }
@@ -146,6 +157,71 @@ glm::mat4 placed(const Placement& p) {
 }
 
 // one line per object: <name> x y z yaw  |  lamp x y z  |  floodlight x y z  target_x target_y target_z
+// a placement of layout.txt by its name (nullptr: not one of them)
+static Placement* placementNamed(const std::string& name) {
+    std::pair<const char*, Placement*> places[] = {
+        { "satu_mare", &satuMarePlace }, { "genex", &genexPlace }, { "panorama", &panoramaPlace },
+        { "motherland", &motherlandPlace }, { "romanita", &romanitaPlace }, { "power_plant", &powerPlantPlace },
+        { "duga", &dugaPlace }, { "pripyat", &pripyatPlace }, { "ferris_wheel", &ferrisPlace },
+        { "telefoane", &telefoanePlace } };
+    for (auto& p : places) if (name == p.first) return p.second;
+    return nullptr;
+}
+
+const char* FLAG_NAMES[FLAG_KINDS] = { "ussr", "mssr" };
+gps::Model3D flagModels[FLAG_KINDS], flagpole;
+std::vector<Flag> flags;
+
+void loadFlags(const char* path) {
+    std::ifstream in(path);
+    if (!in) {
+        std::cerr << "Could not open " << path << ": no flags" << std::endl;
+        return;
+    }
+    std::string line;
+    while (std::getline(in, line)) {
+        std::istringstream ls(line);
+        std::string word, name, on;
+        Flag f;
+        int pole = 0;
+        if (!(ls >> word) || word != "flag") continue;
+        if (!(ls >> name >> on >> f.top.x >> f.top.y >> f.top.z >> pole)) continue;
+        f.kind = -1;
+        for (int k = 0; k < FLAG_KINDS; k++) if (name == FLAG_NAMES[k]) f.kind = k;
+        if (f.kind < 0) continue;
+        f.on = on;
+        f.pole = pole != 0;
+        f.angle = -windDirection;
+        flags.push_back(f);
+    }
+}
+
+// where the top of the flag is, in the world
+static glm::vec3 flagTop(const Flag& f) {
+    Placement* p = placementNamed(f.on);
+    glm::mat4 base = p ? placed(*p) : glm::mat4(1.0f);
+    return glm::vec3(base * glm::vec4(f.top, 1.0f));
+}
+
+glm::mat4 flagMatrix(const Flag& f) {
+    // the flag's x axis (from the pole) turned towards where the wind blows (world space)
+    return glm::rotate(glm::translate(glm::mat4(1.0f), flagTop(f)), glm::radians(f.angle), glm::vec3(0.0f, 1.0f, 0.0f));
+}
+
+glm::mat4 flagpoleMatrix(const Flag& f) {
+    return glm::translate(glm::mat4(1.0f), flagTop(f) - glm::vec3(0.0f, FLAG_POLE_TOP, 0.0f));
+}
+
+// the flags turn slowly round their poles, after the wind (and swing a little around it)
+static void updateFlags() {
+    float t = (float)glfwGetTime();
+    for (size_t i = 0; i < flags.size(); i++) {
+        float target = -windDirection + 12.0f * sin(t * 0.37f + 1.7f * (float)i);
+        float diff = fmod(target - flags[i].angle + 540.0f, 360.0f) - 180.0f;   // the short way round
+        flags[i].angle += diff * (1.0f - exp(-1.5f * deltaTime));
+    }
+}
+
 void loadLayout(const char* path) {
     std::ifstream in(path);
     if (!in) {
@@ -185,56 +261,72 @@ void loadLayout(const char* path) {
     resetTelefoane();
 }
 
+const float LOADING_MODELS = 0.85f;   // the part of the loading screen's bar for the models
+
+// the size of a file (for the progress bar: the time to load a model goes with its size)
+static long fileSize(const std::string& path) {
+    std::ifstream f(path, std::ios::binary | std::ios::ate);   // opened at the end: its position is the size
+    return f ? (long)f.tellg() : 0;
+}
+
 void initModels() {
     loadLayout("models/layout.txt");
-    terrain.LoadModel("models/terrain/terrain.obj");
-    water.LoadModel("models/terrain/water.obj");
-    satuMare.LoadModel("models/satu_mare/satu_mare.obj");
-    genex.LoadModel("models/genex/genex.obj");
-    genexRestaurant.LoadModel("models/genex/genex_restaurant.obj");
-    genexLights.LoadModel("models/genex/genex_lights.obj");
-    romanitaLights.LoadModel("models/romanita/romanita_lights.obj");
-    telefoaneLights.LoadModel("models/telefoane/telefoane_lights.obj");
-    satuMareLights.LoadModel("models/satu_mare/satu_mare_lights.obj");
-    panorama.LoadModel("models/panorama/panorama.obj");
-    telefoane.LoadModel("models/telefoane/telefoane.obj");
-    lampPost.LoadModel("models/lamp_post/lamp_post.obj");
-    lampBulb.LoadModel("models/lamp_post/lamp_bulb.obj");
-    floodlight.LoadModel("models/floodlight/floodlight.obj");
-    floodlightLens.LoadModel("models/floodlight/floodlight_lens.obj");
-    for (int i = 0; i < VEHICLE_TYPES; i++) {
-        vehicleModels[i].LoadModel(VEHICLES[i].model);
-        vehicleLights[i].LoadModel(VEHICLES[i].lights);
+    // all the models to load, then loaded one by one with the loading screen in between
+    std::vector<std::pair<gps::Model3D*, std::string>> jobs = {
+        { &terrain, "models/terrain/terrain.obj" }, { &water, "models/terrain/water.obj" },
+        { &satuMare, "models/satu_mare/satu_mare.obj" }, { &genex, "models/genex/genex.obj" },
+        { &genexRestaurant, "models/genex/genex_restaurant.obj" }, { &genexLights, "models/genex/genex_lights.obj" },
+        { &romanitaLights, "models/romanita/romanita_lights.obj" },
+        { &telefoaneLights, "models/telefoane/telefoane_lights.obj" },
+        { &satuMareLights, "models/satu_mare/satu_mare_lights.obj" }, { &panorama, "models/panorama/panorama.obj" },
+        { &telefoane, "models/telefoane/telefoane.obj" }, { &lampPost, "models/lamp_post/lamp_post.obj" },
+        { &lampBulb, "models/lamp_post/lamp_bulb.obj" }, { &floodlight, "models/floodlight/floodlight.obj" },
+        { &floodlightLens, "models/floodlight/floodlight_lens.obj" },
+        { &motherland, "models/motherland/motherland.obj" }, { &romanita, "models/romanita/romanita.obj" },
+        { &powerPlant, "models/power_plant/power_plant.obj" }, { &duga, "models/duga/duga.obj" },
+        { &pripyatBlocks, "models/pripyat/pripyat_blocks.obj" },
+        { &motherlandLod, "models/motherland/motherland_lod.obj" },
+        { &powerPlantLod, "models/power_plant/power_plant_lod.obj" }, { &dugaLod, "models/duga/duga_lod.obj" },
+        { &pripyatBlocksLod, "models/pripyat/pripyat_blocks_lod.obj" },
+        { &ferrisSupport, "models/ferris_wheel/ferris_support.obj" },
+        { &ferrisWheel, "models/ferris_wheel/ferris_wheel.obj" },
+        { &ferrisGondola, "models/ferris_wheel/ferris_gondola.obj" }, { &trees, "models/trees/trees.obj" },
+        { &cityNorth, "models/city/city_north.obj" }, { &citySouth, "models/city/city_south.obj" },
+        { &cityProps, "models/city/city_props.obj" }, { &cityLights, "models/city/city_lights.obj" },
+        { &detailObjects, "models/details/objects.obj" }, { &detailDecals, "models/details/decals.obj" },
+        { &flagpole, "models/flags/flagpole.obj" },
+        { &trolleyWires, "models/trolleybus/wires.obj" }, { &trolleyPoles, "models/trolleybus/trolley_poles.obj" },
+        { &pedestrianBody, "models/pedestrians/body.obj" }, { &pedestrianLeg, "models/pedestrians/leg.obj" },
+        { &pedestrianArm, "models/pedestrians/arm.obj" },
+    };
+    for (int i = 0; i < FLAG_KINDS; i++) {
+        jobs.push_back({ &flagModels[i], std::string("models/flags/flag_") + FLAG_NAMES[i] + ".obj" });
     }
-    motherland.LoadModel("models/motherland/motherland.obj");
-    romanita.LoadModel("models/romanita/romanita.obj");
-    powerPlant.LoadModel("models/power_plant/power_plant.obj");
-    duga.LoadModel("models/duga/duga.obj");
-    pripyatBlocks.LoadModel("models/pripyat/pripyat_blocks.obj");
-    motherlandLod.LoadModel("models/motherland/motherland_lod.obj");
-    powerPlantLod.LoadModel("models/power_plant/power_plant_lod.obj");
-    dugaLod.LoadModel("models/duga/duga_lod.obj");
-    pripyatBlocksLod.LoadModel("models/pripyat/pripyat_blocks_lod.obj");
-    ferrisSupport.LoadModel("models/ferris_wheel/ferris_support.obj");
-    ferrisWheel.LoadModel("models/ferris_wheel/ferris_wheel.obj");
-    ferrisGondola.LoadModel("models/ferris_wheel/ferris_gondola.obj");
-    trees.LoadModel("models/trees/trees.obj");
+    for (int i = 0; i < VEHICLE_TYPES; i++) {
+        jobs.push_back({ &vehicleModels[i], VEHICLES[i].model });
+        jobs.push_back({ &vehicleLights[i], VEHICLES[i].lights });
+    }
     for (int i = 0; i < TREE_SPECIES_COUNT; i++) {
-        treeModels[i].LoadModel(std::string("models/trees/tree_") + TREE_SPECIES[i] + ".obj");
+        jobs.push_back({ &treeModels[i], std::string("models/trees/tree_") + TREE_SPECIES[i] + ".obj" });
+    }
+    double total = 0.0, done = 0.0;
+    for (auto& job : jobs) total += (double)fileSize(job.second) + 1e5;   // + a little for the textures
+    for (auto& job : jobs) {
+        showLoading(LOADING_MODELS * (float)(done / total), job.second.c_str());
+        job.first->LoadModel(job.second);
+        done += (double)fileSize(job.second) + 1e5;
     }
     loadNearTrees("models/trees/trees_near.txt");
-    cityNorth.LoadModel("models/city/city_north.obj");
-    citySouth.LoadModel("models/city/city_south.obj");
-    cityProps.LoadModel("models/city/city_props.obj");
-    cityLights.LoadModel("models/city/city_lights.obj");
     loadCityProps("models/city/props.txt");
-    detailObjects.LoadModel("models/details/objects.obj");
-    detailDecals.LoadModel("models/details/decals.obj");
+    loadFlags("models/flags/flags.txt");
+    loadWalks("models/pedestrians/walks.txt");
+    initPedestrians();
     detailObjectBounds = detailObjects.GetMeshBounds();
     detailDecalBounds = detailDecals.GetMeshBounds();
 }
 
 void updateAnimations() {
+    updateFlags();
     restaurantAngle = fmod(restaurantAngle + RESTAURANT_SPEED * deltaTime, 360.0f);
     ferrisAngle = fmod(ferrisAngle + FERRIS_SPEED * deltaTime, 360.0f);
 }
@@ -326,6 +418,35 @@ bool loadTraffic(const char* path) {
     return !trafficLanes.empty();
 }
 
+std::vector<int> trolleyRoute;
+std::vector<TrolleyStop> trolleyStops;
+gps::Model3D trolleyWires, trolleyPoles;
+
+void loadTrolleyRoute(const char* path) {
+    std::ifstream in(path);
+    if (!in) {
+        std::cerr << "Could not open " << path << ": no trolleybus" << std::endl;
+        return;
+    }
+    std::string line;
+    while (std::getline(in, line)) {
+        std::istringstream ls(line);
+        std::string tag;
+        ls >> tag;
+        if (tag == "route") {
+            int lane;
+            while (ls >> lane) trolleyRoute.push_back(lane);
+        } else if (tag == "stop") {
+            TrolleyStop stop;
+            if (ls >> stop.index >> stop.s) trolleyStops.push_back(stop);
+        }
+    }
+    // a route whose lanes are not all in the traffic graph is not used
+    for (int lane : trolleyRoute) {
+        if (lane < 0 || lane >= (int)trafficLanes.size()) { trolleyRoute.clear(); trolleyStops.clear(); return; }
+    }
+}
+
 int pickNextLane(int lane) {
     const std::vector<int>& next = trafficLanes[lane].next;
     std::uniform_int_distribution<int> pick(0, (int)next.size() - 1);
@@ -365,6 +486,29 @@ void initTraffic() {
         if (length > 6.0f) eagerness *= 0.8f;
         cars.push_back(Car{ lane, s, trafficLanes[lane].speed * eagerness, eagerness, pickNextLane(lane),
                             type, vehiclePaint((unsigned int)trafficRng()), 0.0f });
+        trafficLanes[lane].occupants++;
+    }
+    // the trolleybuses: spread along their loop
+    if (trolleyRoute.empty()) return;
+    for (int b = 0; b < TROLLEYBUSES; b++) {
+        int index = (int)(trolleyRoute.size() * b / TROLLEYBUSES);
+        while (trafficLanes[trolleyRoute[index]].junction >= 0) index = (index + 1) % (int)trolleyRoute.size();
+        int lane = trolleyRoute[index];
+        Car bus{ lane, 0.5f * VEHICLES[TROLLEYBUS].length + 1.0f, 0.0f, 0.8f,
+                 trolleyRoute[(index + 1) % trolleyRoute.size()], TROLLEYBUS, glm::vec3(1.0f), 0.0f };
+        bus.route = index;
+        // the first stop ahead of it
+        bus.stop = 0;
+        while (bus.stop < (int)trolleyStops.size() && trolleyStops[bus.stop].index < index) bus.stop++;
+        if (bus.stop >= (int)trolleyStops.size()) bus.stop = 0;
+        // no car right there
+        for (int i = (int)cars.size() - 1; i >= 0; i--) {
+            if (cars[i].lane == lane && fabs(cars[i].s - bus.s) < 14.0f) {
+                trafficLanes[lane].occupants--;
+                cars.erase(cars.begin() + i);
+            }
+        }
+        cars.push_back(bus);
         trafficLanes[lane].occupants++;
     }
 }
@@ -414,6 +558,23 @@ void updateTraffic() {
                 if (lane.junction < 0 && blocked && car.waited < 8.0f) gap = glm::min(gap, toEnd - half(i) + 1.0f);
             }
         }
+        // a trolleybus stops at the stops of its line: the stop is an obstacle until it has waited there
+        if (car.route >= 0 && !trolleyStops.empty()) {
+            const TrolleyStop& stop = trolleyStops[car.stop];
+            if (stop.index == car.route) {
+                float toStop = stop.s - (car.s + half(i));
+                if (toStop > -1.0f) {
+                    gap = glm::min(gap, toStop + CAR_GAP);
+                    if (toStop < 1.0f && car.speed < 0.3f) car.dwell += dt;
+                    if (car.dwell > TROLLEY_DWELL) {
+                        car.dwell = 0.0f;
+                        car.stop = (car.stop + 1) % (int)trolleyStops.size();
+                    }
+                } else {
+                    car.stop = (car.stop + 1) % (int)trolleyStops.size();   // passed it (it started behind it)
+                }
+            }
+        }
         float target = glm::min(lane.speed * car.eagerness, sqrtf(glm::max(0.0f, 2.0f * 5.0f * (gap - CAR_GAP))));
         car.speed = car.speed < target ? glm::min(target, car.speed + 3.0f * dt) : glm::max(target, car.speed - 9.0f * dt);
         car.waited = (car.speed < 0.3f && toEnd - half(i) < 4.0f) ? car.waited + dt : 0.0f;
@@ -424,7 +585,12 @@ void updateTraffic() {
             trafficLanes[car.lane].occupants--;
             car.lane = car.next;
             trafficLanes[car.lane].occupants++;
-            car.next = pickNextLane(car.lane);
+            if (car.route >= 0) {   // a trolleybus: the next lane of its loop
+                car.route = (car.route + 1) % (int)trolleyRoute.size();
+                car.next = trolleyRoute[(car.route + 1) % trolleyRoute.size()];
+            } else {
+                car.next = pickNextLane(car.lane);
+            }
         }
     }
 }
@@ -445,4 +611,123 @@ glm::mat4 carMatrix(const Car& car) {
     m[2] = glm::vec4(side, 0.0f);
     m[3] = glm::vec4(position, 1.0f);
     return m;
+}
+
+// ==============================================================================================================
+// Pedestrians
+// ==============================================================================================================
+
+bool pedestriansEnabled = true;
+gps::Model3D pedestrianBody, pedestrianLeg, pedestrianArm;
+std::vector<Walk> walks;
+std::vector<Pedestrian> pedestrians;
+static std::mt19937 pedestrianRng(11);
+const float STRIDE = 1.4f;   // meters per two steps (one swing of the legs back and forth)
+
+void loadWalks(const char* path) {
+    std::ifstream in(path);
+    if (!in) {
+        std::cerr << "Could not open " << path << ": no pedestrians" << std::endl;
+        return;
+    }
+    std::string line;
+    while (std::getline(in, line)) {
+        std::istringstream ls(line);
+        std::string tag;
+        int n = 0;
+        if (!(ls >> tag >> n) || tag != "walk") continue;
+        Walk w;
+        for (int i = 0; i < n; i++) {
+            glm::vec3 p;
+            ls >> p.x >> p.y >> p.z;
+            w.distance.push_back(w.points.empty() ? 0.0f : w.distance.back() + glm::distance(w.points.back(), p));
+            w.points.push_back(p);
+        }
+        if (w.points.size() >= 2) {
+            w.length = w.distance.back();
+            walks.push_back(w);
+        }
+    }
+}
+
+void initPedestrians() {
+    pedestrians.clear();
+    if (walks.empty()) return;
+    // muted coats and jackets of the '80s, dark trousers (sRGB)
+    static const unsigned char coats[][3] = {
+        { 90, 70, 55 }, { 60, 65, 75 }, { 120, 40, 35 }, { 45, 55, 45 }, { 150, 130, 100 }, { 70, 80, 110 },
+        { 160, 150, 140 }, { 35, 35, 38 }, { 110, 90, 50 }, { 130, 60, 80 }, { 80, 100, 90 }, { 180, 170, 150 } };
+    static const unsigned char trousers[][3] = {
+        { 30, 32, 40 }, { 45, 45, 48 }, { 60, 50, 40 }, { 25, 25, 27 }, { 70, 72, 78 }, { 40, 45, 70 } };
+    auto linear = [](const unsigned char* c) { return glm::pow(glm::vec3(c[0], c[1], c[2]) / 255.0f, glm::vec3(2.2f)); };
+    std::vector<float> weights;
+    for (const Walk& w : walks) weights.push_back(w.length);
+    std::discrete_distribution<int> pickWalk(weights.begin(), weights.end());
+    std::uniform_real_distribution<float> unit(0.0f, 1.0f);
+    for (int i = 0; i < PEDESTRIANS; i++) {
+        Pedestrian p;
+        p.walk = pickWalk(pedestrianRng);
+        p.s = unit(pedestrianRng) * walks[p.walk].length;
+        p.dir = unit(pedestrianRng) < 0.5f ? 1.0f : -1.0f;
+        p.speed = 1.1f + 0.45f * unit(pedestrianRng);
+        p.side = 0.35f + 0.45f * unit(pedestrianRng);
+        p.phase = unit(pedestrianRng) * glm::two_pi<float>();
+        p.pause = 0.0f;
+        p.scale = 0.9f + 0.18f * unit(pedestrianRng);
+        p.coat = linear(coats[pedestrianRng() % (sizeof(coats) / sizeof(coats[0]))]);
+        p.trousers = linear(trousers[pedestrianRng() % (sizeof(trousers) / sizeof(trousers[0]))]);
+        pedestrians.push_back(p);
+    }
+}
+
+void updatePedestrians() {
+    if (!pedestriansEnabled) return;
+    float dt = glm::min(deltaTime, 0.1f);
+    std::uniform_real_distribution<float> unit(0.0f, 1.0f);
+    for (Pedestrian& p : pedestrians) {
+        if (p.pause > 0.0f) {
+            p.pause -= dt;
+            continue;
+        }
+        const Walk& w = walks[p.walk];
+        p.s += p.dir * p.speed * dt;
+        p.phase = fmod(p.phase + p.speed * dt / STRIDE * glm::two_pi<float>(), glm::two_pi<float>());
+        if (p.s > w.length || p.s < 0.0f) {   // the end of the way: a moment there, then back
+            p.s = glm::clamp(p.s, 0.0f, w.length);
+            p.dir = -p.dir;
+            p.pause = 0.5f + 3.5f * unit(pedestrianRng);
+        }
+    }
+}
+
+PedestrianPose pedestrianPose(const Pedestrian& p) {
+    const Walk& w = walks[p.walk];
+    int i = (int)(std::upper_bound(w.distance.begin(), w.distance.end(), p.s) - w.distance.begin()) - 1;
+    i = glm::clamp(i, 0, (int)w.points.size() - 2);
+    float t = glm::clamp((p.s - w.distance[i]) / glm::max(w.distance[i + 1] - w.distance[i], 1e-4f), 0.0f, 1.0f);
+    glm::vec3 position = glm::mix(w.points[i], w.points[i + 1], t);
+    glm::vec3 along = w.points[i + 1] - w.points[i];
+    along.y = 0.0f;
+    glm::vec3 forward = glm::normalize(along) * p.dir;
+    glm::vec3 side = glm::normalize(glm::cross(forward, glm::vec3(0.0f, 1.0f, 0.0f)));   // the right-hand side
+    position += side * p.side;
+    // the steps: the legs swing, the arms the other way; standing: still
+    float moving = p.pause > 0.0f ? 0.0f : 1.0f;
+    float swing = glm::radians(24.0f) * sin(p.phase) * moving;
+    position.y += 0.025f * fabs(cos(p.phase)) * moving;   // a little up at each step
+    glm::mat4 m(1.0f);
+    m[0] = glm::vec4(forward, 0.0f);
+    m[1] = glm::vec4(0.0f, 1.0f, 0.0f, 0.0f);
+    m[2] = glm::vec4(side, 0.0f);
+    m[3] = glm::vec4(position, 1.0f);
+    m = glm::scale(m, glm::vec3(p.scale));
+    PedestrianPose pose;
+    pose.body = m;
+    const glm::vec3 z(0.0f, 0.0f, 1.0f);
+    for (int k = 0; k < 2; k++) {
+        float sign = k == 0 ? 1.0f : -1.0f;
+        pose.legs[k] = glm::rotate(glm::translate(m, glm::vec3(0.0f, 0.9f, sign * 0.1f)), sign * swing, z);
+        pose.arms[k] = glm::rotate(glm::translate(m, glm::vec3(0.0f, 1.43f, sign * 0.235f)), -0.8f * sign * swing, z);
+    }
+    return pose;
 }

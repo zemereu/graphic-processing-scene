@@ -211,6 +211,9 @@ namespace gps {
 				mesh.glass = name.find("glass") != std::string::npos;
 				mesh.grass = name.find("grass") != std::string::npos;
 				mesh.paint = name.size() >= 5 && name.compare(name.size() - 5, 5, "paint") == 0;   // "...Paint"
+				if (name == "gasphalt" || name == "groad" || name == "roadpaint") mesh.ground = 1;
+				else if (name == "pconcrete" || name == "psquare" || name == "phex" || name == "ppatterned" ||
+				         name.compare(0, 6, "pcobbl") == 0) mesh.ground = 2;
 			}
 			meshes.push_back(mesh);
 		}

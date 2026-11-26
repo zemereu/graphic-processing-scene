@@ -1,0 +1,20 @@
+newmtl Wire
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.3 0.3 0.3
+Ns 32
+map_Kd wire.png
+
+newmtl PoleSteel
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.3 0.3 0.3
+Ns 32
+map_Kd pole_steel.png
+
+newmtl TrolleyPole
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.3 0.3 0.3
+Ns 32
+map_Kd wire.png
