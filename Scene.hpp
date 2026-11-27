@@ -56,8 +56,11 @@ extern gps::Model3D motherland, romanita, powerPlant, duga, pripyatBlocks;
 extern gps::Model3D motherlandLod, powerPlantLod, dugaLod, pripyatBlocksLod;
 extern gps::Model3D ferrisSupport, ferrisWheel, ferrisGondola;
 extern gps::Model3D trees;   // distant forest: crossed billboard quads, all in one model
+extern gps::Model3D yardTrees;   // the leafy trees of the town, merged (one shape per tile and material)
+extern std::vector<gps::BoundingBox> yardTreeBounds;
 // trees near the tour path: one full 3D model per species, drawn at every position from trees_near.txt
-const int TREE_SPECIES_COUNT = 5;
+const int TREE_SPECIES_COUNT = 8;
+const int FIRST_LEAFY_TREE = 5;   // linden, birch, poplar (tools/leafy_trees.py): merged into yardTrees
 extern gps::Model3D treeModels[TREE_SPECIES_COUNT];
 struct NearTree {
     int species;
@@ -213,13 +216,17 @@ struct Pedestrian {
     float phase;      // of the steps (radians)
     float pause;      // seconds still standing at the end of the way
     float scale;      // height
-    glm::vec3 coat, trousers;   // colors (linear RGB)
+    int kind;         // which body (PEDESTRIAN_KINDS)
+    glm::vec3 coat, trousers;   // colors (linear RGB): the clothes on the torso and the arms, on the legs
 };
 struct PedestrianPose {
-    glm::mat4 body, legs[2], arms[2];
+    glm::mat4 body, thighs[2], shins[2], arms[2];
 };
+// the kinds of people (models/pedestrians/body_<kind>.obj, tools/pedestrians.py): the first three are men
+const int PEDESTRIAN_KINDS = 6;
+extern const char* PEDESTRIAN_KIND_NAMES[PEDESTRIAN_KINDS];
 extern bool pedestriansEnabled;
-extern gps::Model3D pedestrianBody, pedestrianLeg, pedestrianArm;
+extern gps::Model3D pedestrianBodies[PEDESTRIAN_KINDS], pedestrianThigh, pedestrianShin, pedestrianArm;
 extern std::vector<Walk> walks;
 extern std::vector<Pedestrian> pedestrians;
 const int PEDESTRIANS = 150;

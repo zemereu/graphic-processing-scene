@@ -9,6 +9,16 @@
 #include "Shader.hpp"
 
 namespace gps {
+    GLint Shader::location(GLuint program, const std::string& name) {
+        static std::unordered_map<GLuint, std::unordered_map<std::string, GLint>> cache;
+        std::unordered_map<std::string, GLint>& names = cache[program];
+        auto found = names.find(name);
+        if (found != names.end()) return found->second;
+        GLint loc = glGetUniformLocation(program, name.c_str());
+        names[name] = loc;
+        return loc;
+    }
+
     std::string Shader::readShaderFile(std::string fileName) {
         std::ifstream shaderFile;
         std::string shaderString;

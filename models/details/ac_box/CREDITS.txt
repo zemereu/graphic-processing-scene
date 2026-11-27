@@ -1,0 +1,13 @@
+Model Information:
+* title:	AC Air Conditioning Low Poly props
+* source:	https://sketchfab.com/3d-models/ac-air-conditioning-low-poly-props-98afff30610b4476bc4c7d8e14d1b2d3
+* author:	Savy (https://sketchfab.com/SavyTheCreator)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "AC Air Conditioning Low Poly props" (https://sketchfab.com/3d-models/ac-air-conditioning-low-poly-props-98afff30610b4476bc4c7d8e14d1b2d3) by Savy (https://sketchfab.com/SavyTheCreator) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+
+Changes for this project (tools/buildings.py): converted to OBJ, rescaled, turned and placed in the town; textures resized; lit windows made from the window panes.

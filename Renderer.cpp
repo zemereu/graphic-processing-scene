@@ -1,4 +1,5 @@
 #include "Renderer.hpp"
+#include <unordered_map>
 #include "Scene.hpp"
 #include "Lighting.hpp"
 #include "Environment.hpp"
@@ -221,35 +222,57 @@ float boxDistance(const gps::BoundingBox& box, const glm::mat4& objectModel, con
 // wind in the trees (windSway() in basic.vert / shadow.vert): only the near trees sway
 const float TREE_LEAN = 0.004f;   // how far the top of a tree leans: this fraction of its height per m/s of wind
 
+// the time of this frame (set once at its start): the same for every object, so it is sent only once per program
+float frameTime = 0.0f;
+
+// a uniform sent only when its value differs from the last one sent to that program (most objects: the same)
+static std::unordered_map<unsigned long long, glm::vec4> sentUniforms;
+static bool changed(GLuint program, GLint loc, const glm::vec4& v) {
+    if (loc < 0) return false;
+    unsigned long long key = ((unsigned long long)program << 32) | (unsigned int)loc;
+    auto found = sentUniforms.find(key);
+    if (found != sentUniforms.end() && found->second == v) return false;
+    sentUniforms[key] = v;
+    return true;
+}
+static void uniform1f(GLuint program, GLint loc, float v) { if (changed(program, loc, glm::vec4(v, 0, 0, 0))) glUniform1f(loc, v); }
+static void uniform1i(GLuint program, GLint loc, int v) { if (changed(program, loc, glm::vec4((float)v, 0, 0, 0))) glUniform1i(loc, v); }
+static void uniform2f(GLuint program, GLint loc, const glm::vec2& v) {
+    if (changed(program, loc, glm::vec4(v, 0, 0))) glUniform2fv(loc, 1, glm::value_ptr(v));
+}
+static void uniform3f(GLuint program, GLint loc, const glm::vec3& v) {
+    if (changed(program, loc, glm::vec4(v, 0))) glUniform3fv(loc, 1, glm::value_ptr(v));
+}
+
 void setWindSway(GLuint program, gps::Model3D& object, const glm::mat4& objectModel) {
     // a flag: the vertex shader bends its cloth (flagCloth), 0 = not a flag
     bool flag = &object >= &flagModels[0] && &object < &flagModels[0] + FLAG_KINDS;
-    glUniform1f(glGetUniformLocation(program, "flagWave"), flag ? windSpeed + 0.3f : 0.0f);
+    uniform1f(program, gps::Shader::location(program, "flagWave"), flag ? windSpeed + 0.3f : 0.0f);
     if (flag) {
-        glUniform1f(glGetUniformLocation(program, "flagLength"), modelBox(object).max.x);
-        glUniform1f(glGetUniformLocation(program, "time"), (float)glfwGetTime());
+        uniform1f(program, gps::Shader::location(program, "flagLength"), modelBox(object).max.x);
+        uniform1f(program, gps::Shader::location(program, "time"), frameTime);
     }
     bool tree = &object >= &treeModels[0] && &object < &treeModels[0] + TREE_SPECIES_COUNT;
     float height = tree ? modelBox(object).max.y : 0.0f;
-    glUniform1f(glGetUniformLocation(program, "swayHeight"), height);
+    uniform1f(program, gps::Shader::location(program, "swayHeight"), height);
     if (!tree) return;
     // the wind (world space, see Rain) taken into the tree's own space (its rotation and scale)
     glm::vec3 windWorld(cos(glm::radians(windDirection)), 0.0f, sin(glm::radians(windDirection)));
     glm::vec3 windModel = glm::normalize(glm::inverse(glm::mat3(objectModel)) * windWorld);
-    glUniform3fv(glGetUniformLocation(program, "swayWind"), 1,
+    glUniform3fv(gps::Shader::location(program, "swayWind"), 1,
         glm::value_ptr(windModel * (windSpeed * TREE_LEAN * height)));
     // a phase from the tree's position: neighbours don't sway in step
     glm::vec3 pos = glm::vec3(objectModel[3]);
     float phase = glm::fract(sin(pos.x * 12.9898f + pos.z * 78.233f) * 43758.5453f) * glm::two_pi<float>();
-    glUniform1f(glGetUniformLocation(program, "swayPhase"), phase);
-    glUniform1f(glGetUniformLocation(program, "time"), (float)glfwGetTime());
+    glUniform1f(gps::Shader::location(program, "swayPhase"), phase);
+    uniform1f(program, gps::Shader::location(program, "time"), frameTime);
 }
 
 // meshes: if given, only those meshes of the model are drawn (the town's details)
 // fade: (start, end) meters from the camera: the object dissolves (dithered) between them, instead of popping out
 // at a distance limit; (0, 0) = no fade. dither < 1: only that part of its pixels is drawn (the level of detail
 // crossfade: the full and the simplified model each draw the pixels the other doesn't, invert tells which)
-void renderObject(gps::Model3D& object, const glm::mat4& objectModel, gps::Shader shader,
+void renderObject(gps::Model3D& object, const glm::mat4& objectModel, gps::Shader& shader,
     const glm::vec3& emissive = glm::vec3(0.0f), const std::vector<bool>* meshes = nullptr,
     const glm::vec3& paint = glm::vec3(1.0f), const glm::vec2& fade = glm::vec2(0.0f), float dither = 1.0f,
     bool invert = false) {
@@ -259,15 +282,18 @@ void renderObject(gps::Model3D& object, const glm::mat4& objectModel, gps::Shade
     if (depthPass) { // shadow map (or the grass map): only the geometry matters
         gps::Shader& passShader = grassMaskPass ? grassMaskShader : depthMapShader;
         passShader.useShaderProgram();
-        glUniformMatrix4fv(glGetUniformLocation(passShader.shaderProgram, "model"), 1, GL_FALSE,
+        glUniformMatrix4fv(gps::Shader::location(passShader.shaderProgram, "model"), 1, GL_FALSE,
             glm::value_ptr(objectModel));
         if (!grassMaskPass) {
             // the shadow of a thing far from the camera fades out in the same way (a dithered shadow map is smoothed
             // by the filtering of the shadows: a lighter shadow, not a hole)
-            glUniform2fv(glGetUniformLocation(passShader.shaderProgram, "fadeRange"), 1,
-                glm::value_ptr(spotShadowPass ? glm::vec2(0.0f) : fade));
-            glUniform3fv(glGetUniformLocation(passShader.shaderProgram, "fadeCenter"), 1,
-                glm::value_ptr(glm::vec3(glm::inverse(view)[3])));
+            GLuint program = passShader.shaderProgram;
+            uniform2f(program, gps::Shader::location(program, "fadeRange"), spotShadowPass ? glm::vec2(0.0f) : fade);
+            // the camera's position: computed again only when the view changes (not for every object)
+            static glm::mat4 lastView(0.0f);
+            static glm::vec3 cameraPos(0.0f);
+            if (view != lastView) { lastView = view; cameraPos = glm::vec3(glm::inverse(view)[3]); }
+            uniform3f(program, gps::Shader::location(program, "fadeCenter"), cameraPos);
         }
         setWindSway(passShader.shaderProgram, object, objectModel);
         if (meshes) object.DrawMeshes(passShader, *meshes); else object.Draw(passShader);
@@ -278,19 +304,20 @@ void renderObject(gps::Model3D& object, const glm::mat4& objectModel, gps::Shade
     static GLint hourLoc = glGetUniformLocation(shader.shaderProgram, "hour");
     bool windows = &object == &cityLights || &object == &genexLights || &object == &romanitaLights ||
                    &object == &telefoaneLights || &object == &satuMareLights;
-    glUniform1i(windowLightsLoc, windows);
-    glUniform1f(hourLoc, timeOfDay);
-    glUniform3fv(emissiveColorLoc, 1, glm::value_ptr(emissive));
-    glUniform3fv(paintColorLoc, 1, glm::value_ptr(paint));
+    GLuint program = shader.shaderProgram;
+    uniform1i(program, windowLightsLoc, windows);
+    uniform1f(program, hourLoc, timeOfDay);
+    uniform3f(program, emissiveColorLoc, emissive);
+    uniform3f(program, paintColorLoc, paint);
     static GLint fadeLoc = glGetUniformLocation(shader.shaderProgram, "fadeRange");
     static GLint ditherLoc = glGetUniformLocation(shader.shaderProgram, "ditherKeep");
     static GLint invertLoc = glGetUniformLocation(shader.shaderProgram, "ditherInvert");
-    glUniform2fv(fadeLoc, 1, glm::value_ptr(fade));
-    glUniform1f(ditherLoc, dither);
-    glUniform1i(invertLoc, invert);
+    uniform2f(program, fadeLoc, fade);
+    uniform1f(program, ditherLoc, dither);
+    uniform1i(program, invertLoc, invert);
     // 1 = terrain (texture repetition hidden), 2 = water (animated waves + sky reflection), 0 = everything else
-    glUniform1i(surfaceModeLoc, &object == &terrain ? 1 : (&object == &water ? 2 : 0));
-    glUniform1f(timeLoc, (float)glfwGetTime());
+    uniform1i(program, surfaceModeLoc, &object == &terrain ? 1 : (&object == &water ? 2 : 0));
+    uniform1f(program, timeLoc, frameTime);
     glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(objectModel));
     setWindSway(shader.shaderProgram, object, objectModel);
     glm::mat3 nm = glm::mat3(glm::inverseTranspose(view * objectModel));
@@ -329,7 +356,8 @@ void renderDetails(gps::Model3D& model, const std::vector<gps::BoundingBox>& bou
     glm::mat4 identity(1.0f);
     glm::vec3 cameraPos = glm::vec3(glm::inverse(view)[3]);
     glm::mat4 clipMatrix = depthPass ? depthPassMatrix : projection * view;
-    std::vector<bool> visible(bounds.size(), false);
+    static std::vector<bool> visible;   // (kept between frames: no allocation each frame)
+    visible.assign(bounds.size(), false);
     bool any = false;
     for (size_t i = 0; i < bounds.size(); i++) {
         visible[i] = boxDistance(bounds[i], identity, cameraPos) <= maxDistance && boxVisible(bounds[i], clipMatrix);
@@ -341,7 +369,8 @@ void renderDetails(gps::Model3D& model, const std::vector<gps::BoundingBox>& bou
 }
 
 void renderSceneObjects() {
-    std::vector<DrawItem> drawList;
+    static std::vector<DrawItem> drawList;   // (kept between frames: no allocation each frame)
+    drawList.clear();
     // brutalist scene (positions in meters)
     glm::mat4 identity(1.0f);
     glm::vec3 cameraPos = glm::vec3(glm::inverse(view)[3]);
@@ -396,8 +425,16 @@ void renderSceneObjects() {
         draw(water, identity);   // flat, under the terrain: it doesn't cast shadows (nor is it in its own reflection)
     }
     draw(trees, identity);   // no colliders: the camera can pass through the foliage
+    // the 3D trees: dissolving far away (their shadows nearer); the far forest is the billboards of `trees`
+    float treeRange = (depthPass ? 350.0f : 700.0f) * drawDistanceScale;
+    // the leafy trees of the town: one model, its tiles culled one by one
+    // (not in the grass map: the grass grows under them)
+    if (!grassMaskPass) renderDetails(yardTrees, yardTreeBounds, reflectionPass ? 300.0f : treeRange, !reflectionPass);
     for (const NearTree& tree : nearTrees) {
-        draw(treeModels[tree.species], tree.model);
+        float distance = glm::distance(cameraPos, glm::vec3(tree.model[3]));
+        if (distance > treeRange) continue;
+        drawFaded(treeModels[tree.species], tree.model, glm::vec2(0.8f * treeRange, treeRange), glm::vec3(0.0f),
+                  glm::vec3(1.0f));
     }
     draw(satuMare, satuMareMatrix());
     draw(genex, genexMatrix());
@@ -469,9 +506,10 @@ void renderSceneObjects() {
             PedestrianPose pose = pedestrianPose(p);
             if (glm::distance(cameraPos, glm::vec3(pose.body[3])) > range) continue;
             glm::vec2 fade(0.75f * range, range);
-            drawFaded(pedestrianBody, pose.body, fade, glm::vec3(0.0f), p.coat);
+            drawFaded(pedestrianBodies[p.kind], pose.body, fade, glm::vec3(0.0f), p.coat);
             for (int k = 0; k < 2; k++) {
-                drawFaded(pedestrianLeg, pose.legs[k], fade, glm::vec3(0.0f), p.trousers);
+                drawFaded(pedestrianThigh, pose.thighs[k], fade, glm::vec3(0.0f), p.trousers);
+                drawFaded(pedestrianShin, pose.shins[k], fade, glm::vec3(0.0f), p.trousers);
                 drawFaded(pedestrianArm, pose.arms[k], fade, glm::vec3(0.0f), p.coat);
             }
         }
@@ -499,6 +537,7 @@ void renderSceneObjects() {
 
 // one frame, pass after pass
 void renderFrame() {
+    frameTime = (float)glfwGetTime();
     // 0. shadow maps: the scene from the sun / moon (and from the floodlights at night)
     renderShadowMap();
     renderSpotShadowMaps();

@@ -1,4 +1,7 @@
 #include "Model3D.hpp"
+#include <map>
+#include <tuple>
+#include <glm/gtc/matrix_inverse.hpp>
 
 namespace gps {
 	// anisotropic filtering (EXT_texture_filter_anisotropic, core in OpenGL 4.6): keeps the ground textures sharp
@@ -71,7 +74,7 @@ namespace gps {
 	void Model3D::LoadModel(std::string fileName, std::string basePath) { ReadOBJ(fileName, basePath); }
 
 	// Draw each mesh from the model
-	void Model3D::Draw(gps::Shader shaderProgram) {
+	void Model3D::Draw(const gps::Shader& shaderProgram) {
 		for (int i = 0; i < meshes.size(); i++)
 			meshes[i].Draw(shaderProgram);
 	}
@@ -245,6 +248,37 @@ namespace gps {
 
 	// One box per mesh (in model coordinates), used for collision detection.
 	// A building made of several meshes (tower, wing, ...) gets a tighter shape than a single box.
+	void Model3D::BuildMerged(const std::vector<std::pair<const Model3D*, glm::mat4>>& copies, float tile) {
+		// the groups: (tile x, tile z, source model, its mesh)
+		std::map<std::tuple<int, int, const Model3D*, size_t>, std::pair<std::vector<Vertex>, std::vector<GLuint>>> groups;
+		for (const auto& copy : copies) {
+			const glm::mat4& m = copy.second;
+			glm::mat3 nm = glm::mat3(glm::inverseTranspose(m));
+			int tx = (int)floor(m[3].x / tile), tz = (int)floor(m[3].z / tile);
+			for (size_t k = 0; k < copy.first->meshes.size(); k++) {
+				const Mesh& src = copy.first->meshes[k];
+				auto& g = groups[std::make_tuple(tx, tz, copy.first, k)];
+				GLuint base = (GLuint)g.first.size();
+				for (Vertex v : src.vertices) {
+					v.Position = glm::vec3(m * glm::vec4(v.Position, 1.0f));
+					v.Normal = glm::normalize(nm * v.Normal);
+					g.first.push_back(v);
+				}
+				for (GLuint i : src.indices) g.second.push_back(base + i);
+			}
+		}
+		for (auto& g : groups) {
+			const Mesh& src = std::get<2>(g.first)->meshes[std::get<3>(g.first)];
+			if (g.second.second.empty()) continue;
+			Mesh mesh(g.second.first, g.second.second, src.textures);
+			mesh.glass = src.glass;
+			mesh.grass = src.grass;
+			mesh.ground = src.ground;
+			mesh.paint = src.paint;
+			meshes.push_back(mesh);
+		}
+	}
+
 	std::vector<BoundingBox> Model3D::GetMeshBounds() {
 
 		std::vector<BoundingBox> bounds;
@@ -262,7 +296,7 @@ namespace gps {
 		return bounds;
 	}
 
-	void Model3D::DrawMeshes(gps::Shader shaderProgram, const std::vector<bool>& visible) {
+	void Model3D::DrawMeshes(const gps::Shader& shaderProgram, const std::vector<bool>& visible) {
 		for (size_t i = 0; i < meshes.size() && i < visible.size(); i++) {
 			if (visible[i]) meshes[i].Draw(shaderProgram);
 		}

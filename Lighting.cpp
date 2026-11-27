@@ -395,13 +395,14 @@ void initShadowMap() {
 // orthographic projection covers that sphere. A sphere looks the same from every direction, so the size of the
 // projection doesn't change when the camera turns; with its center snapped to whole texels the shadow edges stay
 // still (no shimmering) while the camera moves.
-void computeLightSpaceMatrices() {
+void computeLightSpaceMatrices(bool farToo) {
     glm::vec3 toLight = glm::normalize(lightDir);
     glm::vec3 up = fabs(toLight.y) > 0.99f ? glm::vec3(1.0f, 0.0f, 0.0f) : glm::vec3(0.0f, 1.0f, 0.0f);
     glm::mat4 lightView = glm::lookAt(toLight, glm::vec3(0.0f), up);
     float aspect = (float)sceneWidth / (float)glm::max(sceneHeight, 1);
 
     for (int i = 0; i < SHADOW_CASCADES; i++) {
+        if (i == SHADOW_CASCADES - 1 && !farToo) continue;   // kept as it was: its shadow map wasn't drawn again
         // the 8 corners of the slice (world space): the camera's frustum between the two split distances
         glm::mat4 slice = glm::perspective(glm::radians(45.0f), aspect, CASCADE_SPLITS[i], CASCADE_SPLITS[i + 1]);
         glm::mat4 toWorld = glm::inverse(slice * view);
@@ -432,13 +433,18 @@ void computeLightSpaceMatrices() {
 // pass 1: the scene from the sun / moon, depth only, once per cascade
 void renderShadowMap() {
     if (!shadowsEnabled) return;
-    computeLightSpaceMatrices();
+    // the farthest cascade: drawn again only every other frame (its texels are big, a frame late can't be seen);
+    // its matrix is then kept too, so that its shadow map and its matrix always go together
+    static unsigned int frame = 0;
+    bool farToo = frame++ % 2 == 0;
+    computeLightSpaceMatrices(farToo);
     depthMapShader.useShaderProgram();
     glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
     glViewport(0, 0, SHADOW_MAP_SIZE, SHADOW_MAP_SIZE);
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);  // wireframe/points don't apply to the shadows
     depthPass = true;
     for (int i = 0; i < SHADOW_CASCADES; i++) {
+        if (i == SHADOW_CASCADES - 1 && !farToo) continue;
         glFramebufferTextureLayer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, depthMapTexture, 0, i);
         glClear(GL_DEPTH_BUFFER_BIT);
         glUniformMatrix4fv(depthLightSpaceLoc, 1, GL_FALSE, glm::value_ptr(lightSpaceMatrices[i]));

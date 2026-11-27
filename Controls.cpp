@@ -51,6 +51,7 @@ void windowResizeCallback(GLFWwindow* window, int width, int height) {
 void keyboardCallback(GLFWwindow* window, int key, int scancode, int action, int mode) {
     if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) { glfwSetWindowShouldClose(window, GL_TRUE); }
     if (!sceneReady) return;
+    if (key == GLFW_KEY_F11 && action == GLFW_PRESS) { myWindow.toggleFullscreen(); return; }
 
     if (key == GLFW_KEY_M && action == GLFW_PRESS) {
         if (glfwGetInputMode(window, GLFW_CURSOR) == GLFW_CURSOR_DISABLED)
@@ -349,13 +350,29 @@ const std::vector<TourKey> TOUR = {
     {{62.0f, 9.0f, 24.0f}, {-60.0f, 3.0f, -40.0f}},  // on the quay: the river, the footbridge
     {{-100.0f, 10.0f, 8.0f}, {-170.0f, 10.0f, 140.0f}},  // along the promenade
     {{-118.0f, 15.0f, 214.0f}, {-170.0f, 10.0f, 140.0f}},  // Palatul Telefoanelor
+    {{-185.0f, 12.0f, 110.0f}, {-240.0f, 2.0f, 90.0f}},  // down into a yard: its squares, the playgrounds, the trees
+    {{-215.0f, 22.0f, 175.0f}, {-300.0f, 6.0f, 196.0f}},  // over the new block, out to the highway
     {{-300.0f, 10.0f, 196.0f}, {-420.0f, 40.0f, 196.0f}},  // west along the highway, the Genex gate
     {{-470.0f, 7.0f, 196.0f}, {-640.0f, 10.0f, 230.0f}},  // the checkpoint, into the exclusion zone
     {{-590.0f, 30.0f, 390.0f}, {-690.0f, 15.0f, 300.0f}},  // Pripyat and the Ferris wheel
     {{-650.0f, 60.0f, 190.0f}, {-780.0f, 30.0f, 70.0f}},  // the power plant
+    {{-575.0f, 9.0f, 168.0f}, {-552.0f, 2.0f, 138.0f}},  // low along its fence: the gate, the abandoned trucks
+    {{-560.0f, 30.0f, 60.0f}, {-560.0f, 20.0f, -100.0f}},  // the power line to the north
     {{-680.0f, 75.0f, -150.0f}, {-700.0f, 60.0f, -330.0f}},  // over the river, the Duga radar
-    {{-300.0f, 110.0f, -330.0f}, {-100.0f, 80.0f, -520.0f}},  // along the north bank, Hotel Panorama in the mountains
-    {{260.0f, 75.0f, -70.0f}, {450.0f, 60.0f, -150.0f}},  // Motherland Calls on her hill
+    {{-350.0f, 60.0f, -360.0f}, {-100.0f, 20.0f, -340.0f}},  // along the north bank, to the foot of the mountain
+    {{-100.0f, 16.0f, -322.0f}, {-88.0f, 6.0f, -390.0f}},  // the road up to Hotel Panorama
+    {{-120.0f, 24.0f, -395.0f}, {-190.0f, 20.0f, -455.0f}},  // climbing, westwards
+    {{-215.0f, 38.0f, -450.0f}, {-300.0f, 34.0f, -490.0f}},
+    {{-310.0f, 50.0f, -495.0f}, {-335.0f, 45.0f, -560.0f}},  // to the hairpin
+    {{-345.0f, 64.0f, -560.0f}, {-260.0f, 58.0f, -540.0f}},  // round it
+    {{-240.0f, 74.0f, -545.0f}, {-150.0f, 72.0f, -560.0f}},  // the last stretch
+    {{-175.0f, 86.0f, -555.0f}, {-100.0f, 80.0f, -515.0f}},  // Hotel Panorama, its car park
+    {{-120.0f, 130.0f, -450.0f}, {100.0f, 40.0f, -300.0f}},  // up over the hotel
+    {{80.0f, 60.0f, -300.0f}, {300.0f, 20.0f, -150.0f}},  // down over the north district, towards the Motherland
+    {{290.0f, 6.0f, -150.0f}, {404.0f, 38.0f, -150.0f}},  // at the foot of the stairs
+    {{360.0f, 32.0f, -150.0f}, {450.0f, 70.0f, -150.0f}},  // up the stairs, Motherland Calls ahead
+    {{405.0f, 42.0f, -150.0f}, {450.0f, 62.0f, -150.0f}},  // at the top
+    {{432.0f, 39.5f, -76.0f}, {450.0f, 35.5f, -92.0f}},  // the eternal flame, the wreaths
     {{560.0f, 70.0f, 40.0f}, {520.0f, 20.0f, 400.0f}},  // back over the river, down the curved avenue in the east
     {{610.0f, 50.0f, 420.0f}, {470.0f, 10.0f, 640.0f}},  // over the eastern housing estate
     {{420.0f, 42.0f, 900.0f}, {100.0f, 15.0f, 700.0f}},  // the new southern district, back towards the roundabout
@@ -566,6 +583,7 @@ void renderUI() {
                 keyRow("C", "Collisions on / off");
                 keyRow("O", "Shadows on / off");
                 keyRow("G", "Graphics: high / medium / low");
+                keyRow("F11", "Full screen / window");
                 keyRow("B", "Antialiasing on / off");
                 keyRow("V", "Traffic on / off");
                 keyRow("T", "Start / stop camera tour");

@@ -26,6 +26,7 @@ namespace gps {
     public:
         void Create(int width=800, int height=600, const char *title="OpenGL Project");
         void Delete();
+        void toggleFullscreen();   // borderless full screen <-> a window (the size it had)
 
         GLFWwindow* getWindow();
         WindowDimensions getWindowDimensions();
@@ -33,7 +34,11 @@ namespace gps {
 
     private:
         WindowDimensions dimensions;
+        WindowDimensions windowed;   // the window's size when not full screen
+        bool borderless = false;
         GLFWwindow *window;
+
+        void fitMonitor();         // no frame, as big as the main monitor
     };
 }
 

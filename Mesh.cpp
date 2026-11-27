@@ -14,20 +14,25 @@ namespace gps {
 	}
 
 	/* Mesh drawing function - also applies associated textures */
-	void Mesh::Draw(gps::Shader shader)	{
-		shader.useShaderProgram();
+	void Mesh::Draw(const gps::Shader& shader)	{
+		GLuint program = shader.shaderProgram;
+		glUseProgram(program);
 
 		//set textures
 		for (GLuint i = 0; i < textures.size(); i++) {
 			glActiveTexture(GL_TEXTURE0 + i);
-			glUniform1i(glGetUniformLocation(shader.shaderProgram, this->textures[i].type.c_str()), i);
+			glUniform1i(Shader::location(program, this->textures[i].type), i);
 			glBindTexture(GL_TEXTURE_2D, this->textures[i].id);
 		}
 
-		glUniform1i(glGetUniformLocation(shader.shaderProgram, "glass"), glass);
-		glUniform1i(glGetUniformLocation(shader.shaderProgram, "grass"), grass);
-		glUniform1i(glGetUniformLocation(shader.shaderProgram, "paint"), paint);
-		glUniform1i(glGetUniformLocation(shader.shaderProgram, "groundUse"), ground);
+		// the mesh's flags: sent only when they differ from what this program already has (most meshes: all 0)
+		struct Flags { int glass = -1, grass = -1, paint = -1, ground = -1; };
+		static std::unordered_map<GLuint, Flags> sent;
+		Flags& last = sent[program];
+		if (last.glass != (int)glass) { glUniform1i(Shader::location(program, "glass"), glass); last.glass = glass; }
+		if (last.grass != (int)grass) { glUniform1i(Shader::location(program, "grass"), grass); last.grass = grass; }
+		if (last.paint != (int)paint) { glUniform1i(Shader::location(program, "paint"), paint); last.paint = paint; }
+		if (last.ground != (int)ground) { glUniform1i(Shader::location(program, "groundUse"), ground); last.ground = ground; }
 		glBindVertexArray(this->buffers.VAO);
 		glDrawElements(GL_TRIANGLES, (GLsizei)this->indices.size(), GL_UNSIGNED_INT, 0);
 		glBindVertexArray(0);

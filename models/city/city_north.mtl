@@ -908,3 +908,21 @@ Kd 1 1 1
 Ks 0.3 0.3 0.3
 illum 2
 map_Kd city_signs_back.png
+
+newmtl MosaicHotel
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.2 0.2 0.2
+illum 2
+map_Kd mosaic_hotel.jpg
+map_Ks spec_low.jpg
+
+newmtl MosaicDK
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.2 0.2 0.2
+illum 2
+map_Kd mosaic_dk.jpg
+map_Ks spec_low.jpg

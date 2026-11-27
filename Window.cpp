@@ -19,9 +19,13 @@ namespace gps {
 		//for antialising
 		// glfwWindowHint(GLFW_SAMPLES, 4);
 
+		// borderless full screen: a window without a frame, as big as the main monitor (F11: a normal window)
+		this->windowed = { width, height };
+		glfwWindowHint(GLFW_DECORATED, GLFW_FALSE);
 		this->window = glfwCreateWindow(width, height, title, NULL, NULL);
 		if (!this->window) { throw std::runtime_error("Could not create GLFW3 window!"); }
 
+		fitMonitor();
 		glfwMakeContextCurrent(window);
 
 		glfwSwapInterval(1);
@@ -40,6 +44,32 @@ namespace gps {
 
 		//for RETINA display
 		glfwGetFramebufferSize(window, &this->dimensions.width, &this->dimensions.height);
+	}
+
+	void Window::fitMonitor() {
+		// position and size set after the window is made (GLFW_SCALE_TO_MONITOR would scale them at creation)
+		GLFWmonitor* monitor = glfwGetPrimaryMonitor();
+		const GLFWvidmode* mode = glfwGetVideoMode(monitor);
+		int mx, my;
+		glfwGetMonitorPos(monitor, &mx, &my);
+		glfwSetWindowAttrib(window, GLFW_DECORATED, GLFW_FALSE);
+		glfwSetWindowPos(window, mx, my);
+		glfwSetWindowSize(window, mode->width, mode->height);
+		borderless = true;
+	}
+
+	void Window::toggleFullscreen() {
+		if (borderless) {
+			// to a normal window, in the middle of the monitor
+			const GLFWvidmode* mode = glfwGetVideoMode(glfwGetPrimaryMonitor());
+			glfwSetWindowAttrib(window, GLFW_DECORATED, GLFW_TRUE);
+			glfwSetWindowSize(window, windowed.width, windowed.height);
+			glfwSetWindowPos(window, (mode->width - windowed.width) / 2, (mode->height - windowed.height) / 2);
+			borderless = false;
+		} else {
+			glfwGetWindowSize(window, &windowed.width, &windowed.height);
+			fitMonitor();
+		}
 	}
 
 	void Window::Delete() {

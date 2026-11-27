@@ -1,0 +1,18 @@
+newmtl BirchBark
+Ns 20
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.3 0.3 0.3
+illum 2
+map_Kd birch_bark.jpg
+map_Ks spec_007.png
+
+newmtl Branches
+Ns 20
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.3 0.3 0.3
+illum 2
+map_Kd Branches.png
+map_Ks spec_011.png
+

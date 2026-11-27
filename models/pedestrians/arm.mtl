@@ -4,6 +4,7 @@ Kd 1 1 1
 Ks 0.05 0.05 0.05
 Ns 8
 map_Kd skin.png
+map_Ks spec.png
 
 newmtl SleevePaint
 Ka 1 1 1
@@ -11,4 +12,5 @@ Kd 1 1 1
 Ks 0.05 0.05 0.05
 Ns 8
 map_Kd white.png
+map_Ks spec.png
 

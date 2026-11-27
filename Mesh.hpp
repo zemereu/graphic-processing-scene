@@ -62,7 +62,7 @@ namespace gps {
 
 	    Buffers getBuffers();
 
-	    void Draw(gps::Shader shader);
+	    void Draw(const gps::Shader& shader);
 
     private:
         /*  Render data  */

@@ -27,12 +27,16 @@ namespace gps {
 
 		void LoadModel(std::string fileName, std::string basePath);
 
-		void Draw(gps::Shader shaderProgram);
+		void Draw(const gps::Shader& shaderProgram);
 		// draws only the meshes marked visible (the town's details are culled mesh by mesh)
-		void DrawMeshes(gps::Shader shaderProgram, const std::vector<bool>& visible);
+		void DrawMeshes(const gps::Shader& shaderProgram, const std::vector<bool>& visible);
 
 		// one box per mesh (in model coordinates), used for collision detection
 		std::vector<BoundingBox> GetMeshBounds();
+
+		// this model made of copies of other models (each with its matrix), merged: one mesh per tile (tile x tile
+		// meters, by the copy's position) and per mesh of the source; the textures stay the sources'
+		void BuildMerged(const std::vector<std::pair<const Model3D*, glm::mat4>>& copies, float tile);
 
     private:
 		// Component meshes - group of objects

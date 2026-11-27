@@ -67,7 +67,9 @@ gps::Model3D motherland, romanita, powerPlant, duga, pripyatBlocks;
 gps::Model3D motherlandLod, powerPlantLod, dugaLod, pripyatBlocksLod;
 gps::Model3D ferrisSupport, ferrisWheel, ferrisGondola;
 gps::Model3D trees;
-const char* TREE_SPECIES[] = { "fir", "pine", "noble", "dead", "dead2" };
+gps::Model3D yardTrees;
+std::vector<gps::BoundingBox> yardTreeBounds;
+const char* TREE_SPECIES[] = { "fir", "pine", "noble", "dead", "dead2", "linden", "birch", "poplar" };
 gps::Model3D treeModels[TREE_SPECIES_COUNT];
 std::vector<NearTree> nearTrees;
 gps::Model3D detailObjects, detailDecals;
@@ -136,6 +138,7 @@ bool loadNearTrees(const char* path) {
         return false;
     }
     std::string name;
+    std::vector<std::pair<const gps::Model3D*, glm::mat4>> leafy;
     while (in >> name) {
         if (name[0] == '#') { std::getline(in, name); continue; }   // comment line
         float x, y, z, yaw, scale;
@@ -144,10 +147,16 @@ bool loadNearTrees(const char* path) {
             if (name == TREE_SPECIES[i]) {
                 glm::mat4 m = glm::translate(glm::mat4(1.0f), glm::vec3(x, y, z));
                 m = glm::rotate(m, glm::radians(yaw), glm::vec3(0.0f, 1.0f, 0.0f));
-                nearTrees.push_back({ i, glm::scale(m, glm::vec3(scale)) });
+                m = glm::scale(m, glm::vec3(scale));
+                if (i >= FIRST_LEAFY_TREE) leafy.push_back({ &treeModels[i], m });   // merged below
+                else nearTrees.push_back({ i, m });
             }
         }
     }
+    // the leafy trees (hundreds, tools/landmarks.py): copies of their models merged, one mesh per 150 m tile and
+    // material, culled one by one like the details
+    yardTrees.BuildMerged(leafy, 150.0f);
+    yardTreeBounds = yardTrees.GetMeshBounds();
     return true;
 }
 
@@ -296,9 +305,12 @@ void initModels() {
         { &detailObjects, "models/details/objects.obj" }, { &detailDecals, "models/details/decals.obj" },
         { &flagpole, "models/flags/flagpole.obj" },
         { &trolleyWires, "models/trolleybus/wires.obj" }, { &trolleyPoles, "models/trolleybus/trolley_poles.obj" },
-        { &pedestrianBody, "models/pedestrians/body.obj" }, { &pedestrianLeg, "models/pedestrians/leg.obj" },
+        { &pedestrianThigh, "models/pedestrians/thigh.obj" }, { &pedestrianShin, "models/pedestrians/shin.obj" },
         { &pedestrianArm, "models/pedestrians/arm.obj" },
     };
+    for (int i = 0; i < PEDESTRIAN_KINDS; i++) {
+        jobs.push_back({ &pedestrianBodies[i], std::string("models/pedestrians/body_") + PEDESTRIAN_KIND_NAMES[i] + ".obj" });
+    }
     for (int i = 0; i < FLAG_KINDS; i++) {
         jobs.push_back({ &flagModels[i], std::string("models/flags/flag_") + FLAG_NAMES[i] + ".obj" });
     }
@@ -322,6 +334,7 @@ void initModels() {
     loadWalks("models/pedestrians/walks.txt");
     initPedestrians();
     detailObjectBounds = detailObjects.GetMeshBounds();
+
     detailDecalBounds = detailDecals.GetMeshBounds();
 }
 
@@ -618,7 +631,8 @@ glm::mat4 carMatrix(const Car& car) {
 // ==============================================================================================================
 
 bool pedestriansEnabled = true;
-gps::Model3D pedestrianBody, pedestrianLeg, pedestrianArm;
+const char* PEDESTRIAN_KIND_NAMES[PEDESTRIAN_KINDS] = { "man", "man_old", "man_cap", "woman", "woman_bun", "babushka" };
+gps::Model3D pedestrianBodies[PEDESTRIAN_KINDS], pedestrianThigh, pedestrianShin, pedestrianArm;
 std::vector<Walk> walks;
 std::vector<Pedestrian> pedestrians;
 static std::mt19937 pedestrianRng(11);
@@ -659,6 +673,8 @@ void initPedestrians() {
         { 160, 150, 140 }, { 35, 35, 38 }, { 110, 90, 50 }, { 130, 60, 80 }, { 80, 100, 90 }, { 180, 170, 150 } };
     static const unsigned char trousers[][3] = {
         { 30, 32, 40 }, { 45, 45, 48 }, { 60, 50, 40 }, { 25, 25, 27 }, { 70, 72, 78 }, { 40, 45, 70 } };
+    // under a dress or a coat: stockings
+    static const unsigned char stockings[][3] = { { 200, 160, 135 }, { 185, 150, 125 }, { 40, 36, 36 }, { 70, 60, 55 } };
     auto linear = [](const unsigned char* c) { return glm::pow(glm::vec3(c[0], c[1], c[2]) / 255.0f, glm::vec3(2.2f)); };
     std::vector<float> weights;
     for (const Walk& w : walks) weights.push_back(w.length);
@@ -675,7 +691,11 @@ void initPedestrians() {
         p.pause = 0.0f;
         p.scale = 0.9f + 0.18f * unit(pedestrianRng);
         p.coat = linear(coats[pedestrianRng() % (sizeof(coats) / sizeof(coats[0]))]);
-        p.trousers = linear(trousers[pedestrianRng() % (sizeof(trousers) / sizeof(trousers[0]))]);
+        p.kind = (int)(pedestrianRng() % PEDESTRIAN_KINDS);
+        bool woman = p.kind >= 3;
+        p.trousers = woman ? linear(stockings[pedestrianRng() % (sizeof(stockings) / sizeof(stockings[0]))])
+                           : linear(trousers[pedestrianRng() % (sizeof(trousers) / sizeof(trousers[0]))]);
+        if (woman) p.scale *= 0.95f;
         pedestrians.push_back(p);
     }
 }
@@ -713,8 +733,8 @@ PedestrianPose pedestrianPose(const Pedestrian& p) {
     position += side * p.side;
     // the steps: the legs swing, the arms the other way; standing: still
     float moving = p.pause > 0.0f ? 0.0f : 1.0f;
-    float swing = glm::radians(24.0f) * sin(p.phase) * moving;
-    position.y += 0.025f * fabs(cos(p.phase)) * moving;   // a little up at each step
+    float swing = glm::radians(22.0f) * sin(p.phase) * moving;
+    position.y += 0.02f * fabs(cos(p.phase)) * moving;   // a little up at each step
     glm::mat4 m(1.0f);
     m[0] = glm::vec4(forward, 0.0f);
     m[1] = glm::vec4(0.0f, 1.0f, 0.0f, 0.0f);
@@ -722,12 +742,19 @@ PedestrianPose pedestrianPose(const Pedestrian& p) {
     m[3] = glm::vec4(position, 1.0f);
     m = glm::scale(m, glm::vec3(p.scale));
     PedestrianPose pose;
-    pose.body = m;
     const glm::vec3 z(0.0f, 0.0f, 1.0f);
+    pose.body = glm::rotate(m, glm::radians(-2.5f) * moving, z);   // leaning forward a little as one walks
+    // the joints (tools/pedestrians.py): the hips, the knees 0.44 m lower, the shoulders
     for (int k = 0; k < 2; k++) {
         float sign = k == 0 ? 1.0f : -1.0f;
-        pose.legs[k] = glm::rotate(glm::translate(m, glm::vec3(0.0f, 0.9f, sign * 0.1f)), sign * swing, z);
-        pose.arms[k] = glm::rotate(glm::translate(m, glm::vec3(0.0f, 1.43f, sign * 0.235f)), -0.8f * sign * swing, z);
+        float hip = sign * swing;
+        // the knee bends while the leg swings forward (the foot off the ground), nearly straight while it carries
+        float forward = glm::max(0.0f, sign * (float)cos(p.phase)) * moving;
+        float knee = glm::radians(4.0f + 50.0f * forward * forward);
+        pose.thighs[k] = glm::rotate(glm::translate(m, glm::vec3(0.0f, 0.92f, sign * 0.095f)), hip, z);
+        pose.shins[k] = glm::rotate(glm::translate(pose.thighs[k], glm::vec3(0.0f, -0.44f, 0.0f)), -knee, z);
+        pose.arms[k] = glm::rotate(glm::rotate(glm::translate(pose.body, glm::vec3(0.0f, 1.42f, sign * 0.2f)),
+                                               -0.9f * hip, z), glm::radians(-6.0f) * sign, glm::vec3(1, 0, 0));
     }
     return pose;
 }

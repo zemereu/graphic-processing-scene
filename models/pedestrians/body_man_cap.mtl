@@ -1,0 +1,48 @@
+newmtl Cap
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.05 0.05 0.05
+Ns 8
+map_Kd cap.png
+map_Ks spec.png
+
+newmtl CoatPaint
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.05 0.05 0.05
+Ns 8
+map_Kd white.png
+map_Ks spec.png
+
+newmtl Eyes
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.05 0.05 0.05
+Ns 8
+map_Kd eyes.png
+map_Ks spec.png
+
+newmtl HairDark
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.05 0.05 0.05
+Ns 8
+map_Kd hair_dark.png
+map_Ks spec.png
+
+newmtl Lips
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.05 0.05 0.05
+Ns 8
+map_Kd lips.png
+map_Ks spec.png
+
+newmtl Skin
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.05 0.05 0.05
+Ns 8
+map_Kd skin.png
+map_Ks spec.png
+

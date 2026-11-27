@@ -20,6 +20,8 @@
 #include <fstream>
 #include <sstream>
 #include <iostream>
+#include <string>
+#include <unordered_map>
 
 
 namespace gps {
@@ -30,6 +32,8 @@ namespace gps {
         GLuint shaderProgram;
         void loadShader(std::string vertexShaderFileName, std::string fragmentShaderFileName);
         void useShaderProgram();
+        // glGetUniformLocation, looked up once per program and name, then remembered (the lookup by name is slow)
+        static GLint location(GLuint program, const std::string& name);
     
     private:
         std::string readShaderFile(std::string fileName);

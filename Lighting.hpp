@@ -118,7 +118,7 @@ extern GLuint spotShadowFBO, spotShadowTexture;
 extern glm::mat4 spotLightSpaceMatrices[4];   // max 4 spot lights, see basic.frag
 
 void initShadowMap();
-void computeLightSpaceMatrices();   // the orthographic projection of each cascade
+void computeLightSpaceMatrices(bool farToo = true);   // the orthographic projection of each cascade (farToo: the last one too)
 void renderShadowMap();       // pass 1: the scene from the sun / moon, depth only, once per cascade
 void renderSpotShadowMaps();  // pass 1b: the scene from each floodlight (at night)
 void bindShadowMaps();        // the shadow maps and their matrices, for the main shader

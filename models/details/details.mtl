@@ -206,6 +206,42 @@ illum 2
 map_Kd kiosk_sign.jpg
 map_Ks ../city/spec_low.jpg
 
+newmtl ACBox0
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd ac_box/./acbox0.jpg
+map_Ks ../city/spec_low.jpg
+
+newmtl PanelGrey
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd ../city/panel_grey.jpg
+map_Ks ../city/spec_low.jpg
+
+newmtl ACWall0
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd ac_wall/./acwall0.jpg
+map_Ks ../city/spec_low.jpg
+
+newmtl PaintOchre
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.5 0.5 0.5
+illum 2
+map_Kd ../city/paint_ochre.jpg
+map_Ks ../city/spec_low.jpg
+
 newmtl MetalGarage0
 Ns 16
 Ka 1 1 1
