@@ -1,5 +1,20 @@
+# models and sounds: binary (no diffs, no line endings changed)
 *.obj binary
 *.mtl binary
+*.wav binary
+*.mp3 binary
+
+# third-party libraries: not counted in GitHub's language stats, no diffs
+miniaudio.h -diff linguist-vendored
+miniaudio.cpp linguist-vendored
 stb_image.h -diff linguist-vendored
+stb_image.cpp linguist-vendored
 tiny_obj_loader.h -diff linguist-vendored
+tiny_obj_loader.cpp linguist-vendored
 imgui/** linguist-vendored -diff
+
+# generated data (the tools' output, placements, paths): not code
+models/** linguist-generated
+
+# the project's own headers are C++, not C
+*.h linguist-language=C++
