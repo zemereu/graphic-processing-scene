@@ -19,6 +19,7 @@ uniform bool autoExposure;
 uniform sampler2D adaptedTexture;  // 1x1: the adapted average log luminance
 uniform float exposureKey;         // the average luminance the image is brought to
 uniform vec2 exposureLimits;
+uniform float fade;                // the tours' fades: 0 = the image, 1 = black
 
 // tone mapping: HDR -> [0, 1] with a filmic curve (ACES, fitted by K. Narkowicz): the highlights roll off smoothly
 // instead of being clipped flat, the dark tones get a little more contrast
@@ -39,5 +40,6 @@ void main()
         float averageLuminance = exp(texelFetch(adaptedTexture, ivec2(0), 0).r);
         e = clamp(exposureKey / averageLuminance, exposureLimits.x, exposureLimits.y);
     }
-    fColor = vec4(acesFilm(hdr * e), 1.0f);
+    // (the framebuffer is sRGB: the power makes the fade even to the eye)
+    fColor = vec4(acesFilm(hdr * e) * pow(1.0f - fade, 2.2f), 1.0f);
 }

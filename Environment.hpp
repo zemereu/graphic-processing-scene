@@ -149,3 +149,7 @@ extern bool soundEnabled;
 void initSound();
 void updateSound();   // every frame
 void shutdownSound();
+// the music of the camera tours: sounds/kletka.mp3 (not part of the project: put the song there), fades in when a
+// tour starts, out when it stops; the other sounds are quieter meanwhile. No file: the tours run without music.
+void startTourMusic();
+void stopTourMusic();

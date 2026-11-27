@@ -2,6 +2,7 @@
 #include "Renderer.hpp"
 #include "Lighting.hpp"
 #include "Environment.hpp"
+#include "Controls.hpp"
 
 #include <random>
 
@@ -348,6 +349,7 @@ void renderScreenQuad() {
     glUniform1f(glGetUniformLocation(program, "godRaysStrength"), godRaysIntensity > 0.0f ? GOD_RAYS_STRENGTH : 0.0f);
     glUniform1f(glGetUniformLocation(program, "ssaoStrength"), (active && ssaoEnabled) ? SSAO_STRENGTH : 0.0f);
     glUniform1f(glGetUniformLocation(program, "exposure"), EXPOSURE);
+    glUniform1f(glGetUniformLocation(program, "fade"), screenFade);
     drawFullscreen();
     glEnable(GL_DEPTH_TEST);
     applyViewMode();

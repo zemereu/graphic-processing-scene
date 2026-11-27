@@ -643,6 +643,12 @@ static bool thunderReady = false;
 static float thunderDelay = -1.0f;    // seconds after the flash; < 0: no thunder coming
 static float lastSinceStrike = 1000.0f;
 static std::mt19937 soundRng(3);
+static const char* MUSIC_FILE = "sounds/kletka.mp3";
+const float MUSIC_VOLUME = 0.8f;
+static ma_sound music;
+static int musicState = 0;      // 0: not loaded yet, 1: loaded, -1: no file
+static bool musicOn = false;    // a tour is running
+static float ambientScale = 1.0f;
 
 void initSound() {
     if (ma_engine_init(NULL, &audioEngine) != MA_SUCCESS) {
@@ -678,9 +684,10 @@ void updateSound() {
     target[SOUND_BIRDS] = (birdsEnabled && !falling) ? 0.5f * glm::smoothstep(0.4f, 0.9f, dayFactor) : 0.0f;
     target[SOUND_CRICKETS] = (!falling && snowCover < 0.1f) ? 0.35f * (1.0f - glm::smoothstep(0.1f, 0.5f, dayFactor)) : 0.0f;
     float k = 1.0f - exp(-1.5f * glm::min(deltaTime, 0.1f));   // they fade in / out in about a second
+    ambientScale += ((musicOn && musicState > 0 ? 0.35f : 1.0f) - ambientScale) * k;   // quieter under the music
     for (int i = 0; i < SOUND_LOOPS; i++) {
         if (!loopReady[i]) continue;
-        loopVolume[i] += (target[i] - loopVolume[i]) * k;
+        loopVolume[i] += (target[i] * ambientScale - loopVolume[i]) * k;
         ma_sound_set_volume(&loops[i], loopVolume[i]);
     }
     if (loopReady[SOUND_WIND]) ma_sound_set_pitch(&loops[SOUND_WIND], 0.85f + windSpeed / 50.0f);
@@ -697,8 +704,31 @@ void updateSound() {
     }
 }
 
+void startTourMusic() {
+    musicOn = true;
+    if (!audioReady) return;
+    if (musicState == 0) {   // loaded the first time it's needed, streamed from the file
+        musicState = ma_sound_init_from_file(&audioEngine, MUSIC_FILE, MA_SOUND_FLAG_STREAM, NULL, NULL, &music)
+            == MA_SUCCESS ? 1 : -1;
+        if (musicState < 0) std::cerr << "No " << MUSIC_FILE << ": the tour runs without music" << std::endl;
+        else ma_sound_set_looping(&music, MA_TRUE);
+    }
+    if (musicState < 0) return;
+    ma_sound_stop(&music);
+    ma_sound_reset_stop_time_and_fade(&music);
+    ma_sound_seek_to_pcm_frame(&music, 0);
+    ma_sound_set_fade_in_milliseconds(&music, 0.0f, MUSIC_VOLUME, 1500);
+    ma_sound_start(&music);
+}
+
+void stopTourMusic() {
+    musicOn = false;
+    if (musicState > 0 && ma_sound_is_playing(&music)) ma_sound_stop_with_fade_in_milliseconds(&music, 2000);
+}
+
 void shutdownSound() {
     if (!audioReady) return;
+    if (musicState > 0) ma_sound_uninit(&music);
     for (int i = 0; i < SOUND_LOOPS; i++) if (loopReady[i]) ma_sound_uninit(&loops[i]);
     if (thunderReady) ma_sound_uninit(&thunderSound);
     ma_engine_uninit(&audioEngine);

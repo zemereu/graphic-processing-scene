@@ -79,7 +79,8 @@ void keyboardCallback(GLFWwindow* window, int key, int scancode, int action, int
             antialiasingEnabled = !antialiasingEnabled;
             createSceneFramebuffers(sceneWidth, sceneHeight);
         }
-        if (key == GLFW_KEY_T) { if (tourActive) stopTour(); else startTour(); }
+        if (key == GLFW_KEY_T) { if (tourActive) stopTour(); else startTour(false); }
+        if (key == GLFW_KEY_Y) { if (tourActive) stopTour(); else startTour(true); }
         if (key == GLFW_KEY_G) {
             graphicsQuality = (graphicsQuality + 2) % 3;   // high -> medium -> low -> high
             applyGraphicsQuality();
@@ -339,50 +340,75 @@ struct TourKey {
     glm::vec3 target;   // point the camera looks at
 };
 const std::vector<TourKey> TOUR = {
-    {{100.0f, 40.0f, 990.0f}, {100.0f, 8.0f, 700.0f}},  // from the road coming in from the south, the roundabout ahead
+    {{100.0f, 45.0f, 990.0f}, {100.0f, 8.0f, 700.0f}},  // from the road coming in from the south, the roundabout ahead
     {{100.0f, 16.0f, 738.0f}, {100.0f, 12.0f, 660.0f}},  // the monument in the middle of the roundabout
     {{152.0f, 15.0f, 684.0f}, {100.0f, 14.0f, 660.0f}},  // around the roundabout: the curved streets
     {{100.0f, 14.0f, 612.0f}, {100.0f, 12.0f, 300.0f}},  // down the boulevard
     {{128.0f, 20.0f, 330.0f}, {200.0f, 40.0f, 280.0f}},  // Romanita in its park
-    {{132.0f, 9.0f, 214.0f}, {0.0f, 35.0f, 70.0f}},  // the crossing with the highway, the Administrative Palace
-    {{-30.0f, 6.0f, 150.0f}, {0.0f, 60.0f, 60.0f}},  // look up at the palace from its plaza
+    {{132.0f, 12.0f, 214.0f}, {0.0f, 35.0f, 70.0f}},  // the crossing with the highway, the Administrative Palace
+    {{-30.0f, 8.0f, 150.0f}, {0.0f, 60.0f, 60.0f}},  // look up at the palace from its plaza
     {{92.0f, 10.0f, 118.0f}, {70.0f, 6.0f, 30.0f}},  // along the boulevard, past the palace
     {{62.0f, 9.0f, 24.0f}, {-60.0f, 3.0f, -40.0f}},  // on the quay: the river, the footbridge
-    {{-100.0f, 10.0f, 8.0f}, {-170.0f, 10.0f, 140.0f}},  // along the promenade
-    {{-118.0f, 15.0f, 214.0f}, {-170.0f, 10.0f, 140.0f}},  // Palatul Telefoanelor
-    {{-185.0f, 12.0f, 110.0f}, {-240.0f, 2.0f, 90.0f}},  // down into a yard: its squares, the playgrounds, the trees
-    {{-215.0f, 22.0f, 175.0f}, {-300.0f, 6.0f, 196.0f}},  // over the new block, out to the highway
+    {{-100.0f, 10.0f, 8.0f}, {-170.0f, 15.0f, 140.0f}},  // along the promenade, Palatul Telefoanelor ahead
+    {{-118.0f, 16.0f, 92.0f}, {-170.0f, 24.0f, 140.0f}},  // past it, on its south side
+    {{-190.0f, 12.0f, 104.0f}, {-240.0f, 2.0f, 90.0f}},  // down into a yard: its squares, the playgrounds, the trees
+    {{-222.0f, 22.0f, 172.0f}, {-300.0f, 6.0f, 196.0f}},  // over the new block, out to the highway
     {{-300.0f, 10.0f, 196.0f}, {-420.0f, 40.0f, 196.0f}},  // west along the highway, the Genex gate
     {{-470.0f, 7.0f, 196.0f}, {-640.0f, 10.0f, 230.0f}},  // the checkpoint, into the exclusion zone
     {{-590.0f, 30.0f, 390.0f}, {-690.0f, 15.0f, 300.0f}},  // Pripyat and the Ferris wheel
-    {{-650.0f, 60.0f, 190.0f}, {-780.0f, 30.0f, 70.0f}},  // the power plant
+    {{-650.0f, 60.0f, 195.0f}, {-780.0f, 30.0f, 70.0f}},  // the power plant
     {{-575.0f, 9.0f, 168.0f}, {-552.0f, 2.0f, 138.0f}},  // low along its fence: the gate, the abandoned trucks
-    {{-560.0f, 30.0f, 60.0f}, {-560.0f, 20.0f, -100.0f}},  // the power line to the north
+    {{-468.0f, 34.0f, 122.0f}, {-580.0f, 45.0f, 55.0f}},  // round its east end, past the cooling tower
+    {{-470.0f, 44.0f, -20.0f}, {-560.0f, 25.0f, -130.0f}},  // the power line to the north
     {{-680.0f, 75.0f, -150.0f}, {-700.0f, 60.0f, -330.0f}},  // over the river, the Duga radar
     {{-350.0f, 60.0f, -360.0f}, {-100.0f, 20.0f, -340.0f}},  // along the north bank, to the foot of the mountain
     {{-100.0f, 16.0f, -322.0f}, {-88.0f, 6.0f, -390.0f}},  // the road up to Hotel Panorama
     {{-120.0f, 24.0f, -395.0f}, {-190.0f, 20.0f, -455.0f}},  // climbing, westwards
     {{-215.0f, 38.0f, -450.0f}, {-300.0f, 34.0f, -490.0f}},
     {{-310.0f, 50.0f, -495.0f}, {-335.0f, 45.0f, -560.0f}},  // to the hairpin
-    {{-345.0f, 64.0f, -560.0f}, {-260.0f, 58.0f, -540.0f}},  // round it
-    {{-240.0f, 74.0f, -545.0f}, {-150.0f, 72.0f, -560.0f}},  // the last stretch
+    {{-345.0f, 66.0f, -560.0f}, {-260.0f, 60.0f, -540.0f}},  // round it
+    {{-240.0f, 77.0f, -545.0f}, {-150.0f, 72.0f, -560.0f}},  // the last stretch
     {{-175.0f, 86.0f, -555.0f}, {-100.0f, 80.0f, -515.0f}},  // Hotel Panorama, its car park
     {{-120.0f, 130.0f, -450.0f}, {100.0f, 40.0f, -300.0f}},  // up over the hotel
     {{80.0f, 60.0f, -300.0f}, {300.0f, 20.0f, -150.0f}},  // down over the north district, towards the Motherland
-    {{290.0f, 6.0f, -150.0f}, {404.0f, 38.0f, -150.0f}},  // at the foot of the stairs
-    {{360.0f, 32.0f, -150.0f}, {450.0f, 70.0f, -150.0f}},  // up the stairs, Motherland Calls ahead
-    {{405.0f, 42.0f, -150.0f}, {450.0f, 62.0f, -150.0f}},  // at the top
-    {{432.0f, 39.5f, -76.0f}, {450.0f, 35.5f, -92.0f}},  // the eternal flame, the wreaths
-    {{560.0f, 70.0f, 40.0f}, {520.0f, 20.0f, 400.0f}},  // back over the river, down the curved avenue in the east
-    {{610.0f, 50.0f, 420.0f}, {470.0f, 10.0f, 640.0f}},  // over the eastern housing estate
-    {{420.0f, 42.0f, 900.0f}, {100.0f, 15.0f, 700.0f}},  // the new southern district, back towards the roundabout
-    {{100.0f, 40.0f, 990.0f}, {100.0f, 8.0f, 700.0f}},  // back to the start
+    {{230.0f, 24.0f, -158.0f}, {404.0f, 38.0f, -150.0f}},
+    {{292.0f, 9.0f, -150.0f}, {404.0f, 38.0f, -150.0f}},  // at the foot of the stairs
+    {{360.0f, 33.0f, -150.0f}, {450.0f, 70.0f, -150.0f}},  // up the stairs, Motherland Calls ahead
+    {{400.0f, 46.0f, -150.0f}, {450.0f, 65.0f, -150.0f}},  // at the top
+    {{360.0f, 60.0f, -138.0f}, {450.0f, 80.0f, -150.0f}},  // back and up: the whole statue
+    {{300.0f, 62.0f, -128.0f}, {450.0f, 84.0f, -150.0f}},
+    {{296.0f, 62.0f, -127.0f}, {450.0f, 84.0f, -150.0f}},  // (held)
 };
+
+// the landmarks tour: still shots (the camera drifts a little from `from` to `to`, looking at `target`), one after
+// the other, through black (fade out, a cut, fade in)
+struct TourShot {
+    glm::vec3 from, to;
+    glm::vec3 target;
+};
+const std::vector<TourShot> SHOTS = {
+    {{38.0f, 18.0f, 238.0f}, {30.0f, 19.0f, 232.0f}, {0.0f, 50.0f, 100.0f}},  // the Administrative Palace
+    {{108.0f, 30.0f, 362.0f}, {116.0f, 31.0f, 366.0f}, {200.0f, 42.0f, 280.0f}},  // Romanita
+    {{200.0f, 5.0f, 195.0f}, {210.0f, 5.0f, 192.0f}, {200.0f, 12.0f, 130.0f}},  // the House of Culture
+    {{-112.0f, 6.0f, 722.0f}, {-116.0f, 7.0f, 727.0f}, {-160.0f, 15.0f, 764.0f}},  // the church
+    {{-205.0f, 5.0f, 192.0f}, {-198.0f, 5.0f, 196.0f}, {-170.0f, 20.0f, 140.0f}},  // Palatul Telefoanelor
+    {{-385.0f, 10.0f, 330.0f}, {-395.0f, 11.0f, 332.0f}, {-420.0f, 60.0f, 220.0f}},  // the Genex tower
+    {{-620.0f, 6.0f, 372.0f}, {-628.0f, 6.0f, 368.0f}, {-640.0f, 12.0f, 320.0f}},  // Pripyat, the Ferris wheel
+    {{-560.0f, 14.0f, 230.0f}, {-575.0f, 14.0f, 228.0f}, {-720.0f, 30.0f, 70.0f}},  // the power plant
+    {{-628.0f, 14.0f, -186.0f}, {-640.0f, 14.0f, -192.0f}, {-700.0f, 70.0f, -330.0f}},  // the Duga radar
+    {{-45.0f, 95.0f, -450.0f}, {-52.0f, 96.0f, -456.0f}, {-100.0f, 90.0f, -520.0f}},  // Hotel Panorama on the mountain
+    {{305.0f, 58.0f, -128.0f}, {298.0f, 60.0f, -127.0f}, {450.0f, 84.0f, -150.0f}},  // Motherland Calls
+};
+const float SHOT_DURATION = 7.0f;     // seconds per shot
+const float FADE_TIME = 1.0f;         // seconds of fading at each end of a shot (and at the start of the flight)
 const float TOUR_SPEED = 35.0f;       // meters per second along the path
 const float TOUR_MIN_SEGMENT = 3.0f;  // seconds, so short segments are not rushed
 std::vector<float> tourKeyTimes;      // time at which the camera reaches each key point
 bool tourActive = false;
+bool shotsTour = false;               // the landmarks tour (still shots), not the flight
 float tourTime = 0.0f;
+float screenFade = 0.0f;              // 0: the image as it is, 1: black (PostProcess: renderScreenQuad)
+static int currentShot = -1;
 
 // Catmull-Rom spline: passes through p1 (t = 0) and p2 (t = 1), p0 and p3 shape the curve
 glm::vec3 catmullRom(const glm::vec3& p0, const glm::vec3& p1, const glm::vec3& p2, const glm::vec3& p3, float t) {
@@ -401,13 +427,23 @@ void initTour() {
 }
 
 
-void startTour() {
+float tourLength() {
+    return shotsTour ? SHOT_DURATION * (float)SHOTS.size() : tourKeyTimes.back();
+}
+
+void startTour(bool shots) {
     tourActive = true;
+    shotsTour = shots;
     tourTime = 0.0f;
+    currentShot = -1;
+    exposureSnap = true;
+    startTourMusic();
 }
 
 void stopTour() {
     tourActive = false;
+    screenFade = 0.0f;
+    stopTourMusic();
     // continue with mouse/keyboard from where the tour left the camera, without a jump
     glm::vec3 front = myCamera.getFrontDirection();
     yaw = glm::degrees(atan2(front.z, front.x));
@@ -415,10 +451,36 @@ void stopTour() {
     firstMouse = true;
 }
 
+void updateShots() {
+    int i = (int)(tourTime / SHOT_DURATION);
+    if (i >= (int)SHOTS.size()) {
+        stopTour();
+        return;
+    }
+    if (i != currentShot) {       // a cut: the exposure starts again from this view, not from the last one
+        currentShot = i;
+        exposureSnap = true;
+    }
+    float local = tourTime - i * SHOT_DURATION;
+    float u = local / SHOT_DURATION;
+    const TourShot& shot = SHOTS[i];
+    myCamera.setLookAt(glm::mix(shot.from, shot.to, u), shot.target);
+    uploadView();
+    // black at both ends of each shot (the last one stays on screen)
+    float fadeIn = glm::clamp(local / FADE_TIME, 0.0f, 1.0f);
+    float fadeOut = i + 1 < (int)SHOTS.size() ? glm::clamp((SHOT_DURATION - local) / FADE_TIME, 0.0f, 1.0f) : 1.0f;
+    screenFade = 1.0f - glm::smoothstep(0.0f, 1.0f, glm::min(fadeIn, fadeOut));
+}
+
 void updateTour() {
     if (!tourActive) return;
 
     tourTime += deltaTime;
+    if (shotsTour) {
+        updateShots();
+        return;
+    }
+    screenFade = 1.0f - glm::smoothstep(0.0f, 1.0f, glm::clamp(tourTime / FADE_TIME, 0.0f, 1.0f));
     if (tourTime >= tourKeyTimes.back()) {
         myCamera.setLookAt(TOUR.back().position, TOUR.back().target);
         uploadView();
@@ -553,12 +615,14 @@ void renderUI() {
 
         ImGui::Separator();
         if (tourActive) {
-            ImGui::ProgressBar(tourTime / tourKeyTimes.back(), ImVec2(200.0f, 0.0f));
+            ImGui::ProgressBar(tourTime / tourLength(), ImVec2(200.0f, 0.0f));
             ImGui::SameLine();
             if (ImGui::Button("Stop tour")) stopTour();
         }
-        else if (ImGui::Button("Start tour")) {
-            startTour();
+        else {
+            if (ImGui::Button("Start tour")) startTour(false);
+            ImGui::SameLine();
+            if (ImGui::Button("Landmarks")) startTour(true);
         }
         ImGui::SameLine();
         if (ImGui::Button("Reset building")) resetTelefoane();
@@ -587,6 +651,7 @@ void renderUI() {
                 keyRow("B", "Antialiasing on / off");
                 keyRow("V", "Traffic on / off");
                 keyRow("T", "Start / stop camera tour");
+                keyRow("Y", "Start / stop landmarks tour");
                 keyRow("H", "Hide / show this panel");
                 keyRow("Esc", "Exit");
                 ImGui::EndTable();

@@ -40,12 +40,17 @@ void moveCamera(gps::MOVE_DIRECTION direction, float distance);
 // Camera tour: the camera follows a smooth path (Catmull-Rom spline) through key points, at a roughly constant speed.
 // ==============================================================================================================
 
+// The landmarks tour: still shots of the landmarks, from one to the next through black (fade out, cut, fade in).
+// Both play sounds/kletka.mp3 (if it's there) while they run.
 extern bool tourActive;
+extern bool shotsTour;        // the landmarks tour is the one running
 extern float tourTime;
+extern float screenFade;      // 0: the image as it is, 1: black
 extern std::vector<float> tourKeyTimes;   // time at which the camera reaches each key point
 
 void initTour();
-void startTour();
+void startTour(bool shots);   // shots: the landmarks tour; else the flight
+float tourLength();           // seconds
 void stopTour();
 void updateTour();
 

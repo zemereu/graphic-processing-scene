@@ -1151,3 +1151,66 @@ Kd 1 1 1
 Ks 0.3 0.3 0.3
 illum 2
 map_Kd city_signs_back.png
+
+newmtl MosaicCinema
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.2 0.2 0.2
+illum 2
+map_Kd mosaic_cinema.jpg
+map_Ks spec_low.jpg
+
+newmtl MosaicUniv
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.2 0.2 0.2
+illum 2
+map_Kd mosaic_univ.jpg
+map_Ks spec_low.jpg
+
+newmtl MosaicKids
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.2 0.2 0.2
+illum 2
+map_Kd mosaic_kids.jpg
+map_Ks spec_low.jpg
+
+newmtl ChurchWall
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.2 0.2 0.2
+illum 2
+map_Kd church_wall.jpg
+map_Ks spec_low.jpg
+
+newmtl DomeBlue
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.2 0.2 0.2
+illum 2
+map_Kd dome_blue.jpg
+map_Ks spec_low.jpg
+
+newmtl Clock
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.2 0.2 0.2
+illum 2
+map_Kd clock.jpg
+map_Ks spec_low.jpg
+
+newmtl Paving
+Ns 16
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.2 0.2 0.2
+illum 2
+map_Kd p_square_diff.jpg
+map_Ks spec_low.jpg
