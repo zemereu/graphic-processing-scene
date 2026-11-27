@@ -5,6 +5,7 @@
 #include "Controls.hpp"
 
 #include <random>
+#include <cmath>
 
 bool bloomEnabled = true, godRaysEnabled = true, ssaoEnabled = true, lightBeamsEnabled = true, autoExposureEnabled = true;
 gps::Shader bloomShader, godRaysShader, ssaoShader, volumetricShader, exposureShader;
@@ -13,6 +14,7 @@ GLuint luminanceFBO = 0, luminanceTexture = 0;
 GLuint adaptedFBO[2] = { 0, 0 }, adaptedTexture[2] = { 0, 0 };   // 1x1, ping-pong: last frame / this frame
 int adaptedCurrent = 0;
 bool exposureSnap = true;
+float gloomFilter = 0.0f;
 bool lightBeamsDrawn = false;   // this frame
 GLuint bloomFBO[2] = { 0, 0 }, bloomTexture[2] = { 0, 0 };   // ping-pong for the blur
 GLuint godRaysFBO = 0, godRaysTexture = 0;
@@ -350,6 +352,8 @@ void renderScreenQuad() {
     glUniform1f(glGetUniformLocation(program, "ssaoStrength"), (active && ssaoEnabled) ? SSAO_STRENGTH : 0.0f);
     glUniform1f(glGetUniformLocation(program, "exposure"), EXPOSURE);
     glUniform1f(glGetUniformLocation(program, "fade"), screenFade);
+    glUniform1f(glGetUniformLocation(program, "gloom"), gloomFilter);
+    glUniform1f(glGetUniformLocation(program, "grainSeed"), (float)fmod(glfwGetTime() * 7.13, 100.0));
     drawFullscreen();
     glEnable(GL_DEPTH_TEST);
     applyViewMode();

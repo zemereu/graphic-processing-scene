@@ -11,7 +11,8 @@
 #include "App.hpp"
 
 extern bool bloomEnabled, godRaysEnabled, ssaoEnabled, lightBeamsEnabled, autoExposureEnabled;
-extern bool exposureSnap;   // true: the auto exposure jumps to this frame's light (a cut) instead of adapting slowly
+extern bool exposureSnap;
+extern float gloomFilter;   // the "Russian winter" filter (screen.frag): 0 = off, 1 = full   // true: the auto exposure jumps to this frame's light (a cut) instead of adapting slowly
 extern gps::Shader bloomShader, godRaysShader, ssaoShader, volumetricShader, exposureShader;
 
 const float BLOOM_THRESHOLD = 1.0f;

@@ -577,6 +577,31 @@ void renderUI() {
         if (ImGui::Checkbox("Snow", &snow)) setSnow(snow);
         ImGui::SameLine();
         ImGui::Checkbox("Lightning", &lightningEnabled);
+        // the fog's density (exponential squared: at 1 / density meters it hides 63%): from a light haze to a fog
+        // that swallows the next street
+        if (ImGui::SliderFloat("Fog density", &fogDensity, 0.0003f, 0.008f, "%.4f", ImGuiSliderFlags_Logarithmic)) {
+            fogEnabled = true;
+            applyFog();
+        }
+        // the grim winter look (screen.frag): the colors drained, cold, flat, dark corners, grain; "Russian winter"
+        // also brings the snow and a thick fog (off: the fog as it was)
+        ImGui::SliderFloat("Winter filter", &gloomFilter, 0.0f, 1.0f, "%.2f");
+        static bool winter = false;
+        static float fogBefore = fogDensity;
+        if (ImGui::Checkbox("Russian winter", &winter)) {
+            if (winter) {
+                fogBefore = fogDensity;
+                fogDensity = 0.005f;
+                fogEnabled = true;
+                gloomFilter = 1.0f;
+            }
+            else {
+                fogDensity = fogBefore;
+                gloomFilter = 0.0f;
+            }
+            setSnow(winter);
+            applyFog();
+        }
         ImGui::SliderFloat("Wind", &windSpeed, 0.0f, 20.0f, "%.0f m/s");
 
         ImGui::SeparatorText("Scene");
